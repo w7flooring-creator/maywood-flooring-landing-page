@@ -1,0 +1,65 @@
+---
+/**
+ * WhatsAppCta —— 跳转 WhatsApp 对话的深色圆角小 CTA。
+ *
+ * 链接取自 site.ts 单一来源（NAP.whatsappUrl = wa.me/61422709709，见已敲定决策）。
+ * 新标签打开 + rel=noopener。图标为内联 lucide SVG（同 SocialLinks 约定：
+ * 静态页不为图标 hydrate React，零额外 JS）。视觉用品牌 token（--color-cta）。
+ */
+import { NAP } from "@/lib/site";
+
+interface Props {
+  /** 可选 class 透传，便于外层布局微调。 */
+  class?: string;
+}
+
+const { class: className } = Astro.props;
+---
+
+<a
+  class:list={["whatsapp-cta", className]}
+  href={NAP.whatsappUrl}
+  target="_blank"
+  rel="noopener noreferrer"
+>
+  <svg
+    class="whatsapp-cta__icon"
+    width="18"
+    height="18"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="1.8"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    aria-hidden="true"
+    focusable="false"
+  >
+    <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"></path>
+  </svg>
+  <span>Message us on WhatsApp</span>
+</a>
+
+<style>
+  .whatsapp-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.7rem 1.25rem;
+    border-radius: var(--radius-cta);
+    background: var(--color-cta);
+    color: #fff;
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: opacity 150ms ease;
+  }
+  .whatsapp-cta:hover {
+    opacity: 0.85;
+  }
+  .whatsapp-cta__icon {
+    flex-shrink: 0;
+  }
+</style>

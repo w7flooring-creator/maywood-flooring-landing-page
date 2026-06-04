@@ -1,0 +1,55 @@
+---
+/**
+ * /contact —— 联系页（见 AGENTS.md「Contact」页面结构 + issue #17）。
+ *
+ * 结构：Header → Breadcrumbs（Home > Contact）→ 左右分栏（左图叠标题 / 右
+ * ContactForm island）→ "Contact Us"（Address / Contact / Opening Hours）→ Map embed → Footer。
+ *
+ * SEO：唯一 title / meta description（澳洲拼写，自然提及 Keysborough/Melbourne），
+ * canonical 自指（缺省由 BaseLayout 取当前路径）。NAP / 营业时间均来自单一来源。
+ * 纯静态（SSG）；唯一交互件是分栏内的 ContactForm island（client:visible）。
+ */
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import ContactHeroFormSplit from "@/components/ContactHeroFormSplit.astro";
+import ContactInfoColumns from "@/components/ContactInfoColumns.astro";
+import MapEmbed from "@/components/MapEmbed.astro";
+import type { BreadcrumbItem } from "@/lib/seo";
+
+const breadcrumbs: BreadcrumbItem[] = [
+  { name: "Home", url: "/" },
+  { name: "Contact", url: "/contact" },
+];
+
+const seo = {
+  title: "Contact Us",
+  description:
+    "Get in touch with Maywood Flooring — visit our Keysborough showroom in Melbourne, call 03 8753 5522 or send an enquiry. Premium timber, laminate and hybrid flooring for trade, wholesale and homeowners across Victoria.",
+};
+---
+
+<BaseLayout {...seo}>
+  <div class="contact-page">
+    <div class="contact-page__crumbs">
+      <Breadcrumbs items={breadcrumbs} />
+    </div>
+
+    <ContactHeroFormSplit
+      title="Get in Touch"
+      eyebrow="Contact"
+      intro="Tell us about your project and our team will be in touch. Prefer to talk it through? Call, email or message us on WhatsApp."
+    />
+
+    <ContactInfoColumns />
+
+    <MapEmbed />
+  </div>
+</BaseLayout>
+
+<style>
+  .contact-page__crumbs {
+    max-width: 80rem;
+    margin-inline: auto;
+    padding: 1.25rem clamp(1rem, 4vw, 2.5rem) 0;
+  }
+</style>

@@ -1,0 +1,145 @@
+---
+/**
+ * ContactHeroFormSplit —— Contact 页顶部左右分栏（见 AGENTS.md「Contact」页面结构）。
+ *
+ * 左：图叠标题（H1）。右：ContactForm island（react-hook-form + zod）。
+ * 桌面并排，移动端堆叠（表单在视觉下方但 DOM 顺序保持「标题 → 表单」语义）。
+ *
+ * 图片处理遵循规范：生产禁止热链 Wix。未提供 image 时左栏降级为 muted 面板叠标题
+ * （绝不放破图 / 占位 lorem），与 CollectionHero 无图回落同语言；将来下载原图入
+ * Sanity / public 后传 image 即生效。本组件本身静态，仅 ContactForm 是 island。
+ */
+import ContactForm from "@/components/ContactForm.tsx";
+
+interface Props {
+  /** H1 标题。 */
+  title: string;
+  /** 标题上方小字 eyebrow（可选）。 */
+  eyebrow?: string | null;
+  /** 表单上方引导文案（可选）。 */
+  intro?: string | null;
+  /** 左栏背景图（可选）；缺省降级为 muted 面板。 */
+  image?: { url: string; alt: string } | null;
+}
+
+const { title, eyebrow = null, intro = null, image = null } = Astro.props;
+const hasImage = image !== null;
+---
+
+<section class="contact-split">
+  <div
+    class:list={[
+      "contact-split__media",
+      { "contact-split__media--image": hasImage },
+    ]}
+  >
+    {
+      hasImage && (
+        <img
+          class="contact-split__img"
+          src={image!.url}
+          alt={image!.alt}
+          loading="eager"
+          decoding="async"
+        />
+      )
+    }
+    <div class="contact-split__overlay">
+      {eyebrow && <p class="contact-split__eyebrow">{eyebrow}</p>}
+      <h1 class="contact-split__title">{title}</h1>
+    </div>
+  </div>
+
+  <div class="contact-split__form">
+    <div class="contact-split__form-inner">
+      {intro && <p class="contact-split__intro">{intro}</p>}
+      {/* 唯一交互 island：表单校验 / 提交需浏览器状态，故 client:visible。 */}
+      <ContactForm client:visible />
+    </div>
+  </div>
+</section>
+
+<style>
+  .contact-split {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+  @media (min-width: 60rem) {
+    .contact-split {
+      grid-template-columns: 1fr 1fr;
+      align-items: stretch;
+    }
+  }
+
+  .contact-split__media {
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    min-height: clamp(16rem, 30vw, 28rem);
+    padding: clamp(2rem, 5vw, 4rem);
+    background: var(--color-bg-muted);
+    overflow: hidden;
+  }
+  .contact-split__img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 0;
+  }
+  /* 有图时给标题加底部暗化，保证白字对比；无图时 muted 面板上用墨色标题。 */
+  .contact-split__media--image::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: linear-gradient(
+      to top,
+      rgba(0, 0, 0, 0.55),
+      rgba(0, 0, 0, 0) 60%
+    );
+  }
+  .contact-split__overlay {
+    position: relative;
+    z-index: 2;
+  }
+  .contact-split__media--image .contact-split__eyebrow,
+  .contact-split__media--image .contact-split__title {
+    color: #fff;
+  }
+
+  .contact-split__eyebrow {
+    margin: 0 0 0.75rem;
+    font-size: 0.78rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+  }
+  .contact-split__title {
+    margin: 0;
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-size: clamp(2.25rem, 5vw, 3.75rem);
+    line-height: 1.05;
+    color: var(--color-ink);
+  }
+
+  .contact-split__form {
+    display: flex;
+    align-items: center;
+    background: var(--color-bg);
+    padding: clamp(2.5rem, 6vw, 5rem) clamp(1rem, 4vw, 2.5rem);
+  }
+  .contact-split__form-inner {
+    width: 100%;
+    max-width: 34rem;
+    margin-inline: auto;
+  }
+  .contact-split__intro {
+    margin: 0 0 2rem;
+    font-size: 1rem;
+    line-height: 1.6;
+    color: var(--muted-foreground);
+  }
+</style>
