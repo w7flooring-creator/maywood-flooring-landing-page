@@ -156,7 +156,7 @@ export interface BreadcrumbListJsonLd {
  * 空数组合法（返回空 itemListElement，不抛错）。
  */
 export function buildBreadcrumbListJsonLd(
-  items: BreadcrumbItem[],
+  items: BreadcrumbItem[]
 ): BreadcrumbListJsonLd {
   return {
     "@context": "https://schema.org",

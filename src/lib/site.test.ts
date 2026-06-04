@@ -42,13 +42,13 @@ describe("NAP（Name / Address / Phone — 必须全站一致）", () => {
 describe("absoluteUrl", () => {
   it("把相对路径解析为站点绝对 URL", () => {
     expect(absoluteUrl("/contact")).toBe(
-      "https://www.maywoodflooring.com.au/contact",
+      "https://www.maywoodflooring.com.au/contact"
     );
   });
 
   it("缺前导斜杠也能正确拼接", () => {
     expect(absoluteUrl("contact")).toBe(
-      "https://www.maywoodflooring.com.au/contact",
+      "https://www.maywoodflooring.com.au/contact"
     );
   });
 

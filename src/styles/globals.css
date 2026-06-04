@@ -6,10 +6,10 @@
    起点见 AGENTS.md「视觉方向」；字体待替换为品牌 serif/sans。
    ──────────────────────────────────────────────────────────────── */
 @theme {
-  --color-ink: #000000;        /* 黑色高对比 header/footer */
-  --color-bg: #ffffff;         /* 白 / 近白页面背景 */
-  --color-bg-muted: #f4f2ef;   /* signature collections 等灰背景区 */
-  --color-cta: #1a1a1a;        /* 深色圆角小 CTA 按钮 */
+  --color-ink: #000000; /* 黑色高对比 header/footer */
+  --color-bg: #ffffff; /* 白 / 近白页面背景 */
+  --color-bg-muted: #f4f2ef; /* signature collections 等灰背景区 */
+  --color-cta: #1a1a1a; /* 深色圆角小 CTA 按钮 */
 
   /* 品牌字体（self-host via Fontsource，import 见 BaseLayout）：
      serif=Fraunces（暖、editorial、大标题）；sans=Hanken Grotesk（克制正文） */

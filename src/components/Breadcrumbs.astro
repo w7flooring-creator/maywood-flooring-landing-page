@@ -22,22 +22,24 @@ const lastIndex = items.length - 1;
 
 {
   items.length > 0 && (
-    <nav aria-label="Breadcrumb" class="breadcrumbs">
-      <ol>
-        {items.map((item, index) =>
-          index === lastIndex ? (
-            <li>
-              <span aria-current="page">{item.name}</span>
-            </li>
-          ) : (
-            <li>
-              <a href={item.url}>{item.name}</a>
-            </li>
-          ),
-        )}
-      </ol>
-    </nav>
-    <StructuredData data={jsonLd} />
+    <>
+      <nav aria-label="Breadcrumb" class="breadcrumbs">
+        <ol>
+          {items.map((item, index) =>
+            index === lastIndex ? (
+              <li>
+                <span aria-current="page">{item.name}</span>
+              </li>
+            ) : (
+              <li>
+                <a href={item.url}>{item.name}</a>
+              </li>
+            )
+          )}
+        </ol>
+      </nav>
+      <StructuredData data={jsonLd} />
+    </>
   )
 }
 
