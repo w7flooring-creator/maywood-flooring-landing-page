@@ -1,0 +1,115 @@
+---
+/**
+ * CaseStudyCard —— 案例 / 项目网格里的单个卡片（图 + 标题 + 地点·类型 + 摘要）。
+ *
+ * 颗粒度独立、可复用（issue #21）：项目列表 /projects 与详情页底部「相关项目」、
+ * 未来首页 GalleryFeed 等都可复用。链接到案例详情 /projects/<slug>
+ * （保留 legacy URL，见 ADR-0001）。
+ *
+ *  - 有图：渲染 <img>（lazy，below-the-fold）+ alt（缺 alt 回落到案例名，利无障碍/SEO）。
+ *  - 无图：回落到中性占位块（aria-hidden），不破版、不放 lorem。
+ *  - 地点 / 类型 / 摘要任一缺省则该行不渲染（编辑没填就不显示，绝不占位）。
+ *
+ * 纯静态（零 client JS）。视觉用品牌 token（serif 标题、editorial 留白、hairline 描边）。
+ */
+import type { CaseStudySummary } from "@/lib/case-studies";
+
+interface Props {
+  caseStudy: CaseStudySummary;
+}
+
+const { caseStudy } = Astro.props;
+const hasImage = caseStudy.image !== null;
+const metaParts = [caseStudy.projectType, caseStudy.location].filter(
+  (part): part is string => part !== null
+);
+const href = `/projects/${caseStudy.slug}`;
+---
+
+<article class="case-card">
+  <a class="case-card__link" href={href}>
+    {
+      hasImage ? (
+        <img
+          class="case-card__img"
+          src={caseStudy.image!.url}
+          alt={caseStudy.image!.alt ?? caseStudy.title}
+          loading="lazy"
+          decoding="async"
+        />
+      ) : (
+        <span class="case-card__img case-card__img--empty" aria-hidden="true" />
+      )
+    }
+    <div class="case-card__body">
+      <h3 class="case-card__title">{caseStudy.title}</h3>
+      {
+        metaParts.length > 0 && (
+          <p class="case-card__meta">{metaParts.join(" · ")}</p>
+        )
+      }
+      {
+        caseStudy.summary && (
+          <p class="case-card__summary">{caseStudy.summary}</p>
+        )
+      }
+    </div>
+  </a>
+</article>
+
+<style>
+  .case-card__link {
+    display: block;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .case-card__img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border-hairline, #e5e2dd);
+    border-radius: var(--radius-cta);
+  }
+
+  .case-card__img--empty {
+    background: var(--color-bg-muted);
+  }
+
+  .case-card__body {
+    margin-top: 1rem;
+  }
+
+  .case-card__title {
+    margin: 0;
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-size: clamp(1.2rem, 2.4vw, 1.5rem);
+    line-height: 1.2;
+    color: var(--color-ink);
+  }
+
+  .case-card__link:hover .case-card__title,
+  .case-card__link:focus-visible .case-card__title {
+    text-decoration: underline;
+    text-underline-offset: 0.15em;
+  }
+
+  .case-card__meta {
+    margin: 0.5rem 0 0;
+    font-family: var(--font-sans);
+    font-size: 0.8rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted-foreground, #6b6258);
+  }
+
+  .case-card__summary {
+    margin: 0.75rem 0 0;
+    font-size: 1rem;
+    line-height: 1.6;
+    color: var(--color-ink);
+  }
+</style>
