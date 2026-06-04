@@ -1,0 +1,65 @@
+---
+/**
+ * ProductGrid —— 分类页桌面三列产品网格（移动端自适应回落到单/双列）。
+ *
+ * 消费 CategoryProduct[]，逐个交给 ProductCard 渲染。
+ *  - 有产品：三列网格（auto-fill，最小列宽保证桌面≈3 列、移动端优雅回落）。
+ *  - 无产品：渲染克制的空态文案（不是空网格、不是 lorem）。Phase 1 product
+ *    未灌入 → 恒走空态；产品就绪后网格自动「亮起」，无需改代码。
+ *
+ * 纯静态（零 client JS）。计数由独立的 ProductCount 组件负责（页面层组合）。
+ */
+import type { CategoryProduct } from "@/lib/category-page";
+import ProductCard from "@/components/ProductCard.astro";
+
+interface Props {
+  products: CategoryProduct[];
+  /** 空态文案（产品尚未上线时显示）；可按分类定制。 */
+  emptyMessage?: string;
+}
+
+const {
+  products,
+  emptyMessage = "Products in this range are coming soon. Contact us for current availability.",
+} = Astro.props;
+const hasProducts = products.length > 0;
+---
+
+{
+  hasProducts ? (
+    <ul class="grid" role="list">
+      {products.map((product) => (
+        <li class="grid__item">
+          <ProductCard product={product} />
+        </li>
+      ))}
+    </ul>
+  ) : (
+    <p class="grid__empty">{emptyMessage}</p>
+  )
+}
+
+<style>
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+    gap: 2rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  /* 桌面：约束最大列宽，稳定在三列（呼应 AGENTS.md「桌面三列网格」）。 */
+  @media (min-width: 60rem) {
+    .grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  .grid__empty {
+    margin: 0;
+    font-size: 1rem;
+    line-height: 1.7;
+    color: #555;
+  }
+</style>

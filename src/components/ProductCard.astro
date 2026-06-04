@@ -1,0 +1,75 @@
+---
+/**
+ * ProductCard —— 分类/列表网格中的单个产品卡（图 + 名）。
+ *
+ * 颗粒度独立、可复用（本 wave 由分类页 owner 创建，供 ProductGrid 消费）。
+ * 链接到产品详情 /product-page/<slug>（保留 legacy URL，见 ADR-0001）。
+ *
+ *  - 有图：渲染 <img>（lazy，below-the-fold）+ alt（缺 alt 回落到产品名，利无障碍/SEO）。
+ *  - 无图：回落到中性占位块（aria-hidden），不破版、不放 lorem。
+ *
+ * 纯静态（零 client JS）。视觉用品牌 token（serif 产品名、方形图、hairline 描边）。
+ */
+import type { CategoryProduct } from "@/lib/category-page";
+
+interface Props {
+  product: CategoryProduct;
+}
+
+const { product } = Astro.props;
+const hasImage =
+  typeof product.imageUrl === "string" && product.imageUrl.length > 0;
+---
+
+<article class="card">
+  <a class="card__link" href={`/product-page/${product.slug}`}>
+    {
+      hasImage ? (
+        <img
+          class="card__img"
+          src={product.imageUrl!}
+          alt={product.title}
+          loading="lazy"
+          decoding="async"
+        />
+      ) : (
+        <span class="card__img card__img--empty" aria-hidden="true" />
+      )
+    }
+    <span class="card__name">{product.title}</span>
+  </a>
+</article>
+
+<style>
+  .card__link {
+    display: block;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .card__img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border-hairline, #e5e2dd);
+  }
+
+  .card__img--empty {
+    background: var(--color-bg-muted);
+  }
+
+  .card__name {
+    display: block;
+    margin-top: 0.85rem;
+    font-family: var(--font-serif);
+    font-size: 1.1rem;
+    color: var(--color-ink);
+  }
+
+  .card__link:hover .card__name,
+  .card__link:focus-visible .card__name {
+    text-decoration: underline;
+  }
+</style>
