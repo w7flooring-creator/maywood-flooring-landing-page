@@ -1,0 +1,154 @@
+---
+/**
+ * SampleRequestHero —— /request-sample 页顶部左右分栏（镜像 ContactHeroFormSplit）。
+ *
+ * 左：muted 面板叠标题（H1）+ eyebrow + intro + 联系渠道（phone / email / WhatsApp）。
+ * 右：SampleRequestIsland（react-hook-form + zod）。桌面并排，移动端堆叠，
+ * DOM 顺序保持「标题 → 表单」语义。
+ *
+ * 图片处理遵循规范：生产禁止热链 Wix。未提供 image 时左栏降级为 muted 面板叠标题
+ * （绝不放破图 / 占位），与 ContactHeroFormSplit / CollectionHero 无图回落同语言。
+ * 本组件本身静态，仅 SampleRequestIsland 是 island。
+ */
+import SampleRequestIsland from "@/components/SampleRequestIsland.tsx";
+import WhatsAppCta from "@/components/WhatsAppCta.astro";
+import { NAP } from "@/lib/site";
+
+interface Props {
+  /** H1 标题。 */
+  title: string;
+  /** 标题上方小字 eyebrow（可选）。 */
+  eyebrow?: string | null;
+  /** 表单上方引导文案（可选）。 */
+  intro?: string | null;
+}
+
+const { title, eyebrow = null, intro = null } = Astro.props;
+const telHref = `tel:${NAP.phone.replace(/\s+/g, "")}`;
+const mailHref = `mailto:${NAP.email}`;
+---
+
+<section class="sample-split">
+  <div class="sample-split__media">
+    <div class="sample-split__overlay">
+      {eyebrow && <p class="sample-split__eyebrow">{eyebrow}</p>}
+      <h1 class="sample-split__title">{title}</h1>
+      {intro && <p class="sample-split__intro">{intro}</p>}
+      <ul class="sample-split__channels">
+        <li>
+          <span class="sample-split__channel-label">Call</span>
+          <a href={telHref}>{NAP.phone}</a>
+        </li>
+        <li>
+          <span class="sample-split__channel-label">Email</span>
+          <a href={mailHref}>{NAP.email}</a>
+        </li>
+      </ul>
+      <div class="sample-split__whatsapp">
+        <WhatsAppCta />
+      </div>
+    </div>
+  </div>
+
+  <div class="sample-split__form">
+    <div class="sample-split__form-inner">
+      {/* 唯一交互 island：表单校验 / 提交需浏览器状态，故 client:visible。 */}
+      <SampleRequestIsland client:visible />
+    </div>
+  </div>
+</section>
+
+<style>
+  .sample-split {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+  @media (min-width: 60rem) {
+    .sample-split {
+      grid-template-columns: 1fr 1fr;
+      align-items: stretch;
+    }
+  }
+
+  .sample-split__media {
+    position: relative;
+    display: flex;
+    align-items: center;
+    min-height: clamp(16rem, 30vw, 28rem);
+    padding: clamp(2rem, 5vw, 4rem);
+    background: var(--color-bg-muted);
+    overflow: hidden;
+  }
+  .sample-split__overlay {
+    position: relative;
+    z-index: 2;
+    max-width: 30rem;
+  }
+
+  .sample-split__eyebrow {
+    margin: 0 0 0.75rem;
+    font-size: 0.78rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+  }
+  .sample-split__title {
+    margin: 0;
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-size: clamp(2.25rem, 5vw, 3.75rem);
+    line-height: 1.05;
+    color: var(--color-ink);
+  }
+  .sample-split__intro {
+    margin: 1.5rem 0 0;
+    font-size: 1rem;
+    line-height: 1.6;
+    color: var(--muted-foreground);
+  }
+
+  .sample-split__channels {
+    list-style: none;
+    margin: 2rem 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .sample-split__channels li {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+  }
+  .sample-split__channel-label {
+    flex: 0 0 5rem;
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+  }
+  .sample-split__channels a {
+    color: var(--color-ink);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: border-color 150ms ease;
+  }
+  .sample-split__channels a:hover {
+    border-bottom-color: currentColor;
+  }
+  .sample-split__whatsapp {
+    margin-top: 1.5rem;
+  }
+
+  .sample-split__form {
+    display: flex;
+    align-items: center;
+    background: var(--color-bg);
+    padding: clamp(2.5rem, 6vw, 5rem) clamp(1rem, 4vw, 2.5rem);
+  }
+  .sample-split__form-inner {
+    width: 100%;
+    max-width: 34rem;
+    margin-inline: auto;
+  }
+</style>
