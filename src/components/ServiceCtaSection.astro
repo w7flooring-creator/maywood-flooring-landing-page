@@ -1,0 +1,103 @@
+---
+/**
+ * ServiceCtaSection —— 服务页 / 列表页底部的行动区（CTA 分流，issue #20）。
+ *
+ * Phase 1 无在线预约 / 收款（见已敲定决策）：本区把访客导向正确的询盘渠道——
+ * CTA 落点由 service.ctaType 经 resolveServiceCta 解析（consultation / workshop →
+ * /contact；sample-viewing → /request-sample），避免页面各自判断分流。
+ *
+ * 辅助渠道：phone（tel:）+ WhatsApp，取自 site.ts 单一来源（NAP 全站一致）。
+ * 主 CTA 为深色圆角小按钮（品牌外观），纯静态（零 client JS）。
+ */
+import { resolveServiceCta, type Service } from "@/lib/services";
+import { NAP } from "@/lib/site";
+
+interface Props {
+  /** 用于解析 CTA 落点的服务。 */
+  service: Service;
+  /** CTA 上方引导语（可选）。 */
+  heading?: string;
+}
+
+const { service, heading = "Ready to talk it through?" } = Astro.props;
+const cta = resolveServiceCta(service);
+const telHref = `tel:${NAP.phone.replace(/\s+/g, "")}`;
+---
+
+<section class="service-cta" aria-label="Get in touch">
+  <p class="service-cta__heading">{heading}</p>
+  <a class="service-cta__btn" href={cta.href}>{cta.label}</a>
+
+  <p class="service-cta__channels">
+    <span>Or speak to our team:</span>
+    <a class="service-cta__link" href={telHref}>{NAP.phone}</a>
+    <span aria-hidden="true" class="service-cta__sep">·</span>
+    <a
+      class="service-cta__link"
+      href={NAP.whatsappUrl}
+      target="_blank"
+      rel="noopener noreferrer">WhatsApp</a
+    >
+  </p>
+</section>
+
+<style>
+  .service-cta {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--color-border-hairline);
+  }
+
+  .service-cta__heading {
+    margin: 0 0 1.25rem;
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-size: clamp(1.35rem, 3vw, 1.875rem);
+    line-height: 1.2;
+    color: var(--color-ink);
+  }
+
+  .service-cta__btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.85rem 1.75rem;
+    background: var(--color-cta);
+    color: #fff;
+    font-family: var(--font-sans);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-decoration: none;
+    border-radius: var(--radius-cta);
+    transition: opacity 0.2s ease;
+  }
+
+  .service-cta__btn:hover,
+  .service-cta__btn:focus-visible {
+    opacity: 0.85;
+  }
+
+  .service-cta__channels {
+    margin: 1.25rem 0 0;
+    font-size: 0.9375rem;
+    color: var(--muted-foreground);
+  }
+
+  .service-cta__link {
+    color: var(--color-ink);
+    text-decoration: none;
+    border-bottom: 1px solid currentColor;
+  }
+
+  .service-cta__link:hover,
+  .service-cta__link:focus-visible {
+    opacity: 0.7;
+  }
+
+  .service-cta__sep {
+    margin: 0 0.4rem;
+    color: var(--muted-foreground);
+  }
+</style>

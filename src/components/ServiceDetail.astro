@@ -1,0 +1,83 @@
+---
+/**
+ * ServiceDetail —— 单个服务页主体（issue #20）。
+ *
+ * 渲染：eyebrow（Service [+ 时长]）→ H1 标题 → intro 段落 → 「What's involved」要点列表。
+ * 不含日历 / 价格 / 收款（Phase 1 降级为静态介绍，见已敲定决策）。
+ * CTA 分流由页面另行放置 ServiceCtaSection。纯静态（零 client JS）。
+ */
+import type { Service } from "@/lib/services";
+
+interface Props {
+  service: Service;
+}
+
+const { service } = Astro.props;
+const eyebrow = service.duration ? `Service · ${service.duration}` : "Service";
+---
+
+<section class="service-detail">
+  <p class="service-detail__eyebrow">{eyebrow}</p>
+  <h1 class="service-detail__title">{service.title}</h1>
+  <p class="service-detail__intro">{service.intro}</p>
+
+  <div class="service-detail__involved">
+    <h2 class="service-detail__subtitle">What's involved</h2>
+    <ul class="service-detail__list">
+      {service.whatsInvolved.map((item) => <li>{item}</li>)}
+    </ul>
+  </div>
+</section>
+
+<style>
+  .service-detail {
+    max-width: 44rem;
+  }
+
+  .service-detail__eyebrow {
+    margin: 0 0 0.75rem;
+    font-size: 0.78rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+  }
+
+  .service-detail__title {
+    margin: 0;
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-size: clamp(2.25rem, 5vw, 3.5rem);
+    line-height: 1.05;
+    color: var(--color-ink);
+  }
+
+  .service-detail__intro {
+    margin: 1.5rem 0 0;
+    font-size: 1.0625rem;
+    line-height: 1.65;
+    color: var(--muted-foreground);
+  }
+
+  .service-detail__involved {
+    margin-top: 2.5rem;
+  }
+
+  .service-detail__subtitle {
+    margin: 0 0 1rem;
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-size: clamp(1.25rem, 3vw, 1.5rem);
+    color: var(--color-ink);
+  }
+
+  .service-detail__list {
+    margin: 0;
+    padding-left: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    font-size: 1rem;
+    line-height: 1.55;
+    color: var(--color-ink);
+  }
+</style>
