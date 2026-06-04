@@ -1,0 +1,132 @@
+---
+/**
+ * RichTextRenderer —— 把 Sanity Portable Text 渲染成品牌化 HTML。
+ *
+ * 本组件由本 issue（#18）拥有，其它内容页（caseStudy / blogPost / resource 详情 /
+ * locationPage 等）后续都复用它来渲染 `body`。故保持通用、零页面耦合。
+ *
+ * 实现：基于 astro-portabletext 的 <PortableText>（成熟 Portable Text 渲染器，
+ * 见 AGENTS.md「组件策略：自己写是最后手段」——这里用现成库而非手写解析）。
+ *  - 标题 / 段落 / 列表 / 引用 / 行内 mark（strong/em/code/链接）由库默认件渲染；
+ *  - link mark 用 PortableTextLink 覆盖（外链安全加固）；
+ *  - image 块用 PortableTextImage 覆盖（消费 GROQ 解出的 asset url，lazy load）；
+ *  - 所有视觉走包裹层 .rich-text 的 scoped CSS（品牌 token：serif 标题、克制行高、
+ *    editorial 留白），不污染全局，也不给每个标签内联样式。
+ *
+ * 空内容（body 为空数组）由调用方判断后不渲染本组件——这里只负责「有内容时渲染好」。
+ * 纯静态（零 client JS）。
+ */
+import { PortableText } from "astro-portabletext";
+import type { PortableTextBlock } from "@portabletext/types";
+import PortableTextLink from "@/components/portable-text/PortableTextLink.astro";
+import PortableTextImage from "@/components/portable-text/PortableTextImage.astro";
+
+interface Props {
+  /** Sanity Portable Text 数组（已由 content-pages 归一化）。 */
+  value: PortableTextBlock[];
+}
+
+const { value } = Astro.props;
+
+const components = {
+  type: { image: PortableTextImage },
+  mark: { link: PortableTextLink },
+};
+---
+
+<div class="rich-text">
+  <PortableText
+    value={value}
+    components={components}
+    onMissingComponent={false}
+  />
+</div>
+
+<style>
+  /* editorial 富文本排版 —— 品牌 token 单一来源（serif 标题、克制正文、慢节奏留白）。
+     用后代选择器作用于 PortableText 输出的标签，避免给每个节点内联样式。 */
+  .rich-text {
+    max-width: 44rem;
+    margin-inline: auto;
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: 1.0625rem;
+    line-height: 1.7;
+  }
+
+  .rich-text :global(h2),
+  .rich-text :global(h3),
+  .rich-text :global(h4) {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    line-height: 1.15;
+    color: var(--color-ink);
+    margin: 2.5rem 0 1rem;
+  }
+
+  .rich-text :global(h2) {
+    font-size: clamp(1.75rem, 3.5vw, 2.5rem);
+  }
+  .rich-text :global(h3) {
+    font-size: clamp(1.4rem, 2.6vw, 1.85rem);
+  }
+  .rich-text :global(h4) {
+    font-size: clamp(1.2rem, 2vw, 1.4rem);
+  }
+
+  .rich-text :global(p) {
+    margin: 0 0 1.25rem;
+  }
+
+  .rich-text :global(a) {
+    color: var(--color-ink);
+    text-decoration: underline;
+    text-underline-offset: 0.18em;
+    text-decoration-thickness: 1px;
+  }
+  .rich-text :global(a:hover) {
+    text-decoration-thickness: 2px;
+  }
+
+  .rich-text :global(ul),
+  .rich-text :global(ol) {
+    margin: 0 0 1.25rem;
+    padding-inline-start: 1.4rem;
+  }
+  .rich-text :global(li) {
+    margin: 0 0 0.5rem;
+  }
+
+  .rich-text :global(strong) {
+    font-weight: 600;
+  }
+
+  .rich-text :global(blockquote) {
+    margin: 2rem 0;
+    padding-inline-start: 1.25rem;
+    border-inline-start: 2px solid var(--color-border-hairline);
+    font-family: var(--font-serif);
+    font-size: 1.2rem;
+    font-style: italic;
+    color: var(--color-ink);
+  }
+
+  .rich-text :global(code) {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.9em;
+    background: var(--color-bg-muted);
+    padding: 0.1em 0.35em;
+    border-radius: 3px;
+  }
+
+  /* 内嵌图片（PortableTextImage 的 <figure>）—— 满栏、圆角呼应 CTA、克制间距。 */
+  .rich-text :global(.rich-text__figure) {
+    margin: 2rem 0;
+  }
+  .rich-text :global(.rich-text__figure img) {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: var(--radius-cta);
+  }
+</style>

@@ -1,0 +1,35 @@
+---
+/**
+ * Portable Text `link` mark —— RichTextRenderer 的链接覆盖件。
+ *
+ * 默认的 astro-portabletext link mark 只渲染 <a href>，不区分内外链。
+ * 这里做安全/无障碍加固：
+ *  - 外链（http(s):// 且非本站域）加 rel="noopener noreferrer" 与 target="_blank"，
+ *    防止 reverse tabnabbing（window.opener 劫持）。
+ *  - 站内相对链接 / 锚点 / mailto / tel 不加 target，保持站内导航体验。
+ * 样式由 RichTextRenderer 包裹层的 scoped CSS（.rich-text a）统一处理，
+ * 故此处不写样式，只决定属性。
+ */
+import type { Props as MarkProps } from "astro-portabletext/types";
+
+const { node } = Astro.props as MarkProps<{
+  _type: "link";
+  markDef: { href?: string };
+}>;
+
+const href = node.markDef?.href ?? "#";
+// 仅 http(s) 协议视为「可能外链」；mailto / tel / 相对 / 锚点不加 target。
+const isExternal = /^https?:\/\//i.test(href);
+---
+
+{
+  isExternal ? (
+    <a href={href} target="_blank" rel="noopener noreferrer">
+      <slot />
+    </a>
+  ) : (
+    <a href={href}>
+      <slot />
+    </a>
+  )
+}

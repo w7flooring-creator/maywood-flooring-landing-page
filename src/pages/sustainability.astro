@@ -1,0 +1,123 @@
+---
+/**
+ * /sustainability —— Sustainability 内容页（page 文档驱动，slug "sustainability"，
+ * 保留 legacy URL 见 ADR-0001）。
+ *
+ * 数据：build 时按 slug 拉 `page` 文档；有 body 用 RichTextRenderer，否则降级为
+ * 静态 editorial 回落（文案核对自线上 Wix Sustainability 页，澳洲拼写：
+ * optimising / minimise / prioritises 等）。绝不 lorem。
+ *
+ * SEO：唯一 title / meta description（自然提及可持续 / timber）；canonical 自指。
+ * Breadcrumbs：Home > Sustainability。纯静态（SSG），零 client JS。
+ */
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import HeroImageSection from "@/components/HeroImageSection.astro";
+import EditorialTextBlock from "@/components/EditorialTextBlock.astro";
+import ImageTextSplit from "@/components/ImageTextSplit.astro";
+import RichTextRenderer from "@/components/RichTextRenderer.astro";
+import {
+  getPageBySlug,
+  hasBody,
+  buildContentBreadcrumbs,
+  buildContentSeo,
+} from "@/lib/content-pages";
+
+const PATH = "/sustainability";
+const SLUG = "sustainability";
+const FALLBACK_TITLE = "Sustainability";
+const FALLBACK_DESCRIPTION =
+  "Maywood Flooring sources responsibly managed plantation timber, meets strict low-VOC and E1 emission standards, and builds engineered floors designed to last — sustainability through durability, for homes across Melbourne and Victoria.";
+
+const page = await getPageBySlug(SLUG);
+
+const title = page?.title ?? FALLBACK_TITLE;
+const breadcrumbs = buildContentBreadcrumbs(PATH, title);
+const seo = buildContentSeo({
+  path: PATH,
+  page,
+  fallbackTitle: FALLBACK_TITLE,
+  fallbackDescription: FALLBACK_DESCRIPTION,
+});
+
+const showBody = hasBody(page);
+
+/** 静态回落：三大可持续支柱（核对自线上 Wix，澳洲拼写）。 */
+const PILLARS = [
+  {
+    eyebrow: "Ethical origins",
+    heading: "Forest stewardship",
+    paragraphs: [
+      "At Maywood, every plank begins with a commitment to the land. We exclusively source our timbers from certified, responsibly managed plantation forests where biodiversity and ecological balance are strictly protected.",
+      "By adhering to these rigorous global standards, we ensure our flooring remains a renewable resource, preserving the world's vital forests for generations to come.",
+    ],
+  },
+  {
+    eyebrow: "Healthy homes",
+    heading: "Breathe easy with stringent compliance",
+    paragraphs: [
+      "We believe a beautiful home must first be a healthy one. Our flooring is engineered to meet the highest indoor air quality standards, with low VOC emissions that safeguard your living environment.",
+      "By using non-toxic finishes and adhering to strict E1 formaldehyde emission protocols, Maywood delivers a sophisticated foundation that prioritises the well-being of your family and pets.",
+    ],
+  },
+  {
+    eyebrow: "Built to last",
+    heading: "Sustainability through durability",
+    paragraphs: [
+      "The most sustainable product is one that lasts a lifetime. Our engineered timber is defined by superior structural integrity, using cross-layered construction to minimise natural movement and prevent premature replacement.",
+      "With a generous oak wear layer that allows for future restoration, our floors are designed to age gracefully — reducing environmental impact through uncompromising longevity.",
+    ],
+  },
+];
+---
+
+<BaseLayout {...seo}>
+  <article class="sustainability">
+    <div class="sustainability__crumbs">
+      <Breadcrumbs items={breadcrumbs} />
+    </div>
+
+    <HeroImageSection
+      title={title}
+      eyebrow="Sustainability"
+      intro="The foundation of a sustainable future — sustainably sourced timber, healthier homes, and floors built to last."
+      image={page?.heroImage ?? null}
+    />
+
+    {
+      showBody ? (
+        <EditorialTextBlock>
+          <RichTextRenderer value={page!.body} />
+        </EditorialTextBlock>
+      ) : (
+        <>
+          {/* 静态 editorial 回落（核对自线上 Wix Sustainability 页，澳洲拼写）。 */}
+          <EditorialTextBlock
+            heading="A profound commitment to environmental stewardship"
+            paragraphs={[
+              "At Maywood, we are driven by a commitment to environmental stewardship. By curating sustainably sourced timbers and optimising the use of premium hardwoods, we help preserve the world's most indispensable natural resources.",
+              "Our mission goes beyond manufacturing: we strive to lead the industry by delivering eco-friendly solutions that minimise waste without compromising on design. Through conscious innovation, Maywood aims to inspire a market-wide shift toward a more sustainable and inspired architectural landscape.",
+            ]}
+          />
+
+          {PILLARS.map((pillar, i) => (
+            <ImageTextSplit
+              eyebrow={pillar.eyebrow}
+              heading={pillar.heading}
+              paragraphs={pillar.paragraphs}
+              reverse={i % 2 === 1}
+            />
+          ))}
+        </>
+      )
+    }
+  </article>
+</BaseLayout>
+
+<style>
+  .sustainability__crumbs {
+    max-width: 80rem;
+    margin-inline: auto;
+    padding: 1.25rem clamp(1rem, 4vw, 2.5rem) 0;
+  }
+</style>

@@ -1,0 +1,31 @@
+---
+/**
+ * Portable Text `image` 块 —— RichTextRenderer 的内嵌图片覆盖件。
+ *
+ * 编辑可在正文中插入图片。GROQ 已把每个 image 块的 asset->url 解出（见
+ * content-pages.ts 的 BODY_PROJECTION），故这里直接消费 node.url。
+ *  - 生产不热链 Wix：url 指向 Sanity CDN 资产。
+ *  - 正文图属 below-the-fold → loading="lazy"。
+ *  - alt 缺省给空串（装饰性回落），有意义图请编辑在 Studio 填 alt。
+ *  - 无 url（资产未解出 / 块损坏）时不渲染，避免 broken image。
+ * 以 <figure> 包裹，便于后续接图注（caption）；样式见包裹层 .rich-text figure。
+ */
+import type { Props as TypeProps } from "astro-portabletext/types";
+
+const { node } = Astro.props as TypeProps<{
+  _type: "image";
+  url?: string;
+  alt?: string;
+}>;
+
+const url = node.url ?? "";
+const alt = node.alt ?? "";
+---
+
+{
+  url && (
+    <figure class="rich-text__figure">
+      <img src={url} alt={alt} loading="lazy" decoding="async" />
+    </figure>
+  )
+}
