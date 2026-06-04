@@ -1,0 +1,87 @@
+---
+/**
+ * /gallery —— 图库页（见 AGENTS.md「路由」/gallery + issue #19）。
+ *
+ * 结构：Header → Breadcrumbs（Home > Gallery）→ intro（唯一 H1 + 一句导览）→
+ *   GalleryGrid（响应式 masonry + lightbox island，有图时）/ 优雅空态（无图时）→ Footer。
+ *
+ * 数据：build 时从 Sanity 拉 galleryImage（getGalleryItems()）。Phase 1 内容未灌入
+ * → 恒空 → GalleryGrid 渲染 "coming soon" + 浏览产品兜底链接（绝不 lorem / 破图）。
+ *
+ * SEO：唯一 title / meta description（澳洲拼写，自然提及 Melbourne / Victoria），
+ * canonical 自指 /gallery；有图时首图作 OG image。Breadcrumbs 同时渲染语义 nav 与
+ * BreadcrumbList JSON-LD。图廊是唯一 island（client:visible，首屏下方按需 hydrate）；
+ * 其余纯静态（SSG）。生产不热链 Wix（图片走 Sanity CDN）。
+ */
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import GalleryGrid from "@/components/GalleryGrid.astro";
+import {
+  getGalleryItems,
+  buildGalleryBreadcrumbs,
+  buildGallerySeo,
+} from "@/lib/gallery";
+
+const items = await getGalleryItems();
+const breadcrumbs = buildGalleryBreadcrumbs();
+const seo = buildGallerySeo(items);
+---
+
+<BaseLayout {...seo}>
+  <div class="gallery-page">
+    <div class="gallery-page__crumbs">
+      <Breadcrumbs items={breadcrumbs} />
+    </div>
+
+    <header class="gallery-page__intro">
+      <p class="gallery-page__eyebrow">Gallery</p>
+      <h1 class="gallery-page__title">Our Work</h1>
+      <p class="gallery-page__lead">
+        A look at finished timber, laminate and hybrid flooring projects,
+        showroom displays and installations across Melbourne and Victoria.
+      </p>
+    </header>
+
+    <div class="gallery-page__grid">
+      <GalleryGrid items={items} />
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .gallery-page {
+    max-width: 72rem;
+    margin-inline: auto;
+    padding: 1.25rem clamp(1rem, 4vw, 2.5rem) var(--spacing-section);
+  }
+
+  .gallery-page__intro {
+    max-width: 42rem;
+    margin: 2.5rem auto clamp(2.5rem, 6vw, 4rem);
+    text-align: center;
+  }
+
+  .gallery-page__eyebrow {
+    margin: 0 0 0.75rem;
+    font-size: 0.8rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #777;
+  }
+
+  .gallery-page__title {
+    margin: 0 0 1rem;
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-size: clamp(2.25rem, 5.5vw, 4rem);
+    line-height: 1.05;
+    color: var(--color-ink);
+  }
+
+  .gallery-page__lead {
+    margin: 0;
+    font-size: 1.0625rem;
+    line-height: 1.7;
+    color: var(--muted-foreground);
+  }
+</style>

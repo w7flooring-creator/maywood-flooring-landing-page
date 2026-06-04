@@ -1,0 +1,106 @@
+---
+/**
+ * GalleryGrid —— Gallery 页（/gallery，issue #19）的网格容器。
+ *
+ * 两态：
+ *  - 有图：挂 GalleryLightbox island（client:visible，按需 hydrate）。网格 + 点击开
+ *    lightbox 的浏览器状态都在 island 里（见组件注释）。
+ *  - 无图（Phase 1 galleryImage 未灌入 → 常态）：渲染克制的优雅空态——一句
+ *    “coming soon” 文案 + 浏览产品兜底链接（深色圆角小 CTA，品牌按钮语言）。
+ *    绝不输出 lorem / 破图 / 空网格 / 热链 Wix。
+ *
+ * GalleryGrid 自身是纯 Astro（零 client JS）；仅当有图时才注入 island。
+ * 视觉方向（暖色 editorial、大留白）见 AGENTS.md。
+ */
+import GalleryLightbox from "@/components/GalleryLightbox.tsx";
+import type { GalleryItem } from "@/lib/gallery";
+
+interface Props {
+  items: GalleryItem[];
+}
+
+const { items } = Astro.props;
+const hasImages = items.length > 0;
+---
+
+{
+  hasImages ? (
+    <GalleryLightbox client:visible items={items} />
+  ) : (
+    <div class="gallery-empty">
+      <p class="gallery-empty__lead">Our project gallery is coming soon.</p>
+      <p class="gallery-empty__body">
+        We’re putting together a collection of finished timber, laminate and
+        hybrid flooring projects from across Melbourne and Victoria. In the
+        meantime, explore our range or get in touch about your project.
+      </p>
+      <div class="gallery-empty__actions">
+        <a class="gallery-empty__cta" href="/category/engineered-flooring">
+          Browse Products
+        </a>
+        <a class="gallery-empty__link" href="/contact">
+          Contact us
+        </a>
+      </div>
+    </div>
+  )
+}
+
+<style>
+  .gallery-empty {
+    max-width: 36rem;
+    margin-inline: auto;
+    padding: clamp(3rem, 8vw, 6rem) 0;
+    text-align: center;
+  }
+
+  .gallery-empty__lead {
+    margin: 0 0 1rem;
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-size: clamp(1.5rem, 3.5vw, 2rem);
+    color: var(--color-ink);
+  }
+
+  .gallery-empty__body {
+    margin: 0 0 2rem;
+    font-size: 1.0625rem;
+    line-height: 1.7;
+    color: var(--muted-foreground);
+  }
+
+  .gallery-empty__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 1.25rem;
+  }
+
+  /* 深色圆角小 CTA（品牌按钮语言，呼应 GalleryFeed / Home CTA）。 */
+  .gallery-empty__cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-cta);
+    color: #fff;
+    font-family: var(--font-sans);
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-decoration: none;
+    padding: 0.7rem 1.5rem;
+    border-radius: var(--radius-cta);
+    transition: background-color 150ms ease;
+  }
+  .gallery-empty__cta:hover {
+    background: #2c2c2c;
+  }
+
+  .gallery-empty__link {
+    font-size: 0.95rem;
+    color: var(--color-ink);
+    text-underline-offset: 0.2em;
+  }
+</style>
