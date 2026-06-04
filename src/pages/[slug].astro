@@ -1,0 +1,73 @@
+---
+/**
+ * /[slug] —— Signature Collection 营销落地页（puregrain / bushland / manor / bellavale）。
+ *
+ * getStaticPaths 只返回**招牌系列**的 4 个 slug（来自 getSignatureLandings），
+ * 因此本动态路由不会遮蔽 about-us / contact 等显式 .astro 页面（issue #14）。
+ *
+ * 内容尚未灌入是常态（编辑后续在 Studio 填 description / heroImage / 关联产品）：
+ * 每个区块都对空内容优雅降级——存在才渲染，绝不输出 lorem / 占位文案。
+ *
+ * canonical 显式指向自身 /<slug>：营销落地页是主版本，未来 /category/<slug>
+ * store 视图 canonical 反指这里（见 ADR-0001）。纯静态（SSG）。
+ */
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import CollectionHero from "@/components/CollectionHero.astro";
+import CollectionNarrative from "@/components/CollectionNarrative.astro";
+import CollectionRelatedProducts from "@/components/CollectionRelatedProducts.astro";
+import {
+  getSignatureLandings,
+  getRelatedProducts,
+  toStaticPaths,
+  buildLandingBreadcrumbs,
+  buildLandingSeo,
+  type SignatureCollectionLanding,
+} from "@/lib/collection-landing";
+
+export async function getStaticPaths() {
+  const collections = await getSignatureLandings();
+  return toStaticPaths(collections);
+}
+
+interface Props {
+  collection: SignatureCollectionLanding;
+}
+
+const { collection } = Astro.props as Props;
+
+// 关联产品 build 时拉取（product 未建模 → Phase 1 恒空，区块自动隐藏）。
+const relatedProducts = await getRelatedProducts(collection._id);
+
+const breadcrumbs = buildLandingBreadcrumbs(collection);
+const seo = buildLandingSeo(collection);
+---
+
+<BaseLayout {...seo}>
+  <article class="landing">
+    <div class="landing__crumbs">
+      {
+        /* Breadcrumbs 同时渲染语义 nav 与 BreadcrumbList JSON-LD（见组件注释）。 */
+      }
+      <Breadcrumbs items={breadcrumbs} />
+    </div>
+
+    <CollectionHero
+      title={collection.title}
+      eyebrow="Signature Collection"
+      image={collection.heroImage}
+    />
+
+    <CollectionNarrative description={collection.description} />
+
+    <CollectionRelatedProducts products={relatedProducts} />
+  </article>
+</BaseLayout>
+
+<style>
+  .landing__crumbs {
+    max-width: 72rem;
+    margin-inline: auto;
+    padding: 1.25rem 1.25rem 0;
+  }
+</style>
