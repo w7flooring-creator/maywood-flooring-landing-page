@@ -1,0 +1,29 @@
+---
+/**
+ * ProductCount —— 分类页产品网格上方的计数（如 "12 products" / "1 product"）。
+ *
+ * Phase 1 product 文档未灌入 → count 恒为 0：渲染 "0 products"（不破版、不报错），
+ * 让分类页在产品就绪前也是完整、诚实的页面。单复数正确（1 product / N products）。
+ *
+ * 纯静态（零 client JS）。
+ */
+interface Props {
+  count: number;
+  /** 单数名词，默认 "product"（复数自动加 s）。 */
+  noun?: string;
+}
+
+const { count, noun = "product" } = Astro.props;
+const label = `${count} ${count === 1 ? noun : `${noun}s`}`;
+---
+
+<p class="count" aria-live="polite">{label}</p>
+
+<style>
+  .count {
+    margin: 0;
+    font-size: 0.875rem;
+    letter-spacing: 0.04em;
+    color: #777;
+  }
+</style>
