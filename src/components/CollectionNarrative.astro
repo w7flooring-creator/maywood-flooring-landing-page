@@ -1,0 +1,70 @@
+---
+/**
+ * CollectionNarrative —— 招牌系列的品牌叙事文字区。
+ *
+ * 「内容尚未灌入」是常态：description 由编辑后续在 Studio 填。
+ *  - 有 description：editorial 风格的居中文字区（大留白、克制行宽）。
+ *  - 无 description：**整段不渲染**（return null），绝不输出 lorem / 占位文案。
+ *
+ * 纯静态。description 是纯文本（schema 为 text 类型），按段落（空行）切分渲染。
+ */
+interface Props {
+  /** 可选标题（如 "The collection"）；缺省不渲染标题。 */
+  heading?: string | null;
+  description: string | null;
+}
+
+const { heading = null, description } = Astro.props;
+
+// 把多行纯文本按空行切成段落，过滤空段；无内容则整块不渲染。
+const paragraphs = (description ?? "")
+  .split(/\n\s*\n/)
+  .map((p) => p.trim())
+  .filter((p) => p.length > 0);
+const hasContent = paragraphs.length > 0;
+---
+
+{
+  hasContent && (
+    <section class="narrative">
+      <div class="narrative__inner">
+        {heading && <h2 class="narrative__heading">{heading}</h2>}
+        {paragraphs.map((p) => (
+          <p class="narrative__para">{p}</p>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+<style>
+  .narrative {
+    padding: var(--spacing-section) 1.25rem;
+  }
+
+  .narrative__inner {
+    max-width: 42rem;
+    margin-inline: auto;
+    text-align: center;
+  }
+
+  .narrative__heading {
+    margin: 0 0 1.5rem;
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+    line-height: 1.1;
+    color: var(--color-ink);
+  }
+
+  .narrative__para {
+    margin: 0 0 1.25rem;
+    font-size: 1.125rem;
+    line-height: 1.7;
+    color: #333;
+  }
+
+  .narrative__para:last-child {
+    margin-bottom: 0;
+  }
+</style>

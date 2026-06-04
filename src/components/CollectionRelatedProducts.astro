@@ -1,0 +1,116 @@
+---
+/**
+ * CollectionRelatedProducts —— 招牌系列落地页的关联产品区。
+ *
+ * product 文档类型 Phase 1 尚未建模 → 关联产品恒为空。
+ *  - 有产品：三列网格（图 + 名），呼应分类页 ProductGrid 的颗粒度。
+ *  - 无产品：**整块不渲染**（return null），不输出空网格 / 占位卡片。
+ *
+ * 这是一个「等内容就绪自动亮起」的结构化插槽：编辑在 Studio 给产品挂上本系列后，
+ * 无需改代码，区块即自动出现。纯静态（零 client JS）。
+ */
+import type { RelatedProduct } from "@/lib/collection-landing";
+
+interface Props {
+  heading?: string | null;
+  products: RelatedProduct[];
+}
+
+const { heading = "Products in this collection", products } = Astro.props;
+const hasProducts = products.length > 0;
+---
+
+{
+  hasProducts && (
+    <section class="related">
+      <div class="related__inner">
+        {heading && <h2 class="related__heading">{heading}</h2>}
+        <ul class="related__grid" role="list">
+          {products.map((product) => (
+            <li class="related__item">
+              <a class="related__link" href={`/product-page/${product.slug}`}>
+                {product.imageUrl ? (
+                  <img
+                    class="related__img"
+                    src={product.imageUrl}
+                    alt={product.title}
+                    loading="lazy"
+                    decoding="async"
+                  />
+                ) : (
+                  <span
+                    class="related__img related__img--empty"
+                    aria-hidden="true"
+                  />
+                )}
+                <span class="related__name">{product.title}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  )
+}
+
+<style>
+  .related {
+    padding: var(--spacing-section) 1.25rem;
+    background: var(--color-bg-muted);
+  }
+
+  .related__inner {
+    max-width: 72rem;
+    margin-inline: auto;
+  }
+
+  .related__heading {
+    margin: 0 0 2.5rem;
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+    text-align: center;
+    color: var(--color-ink);
+  }
+
+  .related__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+    gap: 2rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .related__link {
+    display: block;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .related__img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    background: var(--color-bg);
+    border: 1px solid var(--border);
+  }
+
+  .related__img--empty {
+    background: var(--color-bg);
+  }
+
+  .related__name {
+    display: block;
+    margin-top: 0.85rem;
+    font-family: var(--font-serif);
+    font-size: 1.1rem;
+    color: var(--color-ink);
+  }
+
+  .related__link:hover .related__name,
+  .related__link:focus-visible .related__name {
+    text-decoration: underline;
+  }
+</style>
