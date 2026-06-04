@@ -1,0 +1,70 @@
+---
+/**
+ * HomeCtaSection —— 首页收尾 CTA 区，引导到 Contact 询盘。
+ *
+ * Phase 1 主转化路径是 Contact（见已敲定决策 / SAMPLE_REQUEST）。文案与 CTA
+ * 来自 HOME_CTA（src/lib/home-narrative.ts，单一来源）。灰底区与 footer 的黑底
+ * 形成收尾节奏。区块标题用 h2（首页唯一 h1 归 hero）。纯静态（零 client JS）。
+ */
+import { HOME_CTA } from "@/lib/home-narrative";
+
+const { heading, paragraphs, cta } = HOME_CTA;
+---
+
+<section class="home-cta" aria-labelledby="home-cta-heading">
+  <div class="home-cta__inner">
+    <h2 id="home-cta-heading" class="home-cta__heading">{heading}</h2>
+    {paragraphs.map((para) => <p class="home-cta__para">{para}</p>)}
+    <a class="home-cta__btn" href={cta.href}>{cta.label}</a>
+  </div>
+</section>
+
+<style>
+  .home-cta {
+    padding: var(--spacing-section) 1.25rem;
+    background: var(--color-bg-muted);
+  }
+
+  .home-cta__inner {
+    max-width: 42rem;
+    margin-inline: auto;
+    text-align: center;
+  }
+
+  .home-cta__heading {
+    margin: 0 0 1.25rem;
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-size: clamp(1.75rem, 4vw, 2.75rem);
+    line-height: 1.15;
+    color: var(--color-ink);
+  }
+
+  .home-cta__para {
+    margin: 0 0 2rem;
+    font-size: 1.0625rem;
+    line-height: 1.7;
+    color: var(--muted-foreground);
+  }
+
+  /* 深色圆角小 CTA（品牌按钮语言）。 */
+  .home-cta__btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-cta);
+    color: #fff;
+    font-family: var(--font-sans);
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-decoration: none;
+    padding: 0.7rem 1.5rem;
+    border-radius: var(--radius-cta);
+    transition: background-color 150ms ease;
+  }
+  .home-cta__btn:hover {
+    background: #2c2c2c;
+  }
+</style>

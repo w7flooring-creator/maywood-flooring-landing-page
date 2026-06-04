@@ -1,0 +1,175 @@
+---
+/**
+ * GalleryFeedSection —— 首页 editorial 图廊 / social strip。
+ *
+ * 对照线上首页底部「Gallery」区（原页拼作 “Gallary”，按 AGENTS.md 允许的拼写
+ * 修复改作 “Gallery”）：一句导览文案 + 一条横向图带 + “View Gallery” CTA。
+ *
+ * galleryImage Sanity 类型尚未建模（#8 并行）→ 本组件**不查询 Sanity**：
+ *  - 默认渲染克制的静态占位 strip（暖色 muted 块，绝不热链 Wix / 放破图）；
+ *  - 同时预留 `images` 插槽：#8 就绪后，调用页把 build 时拉到的图传进来即「亮起」，
+ *    无需改本组件结构。
+ *
+ * 文案来自 GALLERY_FEED（src/lib/home-narrative.ts）。below-the-fold → lazy load。
+ * 区块标题用 h2（首页唯一 h1 归 hero）。纯静态（零 client JS）。
+ */
+import { GALLERY_FEED } from "@/lib/home-narrative";
+
+/** 图廊单图（#8 接入后由调用页投影自 Sanity galleryImage）。 */
+export interface GalleryFeedImage {
+  url: string;
+  alt: string;
+}
+
+interface Props {
+  /** 真实图廊（#8 就绪后传入）；缺省 → 渲染静态占位 strip。 */
+  images?: GalleryFeedImage[];
+}
+
+const { images = [] } = Astro.props;
+const { heading, paragraphs, cta } = GALLERY_FEED;
+const hasImages = images.length > 0;
+// 占位 strip 的块数（无图时用，纯版式占位，不含任何外链资源）。
+const placeholderCount = 4;
+---
+
+<section class="gallery" aria-labelledby="gallery-heading">
+  <div class="gallery__inner">
+    <div class="gallery__intro">
+      <h2 id="gallery-heading" class="gallery__heading">{heading}</h2>
+      {paragraphs.map((para) => <p class="gallery__para">{para}</p>)}
+    </div>
+
+    {
+      hasImages ? (
+        <ul class="gallery__strip" role="list">
+          {images.map((image) => (
+            <li class="gallery__cell">
+              <img
+                class="gallery__img"
+                src={image.url}
+                alt={image.alt}
+                loading="lazy"
+                decoding="async"
+              />
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <ul
+          class="gallery__strip gallery__strip--empty"
+          role="list"
+          aria-hidden="true"
+        >
+          {Array.from({ length: placeholderCount }).map(() => (
+            <li class="gallery__cell gallery__cell--empty" />
+          ))}
+        </ul>
+      )
+    }
+
+    <a class="gallery__cta" href={cta.href}>{cta.label}</a>
+  </div>
+</section>
+
+<style>
+  .gallery {
+    padding: var(--spacing-section) 1.25rem;
+    background: var(--color-bg);
+  }
+
+  .gallery__inner {
+    max-width: 72rem;
+    margin-inline: auto;
+  }
+
+  .gallery__intro {
+    max-width: 42rem;
+    margin: 0 auto 2.5rem;
+    text-align: center;
+  }
+
+  .gallery__heading {
+    margin: 0 0 1rem;
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+    color: var(--color-ink);
+  }
+
+  .gallery__para {
+    margin: 0;
+    font-size: 1.0625rem;
+    line-height: 1.7;
+    color: var(--muted-foreground);
+  }
+
+  .gallery__strip {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+    margin: 0 0 2.5rem;
+    padding: 0;
+    list-style: none;
+  }
+
+  .gallery__cell {
+    margin: 0;
+  }
+
+  .gallery__img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    background: var(--color-bg-muted);
+    border: 1px solid var(--border);
+  }
+
+  /* 占位块：暖色 muted（呼应品牌背景），#8 接真实图后替换。 */
+  .gallery__cell--empty {
+    aspect-ratio: 1 / 1;
+    background: var(--color-bg-muted);
+    border: 1px solid var(--border);
+  }
+
+  /* 居中深色圆角小 CTA（品牌按钮语言）。 */
+  .gallery__cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-inline: auto;
+    background: var(--color-cta);
+    color: #fff;
+    font-family: var(--font-sans);
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-decoration: none;
+    padding: 0.7rem 1.5rem;
+    border-radius: var(--radius-cta);
+    transition: background-color 150ms ease;
+  }
+  .gallery__cta:hover {
+    background: #2c2c2c;
+  }
+
+  /* CTA 居中。 */
+  .gallery__inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .gallery__intro,
+  .gallery__strip {
+    width: 100%;
+  }
+
+  /* 桌面：四列横向图带。 */
+  @media (min-width: 48rem) {
+    .gallery__strip {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+</style>

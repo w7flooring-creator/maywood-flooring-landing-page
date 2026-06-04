@@ -1,0 +1,143 @@
+---
+/**
+ * SignatureCollectionCard —— 招牌系列单卡（图 + 名 + 可选简介，整卡可点）。
+ *
+ * 数据由 getSignatureCollections()（Sanity）驱动。该查询当前只投影 title/slug，
+ * description / heroImage 尚未灌入是常态 → 卡片对缺字段优雅降级：
+ *  - 无图：回落到克制的暖色 muted 占位块（绝不放占位 lorem / 破图）；
+ *  - 无简介：只渲染系列名 + “Discover” 提示。
+ * 编辑后续在 Studio 补字段，卡片无需改代码即「亮起」。
+ *
+ * 链接指向营销落地页 /<slug>（puregrain / bushland / manor / bellavale，
+ * 见 ADR-0001：落地页是主版本）。below-the-fold → 图片 lazy load。纯静态。
+ */
+interface Props {
+  title: string;
+  slug: string;
+  /** 系列简介（Sanity 未灌入时为 null → 不渲染）。 */
+  description?: string | null;
+  /** 入库后的图片 URL（当前恒空 → 回落占位块）。 */
+  imageUrl?: string | null;
+  imageAlt?: string | null;
+}
+
+const {
+  title,
+  slug,
+  description = null,
+  imageUrl = null,
+  imageAlt = null,
+} = Astro.props;
+
+const hasImage = imageUrl !== null;
+const hasDescription =
+  typeof description === "string" && description.trim().length > 0;
+const href = `/${slug}`;
+---
+
+<a class="sig-card" href={href}>
+  {
+    hasImage ? (
+      <img
+        class="sig-card__img"
+        src={imageUrl}
+        alt={imageAlt ?? title}
+        loading="lazy"
+        decoding="async"
+      />
+    ) : (
+      <span class="sig-card__img sig-card__img--empty" aria-hidden="true" />
+    )
+  }
+  <span class="sig-card__body">
+    <span class="sig-card__name">{title}</span>
+    {hasDescription && <span class="sig-card__desc">{description}</span>}
+    <span class="sig-card__more">Discover the collection</span>
+  </span>
+</a>
+
+<style>
+  .sig-card {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    width: 100%;
+    color: inherit;
+    text-decoration: none;
+    background: var(--color-bg);
+    border: 1px solid var(--border);
+  }
+
+  .sig-card__img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    object-fit: cover;
+    background: var(--color-bg-muted);
+  }
+
+  /* 无图回落：暖色 muted 块（呼应品牌背景），版式与有图态一致。 */
+  .sig-card__img--empty {
+    background: var(--color-bg-muted);
+  }
+
+  .sig-card__body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 0 clamp(1.5rem, 4vw, 2.5rem) clamp(1.75rem, 4vw, 2.5rem);
+  }
+
+  .sig-card__name {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-size: clamp(1.4rem, 3vw, 2rem);
+    color: var(--color-ink);
+  }
+
+  .sig-card__desc {
+    font-size: 1.0625rem;
+    line-height: 1.7;
+    color: var(--muted-foreground);
+  }
+
+  .sig-card__more {
+    font-family: var(--font-sans);
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-ink);
+  }
+
+  .sig-card:hover .sig-card__more,
+  .sig-card:focus-visible .sig-card__more {
+    text-decoration: underline;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .sig-card__img {
+      transition: opacity 200ms ease;
+    }
+    .sig-card:hover .sig-card__img {
+      opacity: 0.92;
+    }
+  }
+
+  /* 桌面：图左、文右的横向卡（居中堆叠，呼应线上 signature collections）。 */
+  @media (min-width: 48rem) {
+    .sig-card {
+      grid-template-columns: 1fr 1fr;
+      align-items: center;
+      gap: 0;
+    }
+    .sig-card__img {
+      height: 100%;
+      aspect-ratio: auto;
+      min-height: 18rem;
+    }
+    .sig-card__body {
+      padding: clamp(2rem, 4vw, 3rem);
+    }
+  }
+</style>

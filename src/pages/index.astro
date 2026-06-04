@@ -1,16 +1,31 @@
 ---
 /**
- * 首页（/）—— 上半区块（#15）：HomeHero + ProductSelectionGrid。
+ * 首页（/）—— 上半（#15）：HomeHero + ProductSelectionGrid；
+ * 下半（#16）：PartnerNarrative / SilentFoundation / SignatureCollections /
+ * BrandStatement / GalleryFeed / HomeCta，顺序对照线上 Wix 首页。
  *
- * 下半区块（narrative / SignatureCollections / Gallery / CTA）属 #16，本页暂止于
- * ProductSelectionGrid。SEO 元信息走 BaseLayout → SeoHead（唯一 title/desc、
- * canonical、OG、LocalBusiness JSON-LD）。纯静态（SSG，零 client JS）。
+ * SEO 元信息走 BaseLayout → SeoHead（唯一 title/desc、canonical、OG、
+ * LocalBusiness JSON-LD）。全页**唯一 h1** 在 HomeHero，下半全部用 h2/h3。
+ * 纯静态（SSG，零 client JS）。
  *
  * hero 图与产品入口图 Phase 1 尚未入库（生产禁止热链 Wix）→ 组件对空图优雅降级。
+ * 招牌系列卡由 Sanity 驱动（build 时拉），本地 / 匿名读无 token 时为空 →
+ * SignatureCollectionsSection 优雅降级（见 ADR-0003）。galleryImage 尚未建模
+ * （#8 并行）→ GalleryFeedSection 渲染静态占位 strip，不查询 Sanity。
  */
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import HomeHero from "@/components/HomeHero.astro";
 import ProductSelectionGrid from "@/components/ProductSelectionGrid.astro";
+import PartnerNarrativeSection from "@/components/PartnerNarrativeSection.astro";
+import SilentFoundationSection from "@/components/SilentFoundationSection.astro";
+import SignatureCollectionsSection from "@/components/SignatureCollectionsSection.astro";
+import BrandStatementSection from "@/components/BrandStatementSection.astro";
+import GalleryFeedSection from "@/components/GalleryFeedSection.astro";
+import HomeCtaSection from "@/components/HomeCtaSection.astro";
+import { getSignatureCollections } from "@/lib/taxonomy";
+
+// 招牌系列 build 时拉取（无 token / 匿名读 → 空数组，区块优雅降级）。
+const signatureCollections = await getSignatureCollections();
 ---
 
 <BaseLayout
@@ -19,4 +34,10 @@ import ProductSelectionGrid from "@/components/ProductSelectionGrid.astro";
 >
   <HomeHero />
   <ProductSelectionGrid />
+  <PartnerNarrativeSection />
+  <SilentFoundationSection />
+  <SignatureCollectionsSection collections={signatureCollections} />
+  <BrandStatementSection />
+  <GalleryFeedSection />
+  <HomeCtaSection />
 </BaseLayout>

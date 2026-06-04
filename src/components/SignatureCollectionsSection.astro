@@ -1,0 +1,128 @@
+---
+/**
+ * SignatureCollectionsSection —— 首页灰底「招牌系列」区（居中堆叠卡）。
+ *
+ * 卡片由 getSignatureCollections()（Sanity）驱动 —— 可重复内容建模到 CMS，
+ * 不在首页硬编码系列清单（见 AGENTS.md 工作流 #4）。每卡链向营销落地页
+ * /<slug>（puregrain / bushland / manor / bellavale，见 ADR-0001）。
+ *
+ * 本地 / 匿名读无 token → 列表可能为空（见 ADR-0003）。空态优雅降级：
+ * 仍渲染区块标题与一句导览 + “Browse our products” 兜底链接，绝不输出空网格 /
+ * 占位卡片。区块标题用 h2（首页唯一 h1 归 hero）。纯静态（零 client JS）。
+ *
+ * 数据获取放在调用页（index.astro）的 build 阶段，组件只接 collections 数组，
+ * 便于用 Container API + mock 数据测试空/非空两态。
+ */
+import SignatureCollectionCard from "@/components/SignatureCollectionCard.astro";
+import { SIGNATURE_COLLECTIONS_HEADING } from "@/lib/home-narrative";
+import type { Collection } from "@/lib/taxonomy";
+
+interface Props {
+  /** 招牌系列（getSignatureCollections() 结果）；空数组时优雅降级。 */
+  collections: Collection[];
+  heading?: string;
+}
+
+const { collections, heading = SIGNATURE_COLLECTIONS_HEADING } = Astro.props;
+// 仅保留有 slug 的系列（无 slug 无法生成落地页链接）。
+const items = (collections ?? []).filter(
+  (c) => typeof c.slug === "string" && c.slug.length > 0
+);
+const hasItems = items.length > 0;
+---
+
+<section class="sig" aria-labelledby="sig-heading">
+  <div class="sig__inner">
+    <h2 id="sig-heading" class="sig__heading">{heading}</h2>
+    {
+      hasItems ? (
+        <ul class="sig__list" role="list">
+          {items.map((collection) => (
+            <li class="sig__item">
+              <SignatureCollectionCard
+                title={collection.title}
+                slug={collection.slug}
+              />
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <div class="sig__empty">
+          <p class="sig__empty-text">
+            Explore the Maywood collections — engineered timber, laminate and
+            hybrid flooring crafted for Melbourne homes and projects.
+          </p>
+          <a class="sig__empty-link" href="/category/engineered-flooring">
+            Browse our products
+          </a>
+        </div>
+      )
+    }
+  </div>
+</section>
+
+<style>
+  /* 灰底区（signature collections 的招牌背景，见 AGENTS.md 视觉方向）。 */
+  .sig {
+    padding: var(--spacing-section) 1.25rem;
+    background: var(--color-bg-muted);
+  }
+
+  .sig__inner {
+    max-width: 60rem;
+    margin-inline: auto;
+  }
+
+  .sig__heading {
+    margin: 0 0 clamp(2.5rem, 5vw, 4rem);
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-size: clamp(1.75rem, 4vw, 2.75rem);
+    text-align: center;
+    color: var(--color-ink);
+  }
+
+  /* 居中堆叠卡（纵向逐张，呼应线上 signature collections 堆叠版式）。 */
+  .sig__list {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(2rem, 4vw, 3rem);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .sig__empty {
+    max-width: 38rem;
+    margin-inline: auto;
+    text-align: center;
+  }
+
+  .sig__empty-text {
+    margin: 0 0 1.75rem;
+    font-size: 1.125rem;
+    line-height: 1.7;
+    color: var(--muted-foreground);
+  }
+
+  /* 兜底链接：深色圆角小 CTA（品牌按钮语言）。 */
+  .sig__empty-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-cta);
+    color: #fff;
+    font-family: var(--font-sans);
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-decoration: none;
+    padding: 0.7rem 1.5rem;
+    border-radius: var(--radius-cta);
+    transition: background-color 150ms ease;
+  }
+  .sig__empty-link:hover {
+    background: #2c2c2c;
+  }
+</style>
