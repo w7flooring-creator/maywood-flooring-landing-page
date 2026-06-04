@@ -1,0 +1,157 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+// 内部参考页，不进索引、不进 sitemap。
+const swatches = [
+  { name: "--color-ink", value: "#000000", note: "header/footer、正文" },
+  { name: "--color-bg", value: "#ffffff", note: "页面背景" },
+  { name: "--color-bg-muted", value: "#f4f2ef", note: "灰背景区块" },
+  { name: "--color-cta", value: "#1a1a1a", note: "深色 CTA" },
+  { name: "--border", value: "#e5e2dd", note: "描边/分隔" },
+];
+---
+
+<BaseLayout title="Style Guide — Maywood Flooring">
+  <meta slot="head" name="robots" content="noindex,nofollow" />
+
+  <div class="wrap">
+    <p class="eyebrow">Maywood Flooring · 设计语言</p>
+    <h1>The grain of good design</h1>
+    <p class="lede">
+      Fraunces（serif，大标题）+ Hanken Grotesk（sans，正文）。克制、高端、editorial——
+      不是通用 SaaS。本页为内部 token 与排版参考。
+    </p>
+
+    <h2>排版 / Typography</h2>
+    <div class="type-row"><span class="lbl">H1 · Fraunces</span><span class="serif s-h1">Engineered Timber</span></div>
+    <div class="type-row"><span class="lbl">H2 · Fraunces</span><span class="serif s-h2">Signature Collections</span></div>
+    <div class="type-row"><span class="lbl">H3 · Fraunces</span><span class="serif s-h3">Blackbutt · Spotted Gum</span></div>
+    <div class="type-row"><span class="lbl">Body · Hanken</span><span class="s-body">Premium timber and flooring, supplied to trade and wholesale across Melbourne and Victoria.</span></div>
+    <div class="type-row"><span class="lbl">Small · Hanken</span><span class="s-small">Keysborough, VIC · ATFA member</span></div>
+
+    <h2>CTA 按钮</h2>
+    <div class="cta-demo">
+      <a class="cta" href="#">Request a sample</a>
+      <a class="cta cta--ghost" href="#">Read more</a>
+    </div>
+
+    <h2>产品卡片 / Card</h2>
+    <div class="cards">
+      {["Blackbutt", "Spotted Gum", "Pale Oak"].map((n) => (
+        <article class="card">
+          <div class="card__img" aria-hidden="true"></div>
+          <p class="card__name">{n}</p>
+        </article>
+      ))}
+    </div>
+
+    <h2>颜色 token</h2>
+    <div class="swatches">
+      {swatches.map((s) => (
+        <div class="swatch">
+          <div class="swatch__chip" style={`background:${s.value}`}></div>
+          <code>{s.name}</code>
+          <span class="swatch__note">{s.note}</span>
+        </div>
+      ))}
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .wrap {
+    max-width: 64rem;
+    margin-inline: auto;
+    padding: clamp(2rem, 5vw, 4rem) 1.25rem 6rem;
+  }
+  .eyebrow {
+    font-size: 0.8rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #777;
+    margin: 0 0 0.75rem;
+  }
+  h1 {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    line-height: 1.05;
+    margin: 0 0 1rem;
+  }
+  .lede {
+    max-width: 42rem;
+    color: #444;
+    font-size: 1.125rem;
+    line-height: 1.6;
+    margin: 0 0 3.5rem;
+  }
+  h2 {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-size: 1.5rem;
+    margin: 3rem 0 1.25rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .type-row {
+    display: grid;
+    grid-template-columns: 9rem 1fr;
+    gap: 1rem;
+    align-items: baseline;
+    padding: 0.6rem 0;
+  }
+  .lbl { font-size: 0.75rem; color: #999; letter-spacing: 0.04em; }
+  .serif { font-family: var(--font-serif); font-weight: 400; }
+  .s-h1 { font-size: 2.5rem; line-height: 1.1; }
+  .s-h2 { font-size: 1.75rem; }
+  .s-h3 { font-size: 1.25rem; }
+  .s-body { font-size: 1rem; line-height: 1.6; color: #333; }
+  .s-small { font-size: 0.85rem; color: #777; }
+
+  .cta-demo { display: flex; gap: 1rem; flex-wrap: wrap; }
+  .cta {
+    display: inline-block;
+    background: var(--color-cta);
+    color: #fff;
+    font-size: 0.85rem;
+    letter-spacing: 0.02em;
+    padding: 0.7rem 1.4rem;
+    border-radius: var(--radius-cta);
+    text-decoration: none;
+  }
+  .cta--ghost {
+    background: transparent;
+    color: var(--color-ink);
+    border: 1px solid var(--color-ink);
+  }
+
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+    gap: 1.5rem;
+  }
+  .card__img {
+    aspect-ratio: 1 / 1;
+    background: var(--color-bg-muted);
+    border: 1px solid var(--border);
+  }
+  .card__name {
+    font-family: var(--font-serif);
+    font-size: 1.05rem;
+    margin: 0.75rem 0 0;
+  }
+
+  .swatches {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+    gap: 1.25rem;
+  }
+  .swatch__chip {
+    height: 4rem;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+  }
+  .swatch code { font-size: 0.8rem; }
+  .swatch__note { display: block; font-size: 0.75rem; color: #888; margin-top: 0.2rem; }
+</style>
