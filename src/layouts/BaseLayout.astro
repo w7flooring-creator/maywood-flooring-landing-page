@@ -1,0 +1,28 @@
+---
+import "../styles/globals.css";
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const { title = "Maywood Flooring", description = "" } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en-AU">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>{title}</title>
+    {description && <meta name="description" content={description} />}
+    <slot name="head" />
+  </head>
+  <body>
+    {/* 骨架占位：SiteHeader / SiteFooter 等组件按 AGENTS.md 组件清单后续实现 */}
+    <main>
+      <slot />
+    </main>
+  </body>
+</html>

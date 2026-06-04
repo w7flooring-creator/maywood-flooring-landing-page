@@ -1,0 +1,23 @@
+# dependencies
+node_modules/
+
+# astro build
+dist/
+.astro/
+
+# sanity studio
+studio/node_modules/
+studio/dist/
+studio/.sanity/
+
+# env / secrets
+.env
+.env.*
+!.env.example
+
+# os / editor
+.DS_Store
+*.log
+npm-debug.log*
+.vscode/*
+!.vscode/extensions.json

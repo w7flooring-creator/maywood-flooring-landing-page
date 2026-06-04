@@ -1,0 +1,38 @@
+@import "tailwindcss";
+
+/* ────────────────────────────────────────────────────────────────
+   Maywood 设计 token —— 单一来源（CSS variables）
+   品牌方向：克制、高端、editorial 木地板；非通用 SaaS。
+   起点见 AGENTS.md「视觉方向」；字体待替换为品牌 serif/sans。
+   ──────────────────────────────────────────────────────────────── */
+@theme {
+  --color-ink: #000000;        /* 黑色高对比 header/footer */
+  --color-bg: #ffffff;         /* 白 / 近白页面背景 */
+  --color-bg-muted: #f4f2ef;   /* signature collections 等灰背景区 */
+  --color-cta: #1a1a1a;        /* 深色圆角小 CTA 按钮 */
+
+  /* TODO(品牌字体)：替换占位 stack 为正式 serif / sans */
+  --font-serif: ui-serif, Georgia, "Times New Roman", serif;
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --radius-cta: 4px;
+  --spacing-section: clamp(4rem, 8vw, 8rem); /* 大留白、慢节奏 */
+}
+
+/* shadcn/ui 语义变量 → 映射到品牌 token。
+   组件落地时消费这里，禁止 shadcn 默认中性灰 / SaaS 渐变。 */
+:root {
+  --background: var(--color-bg);
+  --foreground: var(--color-ink);
+  --primary: var(--color-cta);
+  --primary-foreground: #ffffff;
+  --muted: var(--color-bg-muted);
+  --border: #e5e2dd;
+  --radius: var(--radius-cta);
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
