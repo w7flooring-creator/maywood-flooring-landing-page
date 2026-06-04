@@ -1,0 +1,127 @@
+---
+/**
+ * /book-online —— 「Our Services」列表页（issue #20，Phase 1 降级）。
+ *
+ * 已敲定决策（AGENTS.md「booking/service 页」+ ADR-0001）：保留 legacy URL，但**不重建
+ * Wix Bookings 日历 / 收款**——本页降级为静态服务一览：每张卡链接到对应
+ * /service-page/<slug>，无在线日历、无价格（预约 + 支付留 Phase 3）。
+ *
+ * 服务清单来自静态来源（src/lib/services.ts，无需 Sanity）。底部放一个通用 CTA：
+ * 多数服务是咨询 / workshop 类 → 用 SERVICES[0] 解析出 /contact 的「Get in touch」。
+ * 结构：Header → Breadcrumbs（Home > Our Services）→ intro → 服务卡网格 → CTA → Footer。
+ * canonical 自指。纯静态（SSG）。
+ */
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import ServiceCard from "@/components/ServiceCard.astro";
+import ServiceCtaSection from "@/components/ServiceCtaSection.astro";
+import { SERVICES, buildBookOnlineSeo } from "@/lib/services";
+import type { BreadcrumbItem } from "@/lib/seo";
+
+const breadcrumbs: BreadcrumbItem[] = [
+  { name: "Home", url: "/" },
+  { name: "Our Services", url: "/book-online" },
+];
+
+const seo = buildBookOnlineSeo();
+---
+
+<BaseLayout {...seo}>
+  <section class="book-online">
+    <div class="book-online__crumbs">
+      <Breadcrumbs items={breadcrumbs} />
+    </div>
+
+    <div class="book-online__inner">
+      <header class="book-online__header">
+        <p class="book-online__eyebrow">Our Services</p>
+        <h1 class="book-online__title">Talk to a flooring specialist</h1>
+        <p class="book-online__intro">
+          Whether you're choosing your first floor or fitting one out, our team
+          is here to help. Explore a consultation, workshop or sample viewing
+          below — then get in touch to arrange a time at our Keysborough
+          showroom in Melbourne.
+        </p>
+      </header>
+
+      <ul class="book-online__grid" role="list">
+        {
+          SERVICES.map((service) => (
+            <li>
+              <ServiceCard service={service} />
+            </li>
+          ))
+        }
+      </ul>
+
+      <ServiceCtaSection
+        service={SERVICES[0]}
+        heading="Ready to book a time?"
+      />
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .book-online__crumbs {
+    max-width: 72rem;
+    margin-inline: auto;
+    padding: 1.25rem clamp(1rem, 4vw, 2.5rem) 0;
+  }
+
+  .book-online__inner {
+    max-width: 72rem;
+    margin-inline: auto;
+    padding: clamp(2rem, 5vw, 4rem) clamp(1rem, 4vw, 2.5rem)
+      clamp(4rem, 8vw, 6rem);
+  }
+
+  .book-online__header {
+    max-width: 44rem;
+  }
+
+  .book-online__eyebrow {
+    margin: 0 0 0.75rem;
+    font-size: 0.78rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+  }
+
+  .book-online__title {
+    margin: 0;
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-size: clamp(2.25rem, 5vw, 3.5rem);
+    line-height: 1.05;
+    color: var(--color-ink);
+  }
+
+  .book-online__intro {
+    margin: 1.5rem 0 0;
+    font-size: 1.0625rem;
+    line-height: 1.65;
+    color: var(--muted-foreground);
+  }
+
+  .book-online__grid {
+    list-style: none;
+    margin: clamp(2.5rem, 5vw, 3.5rem) 0 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: clamp(1rem, 2.5vw, 1.5rem);
+  }
+
+  @media (min-width: 40rem) {
+    .book-online__grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .book-online__grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+</style>
