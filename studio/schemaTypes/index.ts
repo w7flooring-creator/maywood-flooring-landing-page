@@ -3,12 +3,20 @@ import { seo } from "./seo";
 import { productCategory } from "./productCategory";
 import { productCollection } from "./productCollection";
 import { product } from "./product";
+import { page } from "./page";
+import { caseStudy } from "./caseStudy";
+import { blogPost } from "./blogPost";
+import { resource } from "./resource";
+import { faq } from "./faq";
+import { locationPage } from "./locationPage";
+import { galleryImage } from "./galleryImage";
+import { redirect } from "./redirect";
+import { siteSettings } from "./siteSettings";
+import { navigation } from "./navigation";
+import { seoSettings } from "./seoSettings";
 
-// 其余 document schema 在后续 issue 中逐个实现。
-// 目标 document types 见 AGENTS.md「Sanity CMS 模型」：
-// siteSettings, navigation, homePage, page, product, productCategory,
-// productCollection, caseStudy, blogPost, resource, faq, locationPage,
-// service, galleryImage, redirect, seoSettings
+// 目标 document types 见 AGENTS.md「Sanity CMS 模型」。
+// homePage / service 仍待后续 issue 实现（本 issue #8 范围外）。
 export const schemaTypes: SchemaTypeDefinition[] = [
   // 可复用 object
   seo,
@@ -17,4 +25,17 @@ export const schemaTypes: SchemaTypeDefinition[] = [
   productCollection,
   // 产品 document（issue #9）
   product,
+  // 内容 / 支撑 document（issue #8）
+  page,
+  caseStudy,
+  blogPost,
+  resource,
+  faq,
+  locationPage,
+  galleryImage,
+  redirect,
+  // 全局单例（issue #8）
+  siteSettings,
+  navigation,
+  seoSettings,
 ];
