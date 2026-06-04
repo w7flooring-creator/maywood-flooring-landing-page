@@ -1,0 +1,70 @@
+---
+/**
+ * /service-page/[slug] —— 服务介绍页（issue #20，Phase 1 降级）。
+ *
+ * 已敲定决策（AGENTS.md「booking/service 页」+ ADR-0001）：保留 legacy URL，把 Wix
+ * Bookings 日历 / 收款降级为**静态服务介绍 + CTA 分流**——不重建日历、不展示价格、
+ * 预约 + 支付留 Phase 3。
+ *
+ * getStaticPaths 来自静态服务清单（src/lib/services.ts，无需 Sanity）：5 个已知 slug
+ * （含 legacy 误导项 flooring-consultation-1，原样保留）。CTA 由 service.ctaType 分流：
+ * consultation / workshop → /contact；sample-viewing → /request-sample。
+ *
+ * 结构：Header → Breadcrumbs（Home > Our Services > Service）→ ServiceDetail（介绍 +
+ * what's involved）→ ServiceCtaSection（分流 CTA + 渠道）→ Footer。
+ * canonical 自指。纯静态（SSG）。
+ *
+ * 注：/booking-calendar/* 的 redirect 由 #24 单独处理，本页不加 redirect。
+ */
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import ServiceDetail from "@/components/ServiceDetail.astro";
+import ServiceCtaSection from "@/components/ServiceCtaSection.astro";
+import {
+  toServiceStaticPaths,
+  buildServiceBreadcrumbs,
+  buildServiceSeo,
+  type Service,
+} from "@/lib/services";
+
+export function getStaticPaths() {
+  return toServiceStaticPaths();
+}
+
+interface Props {
+  service: Service;
+}
+
+const { service } = Astro.props as Props;
+
+const breadcrumbs = buildServiceBreadcrumbs(service);
+const seo = buildServiceSeo(service);
+---
+
+<BaseLayout {...seo}>
+  <article class="service-page">
+    <div class="service-page__crumbs">
+      <Breadcrumbs items={breadcrumbs} />
+    </div>
+
+    <div class="service-page__body">
+      <ServiceDetail service={service} />
+      <ServiceCtaSection service={service} />
+    </div>
+  </article>
+</BaseLayout>
+
+<style>
+  .service-page__crumbs {
+    max-width: 72rem;
+    margin-inline: auto;
+    padding: 1.25rem clamp(1rem, 4vw, 2.5rem) 0;
+  }
+
+  .service-page__body {
+    max-width: 72rem;
+    margin-inline: auto;
+    padding: clamp(2rem, 5vw, 4rem) clamp(1rem, 4vw, 2.5rem)
+      clamp(4rem, 8vw, 6rem);
+  }
+</style>
