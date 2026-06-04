@@ -1,0 +1,55 @@
+---
+/**
+ * ProductSpecList —— 产品详情页的纵向规格表（AGENTS.md「产品详情」九个字段）。
+ *
+ * 输入已过滤好的规格行（来自 buildProductSpecItems，空值已省略）。
+ *  - 有规格：渲染 <dl> 定义列表（label/value 语义对，无障碍友好）。
+ *  - 无规格：整块不渲染（return null），不输出空表 / 占位 “—”。
+ *
+ * 用 <dl> 而非 <table>：规格本质是「名→值」键值对，定义列表语义更贴切。
+ * 纯静态（零 client JS）。
+ */
+import ProductSpecItem from "@/components/ProductSpecItem.astro";
+import type { ProductSpecItem as SpecItem } from "@/lib/product-detail";
+
+interface Props {
+  items: SpecItem[];
+  heading?: string;
+}
+
+const { items, heading = "Specifications" } = Astro.props;
+const hasItems = items.length > 0;
+---
+
+{
+  hasItems && (
+    <section class="spec-list" aria-labelledby="spec-list-heading">
+      <h2 id="spec-list-heading" class="spec-list__heading">
+        {heading}
+      </h2>
+      <dl class="spec-list__dl">
+        {items.map((item) => (
+          <ProductSpecItem label={item.label} value={item.value} />
+        ))}
+      </dl>
+    </section>
+  )
+}
+
+<style>
+  .spec-list {
+    margin-top: 2.5rem;
+  }
+
+  .spec-list__heading {
+    margin: 0 0 1rem;
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-size: clamp(1.25rem, 3vw, 1.5rem);
+    color: var(--color-ink);
+  }
+
+  .spec-list__dl {
+    margin: 0;
+  }
+</style>

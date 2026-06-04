@@ -1,0 +1,130 @@
+---
+/**
+ * /product-page/[slug] —— 产品详情页（issue #13；约 73 个产品，legacy URL 保留）。
+ *
+ * getStaticPaths 从 getProductDetailSlugs()（仅 published 产品）拉全量 slug。
+ * Phase 1 产品尚未灌入（#10 待办）→ slug 列表恒空 → 本地/CI 构建 0 产品页，
+ * **符合预期**（验证靠 src/lib + Container API 渲染测试，不靠线上页数）。
+ *
+ * 页面结构（AGENTS.md「产品详情」）：
+ *   Breadcrumbs(Home > All Products > Product) → 图廊(Embla island + lightbox)
+ *   + 标题 + 纵向规格表 + 询盘 CTA → 相关产品。
+ * SEO：唯一 title/desc/canonical/OG（SeoHead）；Product + BreadcrumbList JSON-LD。
+ * 图廊是唯一 island（client:visible，首屏下方按需 hydrate）；其余纯静态（SSG）。
+ */
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import StructuredData from "@/components/StructuredData.astro";
+import ProductImageGallery from "@/components/ProductImageGallery.tsx";
+import ProductTitle from "@/components/ProductTitle.astro";
+import ProductSpecList from "@/components/ProductSpecList.astro";
+import ProductInquiryCta from "@/components/ProductInquiryCta.astro";
+import RelatedProducts from "@/components/RelatedProducts.astro";
+import {
+  getProductDetailSlugs,
+  getProductDetailBySlug,
+  buildProductSpecItems,
+  buildProductBreadcrumbs,
+  buildProductSeo,
+  buildProductJsonLd,
+  toProductDetailPaths,
+  type ProductDetail,
+} from "@/lib/product-detail";
+
+export async function getStaticPaths() {
+  const slugs = await getProductDetailSlugs();
+  return toProductDetailPaths(slugs);
+}
+
+const { slug } = Astro.params as { slug: string };
+
+// build 时按 slug 取产品（getStaticPaths 只产出存在的 slug，故正常应非空；
+// 仍判 null 以防数据竞态，缺失则 404）。
+const product = (await getProductDetailBySlug(slug)) as ProductDetail | null;
+if (!product) {
+  return Astro.redirect("/404");
+}
+
+const breadcrumbs = buildProductBreadcrumbs(product);
+const seo = buildProductSeo(product);
+const specItems = buildProductSpecItems(product);
+const productJsonLd = buildProductJsonLd(product);
+const eyebrow = product.collection?.title ?? product.category?.title ?? null;
+---
+
+<BaseLayout {...seo}>
+  {
+    /* 产品页专属结构化数据：Product（站点级 LocalBusiness 由 SeoHead 注入）。 */
+  }
+  <StructuredData data={productJsonLd} slot="head" />
+
+  <article class="product">
+    <div class="product__crumbs">
+      <Breadcrumbs items={breadcrumbs} />
+    </div>
+
+    <div class="product__layout">
+      <div class="product__media">
+        {
+          product.images.length > 0 ? (
+            <ProductImageGallery
+              client:visible
+              images={product.images}
+              productTitle={product.title}
+            />
+          ) : (
+            <div class="product__media-empty" aria-hidden="true" />
+          )
+        }
+      </div>
+
+      <div class="product__info">
+        <ProductTitle
+          title={product.title}
+          eyebrow={eyebrow}
+          description={product.shortDescription}
+        />
+        <ProductSpecList items={specItems} />
+        <ProductInquiryCta productTitle={product.title} />
+      </div>
+    </div>
+
+    <div class="product__related">
+      <RelatedProducts products={product.relatedProducts} />
+    </div>
+  </article>
+</BaseLayout>
+
+<style>
+  .product {
+    max-width: 72rem;
+    margin-inline: auto;
+    padding: 1.25rem 1.25rem var(--spacing-section);
+  }
+
+  .product__layout {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+    margin-top: 2rem;
+  }
+
+  @media (min-width: 60rem) {
+    .product__layout {
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+      gap: 4rem;
+      align-items: start;
+    }
+  }
+
+  .product__media-empty {
+    aspect-ratio: 4 / 3;
+    width: 100%;
+    background: var(--color-bg-muted);
+    border-radius: var(--radius-cta);
+  }
+
+  .product__related {
+    max-width: 100%;
+  }
+</style>

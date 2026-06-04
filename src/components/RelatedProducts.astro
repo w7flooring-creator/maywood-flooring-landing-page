@@ -1,0 +1,80 @@
+---
+/**
+ * RelatedProducts —— 产品详情页底部「相关产品」区（issue #13）。
+ *
+ * 刻意保持自包含、最小化（仅标题链接，无图卡片）：
+ *  - 共享的 `ProductCard`（带图网格）归 #12（分类/列表）负责，本 PR 不创建，
+ *    避免跨 PR 文件冲突。等 #12 落地后可视情况升级为卡片。
+ *  - Phase 1 产品/关联恒空（#10 待办）→ **无关联时整块不渲染**（return null），
+ *    不输出空网格 / 占位。等编辑在 Studio 挂上 relatedProducts 即自动「亮起」。
+ *
+ * 纯静态（零 client JS）。链接指向 /product-page/<slug>。
+ */
+import type { RelatedProductSummary } from "@/lib/product-detail";
+
+interface Props {
+  products: RelatedProductSummary[];
+  heading?: string;
+}
+
+const { products, heading = "Related products" } = Astro.props;
+const hasProducts = products.length > 0;
+---
+
+{
+  hasProducts && (
+    <section class="related" aria-labelledby="related-heading">
+      <h2 id="related-heading" class="related__heading">
+        {heading}
+      </h2>
+      <ul class="related__list" role="list">
+        {products.map((product) => (
+          <li class="related__item">
+            <a class="related__link" href={`/product-page/${product.slug}`}>
+              {product.title}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )
+}
+
+<style>
+  .related {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--color-border-hairline);
+  }
+
+  .related__heading {
+    margin: 0 0 1.25rem;
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-size: clamp(1.25rem, 3vw, 1.5rem);
+    color: var(--color-ink);
+  }
+
+  .related__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .related__link {
+    font-family: var(--font-serif);
+    font-size: 1.0625rem;
+    color: var(--color-ink);
+    text-decoration: none;
+    border-bottom: 1px solid var(--color-border-hairline);
+    transition: border-color 0.2s ease;
+  }
+
+  .related__link:hover,
+  .related__link:focus-visible {
+    border-color: var(--color-ink);
+  }
+</style>
