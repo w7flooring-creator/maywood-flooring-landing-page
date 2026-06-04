@@ -22,17 +22,25 @@
 | 组件 | **优先用一套开源库（默认 shadcn/ui + Radix），自己写是最后手段** —— 见「组件策略」 |
 | 样式 | 设计 token（CSS variables）单一来源；随 shadcn 采用 Tailwind + Astro scoped styles |
 
-## 当前状态（2026-06-04）
+## 当前状态（2026-06-04，活跃开发中）
 
-**仓库为空壳**：只有规范 md 和 README，尚无任何代码、`package.json` 或 Astro 项目。
-任何编码任务的第一步是搭建项目骨架，而不是假设已有结构。
+**已是成熟代码库**（不再是空壳）：Astro 5 + Tailwind v4 + React islands + Sanity + Cloudflare Workers（Static Assets）；
+CI（lint/typecheck/test/build）+ branch protection + 自动部署齐备；生产站在线：
+`https://maywood-flooring-landing-page.w7flooring.workers.dev`。
 
-参考素材（2026-06-03 抓取，位于 `~/Desktop/`，**不在仓库内**）：
+**已完成（23 个 issue）**：设计 token/字体、全局 Header/Footer、SEO 基础（SeoHead + JSON-LD + Breadcrumbs）、
+Sanity schema（分类法 + product + 其余 11 类）并 seed 分类法、首页、分类页、产品页、Signature 落地页、
+Contact、Request-Sample、内容页（About/Sustainability/Resources）、Gallery、Service/booking 降级页、Projects、
+FAQ、sitemap/robots/404、legacy redirect map。
 
-- 截图：`maywood-home-full.png`、`maywood-category-engineered-full.png`、`maywood-product-blackbutt-full.png`、`maywood-contact-full.png`
-- DOM 快照：`~/Desktop/.playwright-mcp/page-2026-06-03T04-*.yml`
+**仍待办（HITL）**：
+- **#10 / #11**：从 Wix 导出产品 CSV + 下载图片 → 灌入 Sanity。**分类/产品页目前是空网格，迁移后才有真实内容（~73 产品）。**
+- **#25**：Contact/Sample 表单后端（Cloudflare Worker + Turnstile + Resend）。
+- **#27**：上线 QA + Lighthouse + DNS 切换。
 
-> 若 Wix 站点可能已变化，编码前先重新抓取截图、sitemap 和页面结构。
+> 关键决策见 `docs/adr/`：ADR-0001（legacy URL 平迁）、0002（Workers Static Assets 部署）、0003（Sanity build read token）。
+> Wix 参考素材（2026-06-03 抓取，**不在仓库内**）：`~/Desktop/` 截图 + `~/Desktop/.playwright-mcp/*.yml` DOM 快照。
+> 若 Wix 站点可能已变化，复刻前先重新抓取截图 / sitemap / 页面结构。
 
 ## 关键业务事实（NAP — 必须全站一致）
 
