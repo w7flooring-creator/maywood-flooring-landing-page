@@ -3,13 +3,24 @@
 import "@fontsource-variable/fraunces";
 import "@fontsource-variable/hanken-grotesk";
 import "../styles/globals.css";
+import SeoHead from "@/components/SeoHead.astro";
+import type { SeoInput } from "@/lib/seo";
 
-interface Props {
-  title?: string;
-  description?: string;
-}
+/**
+ * 全站基础布局。SEO 元信息交给 SeoHead 统一处理（唯一 title/desc、canonical、
+ * Open Graph、站点级 LocalBusiness JSON-LD），保证每页一致。
+ *
+ * 页面只需传 SeoInput 字段；`path` 缺省取当前页 pathname。
+ * 页面级额外 <head> 内容（如页面专属结构化数据）走 `head` 具名 slot。
+ */
+type Props = Partial<SeoInput> & {
+  /** 是否输出站点级 LocalBusiness（默认 true，详情页可叠加自己的 schema）。 */
+  localBusiness?: boolean;
+};
 
-const { title = "Maywood Flooring", description = "" } = Astro.props;
+const { localBusiness = true, ...seo } = Astro.props;
+// path 缺省取当前请求路径，页面无需手动传。
+const path = seo.path ?? Astro.url.pathname;
 ---
 
 <!doctype html>
@@ -18,8 +29,7 @@ const { title = "Maywood Flooring", description = "" } = Astro.props;
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <title>{title}</title>
-    {description && <meta name="description" content={description} />}
+    <SeoHead {...seo} path={path} localBusiness={localBusiness} />
     <slot name="head" />
   </head>
   <body>

@@ -1,0 +1,82 @@
+---
+/**
+ * Breadcrumbs —— 语义化面包屑导航 + BreadcrumbList 结构化数据。
+ *
+ * 输入一组有序 {name, url} 项（首项通常 Home，末项为当前页）。
+ *  - 渲染 <nav aria-label="Breadcrumb"> + 有序列表，末项不作链接并标 aria-current="page"。
+ *  - 同步输出 BreadcrumbList JSON-LD（见 AGENTS.md「分类页/产品页要 breadcrumb schema」）。
+ *
+ * 零 client JS（纯静态）。视觉样式后续在 #1 设计锁定时微调，这里只保证语义与结构。
+ */
+import { buildBreadcrumbListJsonLd, type BreadcrumbItem } from "@/lib/seo";
+import StructuredData from "@/components/StructuredData.astro";
+
+interface Props {
+  items: BreadcrumbItem[];
+}
+
+const { items } = Astro.props;
+const jsonLd = buildBreadcrumbListJsonLd(items);
+const lastIndex = items.length - 1;
+---
+
+{
+  items.length > 0 && (
+    <nav aria-label="Breadcrumb" class="breadcrumbs">
+      <ol>
+        {items.map((item, index) =>
+          index === lastIndex ? (
+            <li>
+              <span aria-current="page">{item.name}</span>
+            </li>
+          ) : (
+            <li>
+              <a href={item.url}>{item.name}</a>
+            </li>
+          ),
+        )}
+      </ol>
+    </nav>
+    <StructuredData data={jsonLd} />
+  )
+}
+
+<style>
+  /* 起步样式：克制、editorial。视觉细节随 #1 设计锁定再调。 */
+  .breadcrumbs ol {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: 0.875rem;
+  }
+
+  .breadcrumbs li {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  /* 分隔符用 CSS，不进 DOM 文本，避免污染屏幕阅读器朗读。 */
+  .breadcrumbs li + li::before {
+    content: "/";
+    color: #999;
+  }
+
+  .breadcrumbs a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .breadcrumbs a:hover,
+  .breadcrumbs a:focus-visible {
+    text-decoration: underline;
+  }
+
+  .breadcrumbs [aria-current="page"] {
+    color: #555;
+  }
+</style>
