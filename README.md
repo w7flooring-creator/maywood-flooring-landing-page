@@ -64,7 +64,7 @@ PUBLIC_TURNSTILE_SITE_KEY=
 - **电话**：03 8753 5522
 - **邮箱**：sales@maywoodflooring.com.au
 - **地址**：49-51 Keysborough Ave, Keysborough, VIC 3173
-- **WhatsApp**：⚠️ 待确认
+- **WhatsApp**：0422 709 709（+61 422 709 709）
 
 ## 部署
 

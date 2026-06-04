@@ -42,7 +42,7 @@
 - **地理 SEO 关键词**：Melbourne、Keysborough、VIC、Australia
 - **行业 badge**：ATFA（页脚）
 - 定位：高端 timber / flooring supplier，面向 wholesale、trade、澳洲本地获客
-- **WhatsApp 号码**：⚠️ 待确认（见「仍待补充」）
+- **WhatsApp**：`0422 709 709`（国际 +61 422 709 709；`WhatsAppCta` 链接 `https://wa.me/61422709709`）
 
 ## 第一个 Agent 的起步顺序
 
@@ -288,10 +288,11 @@ apps/web/{src,public,astro.config.mjs}  apps/studio/{schemaTypes,sanity.config.t
 - **图片来源**：可从 Wix Media Manager 下载原图 → 上传 Sanity（生产禁止热链 Wix）。
 - **产品数据**：可从 Wix Stores/CMS 导出 CSV → 转 Sanity 文档。
 - **Accessories 入口**：首页保留该入口，Phase 1 指向询盘/Contact（背后暂无 Category，不建空分类）。
+- **WhatsApp 号码**：`0422 709 709`（国际 +61 422 709 709）；`WhatsAppCta` 用 `https://wa.me/61422709709`。
 
 ## 仍待补充
 
-- **WhatsApp 号码**：⚠️ 还没拿到。拿到前 `WhatsAppCta` 用占位、不接真实链接；若最终确定「不上 WhatsApp」，从组件清单移除 `WhatsAppCta`，只留 phone/email。
+- （暂无——本轮 grill 的待确认项已全部敲定。）
 
 ## Agent skills
 
