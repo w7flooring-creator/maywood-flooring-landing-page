@@ -1,0 +1,8 @@
+# Maywood Flooring — robots.txt
+# 允许所有爬虫抓取全站；sitemap 指向生产域名的 @astrojs/sitemap 索引。
+# 见 AGENTS.md「SEO：必须产出 sitemap.xml / robots.txt」。
+
+User-agent: *
+Allow: /
+
+Sitemap: https://www.maywoodflooring.com.au/sitemap-index.xml
