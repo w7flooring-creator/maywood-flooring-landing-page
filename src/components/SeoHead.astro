@@ -9,7 +9,11 @@
  * 用法（页面侧）：
  *   <SeoHead title="Contact Us" description="..." path={Astro.url.pathname} slot="head" />
  */
-import { resolveSeoMeta, buildLocalBusinessJsonLd, type SeoInput } from "@/lib/seo";
+import {
+  resolveSeoMeta,
+  buildLocalBusinessJsonLd,
+  type SeoInput,
+} from "@/lib/seo";
 import StructuredData from "@/components/StructuredData.astro";
 
 type Props = SeoInput & {

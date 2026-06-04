@@ -18,16 +18,38 @@ const swatches = [
     <p class="eyebrow">Maywood Flooring · 设计语言</p>
     <h1>The grain of good design</h1>
     <p class="lede">
-      Fraunces（serif，大标题）+ Hanken Grotesk（sans，正文）。克制、高端、editorial——
-      不是通用 SaaS。本页为内部 token 与排版参考。
+      Fraunces（serif，大标题）+ Hanken
+      Grotesk（sans，正文）。克制、高端、editorial—— 不是通用 SaaS。本页为内部
+      token 与排版参考。
     </p>
 
     <h2>排版 / Typography</h2>
-    <div class="type-row"><span class="lbl">H1 · Fraunces</span><span class="serif s-h1">Engineered Timber</span></div>
-    <div class="type-row"><span class="lbl">H2 · Fraunces</span><span class="serif s-h2">Signature Collections</span></div>
-    <div class="type-row"><span class="lbl">H3 · Fraunces</span><span class="serif s-h3">Blackbutt · Spotted Gum</span></div>
-    <div class="type-row"><span class="lbl">Body · Hanken</span><span class="s-body">Premium timber and flooring, supplied to trade and wholesale across Melbourne and Victoria.</span></div>
-    <div class="type-row"><span class="lbl">Small · Hanken</span><span class="s-small">Keysborough, VIC · ATFA member</span></div>
+    <div class="type-row">
+      <span class="lbl">H1 · Fraunces</span><span class="serif s-h1"
+        >Engineered Timber</span
+      >
+    </div>
+    <div class="type-row">
+      <span class="lbl">H2 · Fraunces</span><span class="serif s-h2"
+        >Signature Collections</span
+      >
+    </div>
+    <div class="type-row">
+      <span class="lbl">H3 · Fraunces</span><span class="serif s-h3"
+        >Blackbutt · Spotted Gum</span
+      >
+    </div>
+    <div class="type-row">
+      <span class="lbl">Body · Hanken</span><span class="s-body"
+        >Premium timber and flooring, supplied to trade and wholesale across
+        Melbourne and Victoria.</span
+      >
+    </div>
+    <div class="type-row">
+      <span class="lbl">Small · Hanken</span><span class="s-small"
+        >Keysborough, VIC · ATFA member</span
+      >
+    </div>
 
     <h2>CTA 按钮</h2>
     <div class="cta-demo">
@@ -37,23 +59,27 @@ const swatches = [
 
     <h2>产品卡片 / Card</h2>
     <div class="cards">
-      {["Blackbutt", "Spotted Gum", "Pale Oak"].map((n) => (
-        <article class="card">
-          <div class="card__img" aria-hidden="true"></div>
-          <p class="card__name">{n}</p>
-        </article>
-      ))}
+      {
+        ["Blackbutt", "Spotted Gum", "Pale Oak"].map((n) => (
+          <article class="card">
+            <div class="card__img" aria-hidden="true" />
+            <p class="card__name">{n}</p>
+          </article>
+        ))
+      }
     </div>
 
     <h2>颜色 token</h2>
     <div class="swatches">
-      {swatches.map((s) => (
-        <div class="swatch">
-          <div class="swatch__chip" style={`background:${s.value}`}></div>
-          <code>{s.name}</code>
-          <span class="swatch__note">{s.note}</span>
-        </div>
-      ))}
+      {
+        swatches.map((s) => (
+          <div class="swatch">
+            <div class="swatch__chip" style={`background:${s.value}`} />
+            <code>{s.name}</code>
+            <span class="swatch__note">{s.note}</span>
+          </div>
+        ))
+      }
     </div>
   </div>
 </BaseLayout>
@@ -100,15 +126,40 @@ const swatches = [
     align-items: baseline;
     padding: 0.6rem 0;
   }
-  .lbl { font-size: 0.75rem; color: #999; letter-spacing: 0.04em; }
-  .serif { font-family: var(--font-serif); font-weight: 400; }
-  .s-h1 { font-size: 2.5rem; line-height: 1.1; }
-  .s-h2 { font-size: 1.75rem; }
-  .s-h3 { font-size: 1.25rem; }
-  .s-body { font-size: 1rem; line-height: 1.6; color: #333; }
-  .s-small { font-size: 0.85rem; color: #777; }
+  .lbl {
+    font-size: 0.75rem;
+    color: #999;
+    letter-spacing: 0.04em;
+  }
+  .serif {
+    font-family: var(--font-serif);
+    font-weight: 400;
+  }
+  .s-h1 {
+    font-size: 2.5rem;
+    line-height: 1.1;
+  }
+  .s-h2 {
+    font-size: 1.75rem;
+  }
+  .s-h3 {
+    font-size: 1.25rem;
+  }
+  .s-body {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: #333;
+  }
+  .s-small {
+    font-size: 0.85rem;
+    color: #777;
+  }
 
-  .cta-demo { display: flex; gap: 1rem; flex-wrap: wrap; }
+  .cta-demo {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
   .cta {
     display: inline-block;
     background: var(--color-cta);
@@ -152,6 +203,13 @@ const swatches = [
     border-radius: 4px;
     margin-bottom: 0.5rem;
   }
-  .swatch code { font-size: 0.8rem; }
-  .swatch__note { display: block; font-size: 0.75rem; color: #888; margin-top: 0.2rem; }
+  .swatch code {
+    font-size: 0.8rem;
+  }
+  .swatch__note {
+    display: block;
+    font-size: 0.75rem;
+    color: #888;
+    margin-top: 0.2rem;
+  }
 </style>

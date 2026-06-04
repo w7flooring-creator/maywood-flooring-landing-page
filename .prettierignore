@@ -1,0 +1,11 @@
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+node_modules
+dist
+.astro
+studio/dist
+studio/node_modules
+
+# 人工维护的文档/规范，不交给 Prettier 重排
+*.md
