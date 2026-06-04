@@ -1,0 +1,14 @@
+# Cloudflare Static Assets _redirects —— 由 scripts/generate-redirects.ts 在 build 时生成。
+# 请勿手改本文件：静态例外见 src/lib/redirects.ts，编辑维护的跳转见 Sanity「重定向 (Redirect)」。
+# 格式：<from> <to> <status>（首条命中生效，* 为通配）。
+#
+# 策略（ADR-0001）：Phase 1 全部内容 legacy URL 1:1 保留，不在此列。
+# 下方仅为例外：/booking-calendar/* 交易 funnel 不迁 → 301 到对应 service 页 / Contact。
+
+# --- 静态例外（booking-calendar，ADR-0001） ---
+/booking-calendar/flooring-consultation /service-page/flooring-consultation 301
+/booking-calendar/flooring-consultation-1 /service-page/flooring-consultation-1 301
+/booking-calendar/sample-viewing /service-page/sample-viewing 301
+/booking-calendar/flooring-workshop /service-page/flooring-workshop 301
+/booking-calendar/installation-workshop /service-page/installation-workshop 301
+/booking-calendar/* /contact 301
