@@ -8,7 +8,7 @@
 ## TL;DR
 
 把现有 Wix 站点 `https://www.maywoodflooring.com.au/` 按其视觉、结构和组件颗粒度，用
-**Astro（静态优先）+ React islands + Sanity CMS + Cloudflare Pages** 重建。
+**Astro（静态优先）+ React islands + Sanity CMS + Cloudflare Workers（Static Assets）** 重建。
 这是一个**内容驱动的 SEO 获客站**，不是 Web App。保留品牌风格、保留 legacy URL、SEO 是核心目标。
 
 | 维度 | 决策 |
@@ -16,8 +16,8 @@
 | 框架 | Astro（默认 SSG），仅交互处用 React island |
 | 语言 | TypeScript |
 | CMS | Sanity（非技术人员维护内容，public dataset 优先） |
-| 部署 | Cloudflare Pages，production branch = `main`，preview 开启 |
-| 表单 | Phase 2 用 Cloudflare Pages Functions + Turnstile + Resend |
+| 部署 | Cloudflare Workers（Static Assets，发布 `dist/`），prod branch = `main`，preview 开启（见 ADR-0002）|
+| 表单 | Phase 2 用 Cloudflare Worker（同 Worker 加 routes 或独立 Worker）+ Turnstile + Resend |
 | 语言范围 | 仅英语（澳洲拼写），i18n 预留不实现 |
 | 组件 | **优先用一套开源库（默认 shadcn/ui + Radix），自己写是最后手段** —— 见「组件策略」 |
 | 样式 | 设计 token（CSS variables）单一来源；随 shadcn 采用 Tailwind + Astro scoped styles |
@@ -47,7 +47,7 @@
 ## 第一个 Agent 的起步顺序
 
 1. 决定仓库形态：**单 Astro 项目内含 `studio/`**（小规模，推荐起步）或 **monorepo `apps/web` + `apps/studio`**。规范建议小规模用单项目。
-2. 初始化 Astro + TypeScript 项目，配置 Cloudflare Pages adapter。
+2. 初始化 Astro + TypeScript 项目；Cloudflare 部署用 Workers Static Assets（`wrangler.jsonc` 指向 `dist/`，无需 Astro adapter；见 ADR-0002）。
 3. 接入 Sanity client（build-time 拉取），建立 schema（见下）。
 4. 先做**全局组件 + 设计 token**，再做页面。
 5. 用截图逐页复刻，桌面 + 移动端都要对照。
@@ -231,7 +231,7 @@ src/pages/service-page/[slug].astro
 ## 表单与获客（分阶段）
 
 - **Phase 1**：Contact form 发询盘邮件；Request sample CTA 打开表单或跳转；提供 phone/email/WhatsApp CTA。
-- **Phase 2**：Cloudflare Pages Function 处理提交 + Turnstile 防垃圾 + Resend 发信；除非明确需要不存敏感数据。
+- **Phase 2**：Cloudflare Worker（Static Assets 同 Worker 加 routes，或独立 Worker）处理提交 + Turnstile 防垃圾 + Resend 发信；除非明确需要不存敏感数据。
 - **Phase 3**：CRM、自动报价、样品追踪、预约。
 
 **环境变量**（不要提交 secrets）：
@@ -257,7 +257,7 @@ apps/web/{src,public,astro.config.mjs}  apps/studio/{schemaTypes,sanity.config.t
 
 ## 构建 / 部署
 
-- Cloudflare Pages：build `npm run build`；output `dist`（单项目）或 `apps/web/dist`（monorepo）；prod branch `main`；preview 开启。
+- Cloudflare Workers（Static Assets，见 ADR-0002）：build `npm run build`；`wrangler.jsonc` 的 `assets.directory=./dist`；prod 部署 `npx wrangler deploy`，预览 `npx wrangler versions upload`；prod branch `main`；preview 开启。构建 env 在 Workers 项目设置配置，CI 用 GitHub Actions Variables。
 - Sanity：配置 publish webhook 触发 rebuild；CORS 仅允许本地/preview/production/Studio domain。
 - DNS 切换：Cloudflare 验证完成前保持 Wix 在线 → 先加 production domain → 验 SSL → 表单/redirect/sitemap 全测后再切 DNS。上线后提交 sitemap 到 GSC、验埋点、监控 404、保留 Wix 作 fallback。
 
