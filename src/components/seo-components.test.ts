@@ -20,10 +20,10 @@ describe("SeoHead.astro", () => {
 
     expect(html).toContain("<title>Contact Us | Maywood Flooring</title>");
     expect(html).toContain(
-      '<meta name="description" content="Get in touch with our Keysborough showroom.">',
+      '<meta name="description" content="Get in touch with our Keysborough showroom.">'
     );
     expect(html).toContain(
-      '<link rel="canonical" href="https://www.maywoodflooring.com.au/contact">',
+      '<link rel="canonical" href="https://www.maywoodflooring.com.au/contact">'
     );
     expect(html).toContain('property="og:title"');
     expect(html).toContain('property="og:image"');
@@ -75,7 +75,7 @@ describe("Breadcrumbs.astro", () => {
     expect(html).toContain('"@type":"BreadcrumbList"');
     expect(html).toContain('"position":3');
     expect(html).toContain(
-      '"item":"https://www.maywoodflooring.com.au/product-page/blackbutt"',
+      '"item":"https://www.maywoodflooring.com.au/product-page/blackbutt"'
     );
   });
 

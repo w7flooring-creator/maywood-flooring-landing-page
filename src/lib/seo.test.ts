@@ -18,17 +18,15 @@ describe("resolveSeoMeta — 从 props + 默认值解析每页 meta/OG", () => {
 
     expect(meta.title).toBe("Contact Us | Maywood Flooring");
     expect(meta.description).toBe(
-      "Get in touch with our Keysborough showroom.",
+      "Get in touch with our Keysborough showroom."
     );
-    expect(meta.canonical).toBe(
-      "https://www.maywoodflooring.com.au/contact",
-    );
+    expect(meta.canonical).toBe("https://www.maywoodflooring.com.au/contact");
     expect(meta.ogTitle).toBe("Contact Us | Maywood Flooring");
     expect(meta.ogDescription).toBe(
-      "Get in touch with our Keysborough showroom.",
+      "Get in touch with our Keysborough showroom."
     );
     expect(meta.ogImage).toBe(
-      "https://www.maywoodflooring.com.au/og/contact.jpg",
+      "https://www.maywoodflooring.com.au/og/contact.jpg"
     );
     expect(meta.ogType).toBe("website");
     expect(meta.ogUrl).toBe("https://www.maywoodflooring.com.au/contact");
@@ -58,15 +56,13 @@ describe("resolveSeoMeta — 从 props + 默认值解析每页 meta/OG", () => {
       canonical: "https://www.maywoodflooring.com.au/puregrain",
     });
     // ADR-0001：store 视图 canonical 指向营销落地页
-    expect(meta.canonical).toBe(
-      "https://www.maywoodflooring.com.au/puregrain",
-    );
+    expect(meta.canonical).toBe("https://www.maywoodflooring.com.au/puregrain");
   });
 
   it("noindex 默认 false，可显式开启", () => {
     expect(resolveSeoMeta({ title: "X", path: "/x" }).noindex).toBe(false);
     expect(
-      resolveSeoMeta({ title: "X", path: "/x", noindex: true }).noindex,
+      resolveSeoMeta({ title: "X", path: "/x", noindex: true }).noindex
     ).toBe(true);
   });
 
