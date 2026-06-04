@@ -1,0 +1,55 @@
+---
+/**
+ * OpeningHours —— 营业时间表（Contact 页 "Contact Us" 区一栏）。
+ *
+ * 数据为静态（核对自线上 Wix Contact 页 2026-06；非 NAP，故不入 site.ts）。
+ * Phase 1 硬编码；将来若入 Sanity siteSettings 再切数据源（同 NAP 思路）。
+ * 用 <dl> 语义表达「日 → 时段」键值对，屏幕阅读器可正确朗读。
+ */
+interface OpeningHoursRow {
+  /** 星期或星期区间，如 "Monday – Friday"。 */
+  days: string;
+  /** 时段文案，如 "10:00 am – 4:00 pm" 或 "By appointment only"。 */
+  hours: string;
+}
+
+const rows: readonly OpeningHoursRow[] = [
+  { days: "Monday – Friday", hours: "10:00 am – 4:00 pm" },
+  { days: "Saturday", hours: "11:00 am – 4:00 pm" },
+  { days: "Sunday", hours: "By appointment only" },
+];
+---
+
+<dl class="hours">
+  {
+    rows.map((row) => (
+      <div class="hours__row">
+        <dt class="hours__days">{row.days}</dt>
+        <dd class="hours__time">{row.hours}</dd>
+      </div>
+    ))
+  }
+</dl>
+
+<style>
+  .hours {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+  .hours__row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+  }
+  .hours__days {
+    font-size: 0.95rem;
+    color: var(--color-ink);
+  }
+  .hours__time {
+    margin: 0;
+    font-size: 0.95rem;
+    color: var(--muted-foreground);
+  }
+</style>
