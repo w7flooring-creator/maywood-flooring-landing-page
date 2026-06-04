@@ -42,7 +42,7 @@
 - **地理 SEO 关键词**：Melbourne、Keysborough、VIC、Australia
 - **行业 badge**：ATFA（页脚）
 - 定位：高端 timber / flooring supplier，面向 wholesale、trade、澳洲本地获客
-- **WhatsApp 号码**：⚠️ 待确认（见「待确认事项」）
+- **WhatsApp 号码**：⚠️ 待确认（见「仍待补充」）
 
 ## 第一个 Agent 的起步顺序
 
@@ -172,16 +172,26 @@ src/pages/contact.astro
 src/pages/about-us.astro
 src/pages/sustainability.astro
 src/pages/[slug].astro              # collection landing: bushland, bellavale, manor, puregrain ...
-src/pages/category/[slug].astro     # 主分类 + 子分类
+src/pages/category/[slug].astro     # Category（3）+ Collection 的 store 视图（9）
 src/pages/product-page/[slug].astro # 约 73 个产品，实现时从 sitemap 拉全量
 src/pages/projects/[slug].astro
 src/pages/service-page/[slug].astro
 ```
 
-**主分类**：`sustainable-flooring` `engineered-flooring` `solid-flooring`
-**子分类**：`aquaglow-72hr` `bushland` `hydrocore` `mtf-24hr-water-resistant` `guardian` `puregrain` `manor` `duro-plus` `bellavale`
+**Category（3 个；slug ⚠️ 与展示名不符——故意保留，见 ADR-0001，禁止顺手改）**：
+- `engineered-flooring` → 展示「Engineered Flooring」（首页入口卡称 “Timber”）— 名实相符
+- `solid-flooring` → 展示「**Laminate** Flooring」— ⚠️ slug 误导
+- `sustainable-flooring` → 展示「**Hybrid** Flooring」— ⚠️ slug 误导
 
-> 改 URL 必须加 301 redirect。booking/service 页是否保留待确认（见底部）。
+**Collection（9 个 = Wix 旧「子分类」；每个归属一个 Category，术语见 `CONTEXT.md`）**：
+- Engineered：`puregrain` `bushland` `manor` `bellavale`（= 4 个 Signature Collection，另有营销落地页 `/<slug>`）
+- Laminate：`aquaglow-72hr` `mtf-24hr-water-resistant` `hydrocore`
+- Hybrid：`duro-plus` `guardian`
+
+> **URL 策略见 ADR-0001**：Phase 1 全部 legacy URL 原样保留，**不改 slug、不 301**。术语 Category/Collection 见 `CONTEXT.md`。
+> `/<collection>` 营销落地页与 `/category/<collection>` store 视图近重复 → 两者都留，用 `rel=canonical` 指向 `/<collection>`。
+> **内容债（不动 URL、现在就修）**：Laminate 页 intro 误写 “solid timber”、Hybrid 页误写 “sustainable… managed forests”，改成与页面实际内容相符。
+> booking/service 处理见底部「已敲定决策」。
 
 ## 页面结构要点
 
@@ -268,14 +278,20 @@ apps/web/{src,public,astro.config.mjs}  apps/studio/{schemaTypes,sanity.config.t
 9. 不要声称 Wix 代码可导出，除非同时由 Wix 官方文档和实际后台验证。
 10. **没有用户明确批准，不要改 DNS、账单或域名设置。**
 
-## 待确认事项（阻塞项，遇到时先问用户）
+## 已敲定决策（2026-06-04，grill-with-docs，已核实线上站点）
 
-- Wix Media Manager 是否能下载全部用户自有图片。
-- 产品数据能否从 Wix Stores/CMS 导出 CSV。
-- booking/service 页是否保留，还是 redirect 到 contact/sample request。
-- **WhatsApp 号码。**
-- Sanity Studio 部署在 `studio.maywoodflooring.com.au` 还是用 Sanity 默认托管。
-- 旧 URL 全部原样保留，还是引入更干净新 URL + 301。
+- **术语模型**：Category（3，材质族）+ Collection（9，品牌系列）+ Signature Collection（4，有落地页）。详见 `CONTEXT.md`。Wix 旧「子分类」概念取消，并入 Collection。
+- **URL 策略**：Phase 1 全部 legacy URL 原样保留，不改 slug、不 301（含 `solid-flooring`=Laminate、`sustainable-flooring`=Hybrid 的误导 slug）。详见 `docs/adr/0001-preserve-legacy-wix-urls.md`。
+- **booking/service 页**：保留 URL，Phase 1 降级为静态服务介绍页 + CTA（consultation/workshop → Contact；sample-viewing → Sample Request），不重建 Wix Bookings 日历/收款，预约+支付留 Phase 3。`/booking-calendar/*` 纯交易 funnel 为 ADR-0001 例外，可不迁或 301 到对应 service 页。
+- **Sanity dataset**：public dataset（build 时无需 read token）。
+- **Sanity Studio 托管**：Sanity 托管 `*.sanity.studio`，品牌子域以后再说。
+- **图片来源**：可从 Wix Media Manager 下载原图 → 上传 Sanity（生产禁止热链 Wix）。
+- **产品数据**：可从 Wix Stores/CMS 导出 CSV → 转 Sanity 文档。
+- **Accessories 入口**：首页保留该入口，Phase 1 指向询盘/Contact（背后暂无 Category，不建空分类）。
+
+## 仍待补充
+
+- **WhatsApp 号码**：⚠️ 还没拿到。拿到前 `WhatsAppCta` 用占位、不接真实链接；若最终确定「不上 WhatsApp」，从组件清单移除 `WhatsAppCta`，只留 phone/email。
 
 ## Agent skills
 
