@@ -9,6 +9,7 @@
     "preview": "astro preview",
     "check": "astro check",
     "test": "vitest run",
+    "seed:taxonomy": "node --experimental-strip-types scripts/seed-taxonomy.ts",
     "astro": "astro"
   },
   "dependencies": {
