@@ -4,6 +4,8 @@ import "@fontsource-variable/fraunces";
 import "@fontsource-variable/hanken-grotesk";
 import "../styles/globals.css";
 import SeoHead from "@/components/SeoHead.astro";
+import SiteHeader from "@/components/SiteHeader.astro";
+import SiteFooter from "@/components/SiteFooter.astro";
 import type { SeoInput } from "@/lib/seo";
 
 /**
@@ -33,11 +35,10 @@ const path = seo.path ?? Astro.url.pathname;
     <slot name="head" />
   </head>
   <body>
-    {
-      /* 骨架占位：SiteHeader / SiteFooter 等组件按 AGENTS.md 组件清单后续实现 */
-    }
+    <SiteHeader />
     <main>
       <slot />
     </main>
+    <SiteFooter />
   </body>
 </html>

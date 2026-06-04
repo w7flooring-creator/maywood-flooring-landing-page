@@ -49,3 +49,76 @@ export function absoluteUrl(pathOrUrl: string): string {
   const path = pathOrUrl.startsWith("/") ? pathOrUrl : `/${pathOrUrl}`;
   return `${SITE.url}${path}`;
 }
+
+/** 单个导航条目。`href` 为站内相对路径（保留 legacy URL，见 ADR-0001）。 */
+export type NavLink = {
+  /** 展示文案（澳洲拼写）。 */
+  label: string;
+  /** 站内相对路径。 */
+  href: string;
+};
+
+/**
+ * 主导航 —— SiteHeader 桌面 nav 与 MobileNav 抽屉共用的单一来源。
+ * 链接对照线上 Wix 站点：「Products」指向 engineered Category 视图
+ * （legacy URL，slug 误导问题见 ADR-0001，禁止顺手改）。
+ */
+export const PRIMARY_NAV: readonly NavLink[] = [
+  { label: "Home", href: "/" },
+  { label: "Products", href: "/category/engineered-flooring" },
+  { label: "Resources", href: "/resources" },
+  { label: "Gallery", href: "/gallery" },
+  { label: "About Us", href: "/about-us" },
+  { label: "Contact", href: "/contact" },
+] as const;
+
+/** Sample Request CTA —— Phase 1 指向 Contact（见已敲定决策）。 */
+export const SAMPLE_REQUEST = {
+  label: "Request a Sample",
+  href: "/contact",
+} as const;
+
+/** 单个社媒链接。`icon` 对应 lucide 图标名，供 SocialLinks 取用。 */
+export type SocialLink = {
+  /** 平台名，用作 aria-label / 可见文案回落。 */
+  label: string;
+  /** 外链绝对 URL。 */
+  href: string;
+  /** lucide 图标标识（Instagram / Facebook / Youtube）。 */
+  icon: "instagram" | "facebook" | "youtube";
+};
+
+/**
+ * 社媒账号 —— SocialLinks 的单一来源，链接核对自线上 Wix 站点 Social Bar。
+ */
+export const SOCIAL_LINKS: readonly SocialLink[] = [
+  {
+    label: "Instagram",
+    href: "https://www.instagram.com/maywood_au/",
+    icon: "instagram",
+  },
+  {
+    label: "Facebook",
+    href: "https://www.facebook.com/profile.php?id=61588526080799",
+    icon: "facebook",
+  },
+  {
+    label: "YouTube",
+    href: "https://www.youtube.com/@maywood_au",
+    icon: "youtube",
+  },
+] as const;
+
+/**
+ * 判断导航项相对当前路径是否「激活」（aria-current / 高亮）。
+ * - Home（`/`）只在恰好处于站点根时激活，避免它在每页都高亮。
+ * - 其余项：当前路径等于其 href，或是其子路径（如 `/category/...` 下的产品页）。
+ */
+export function isNavLinkActive(href: string, currentPath: string): boolean {
+  const normalise = (p: string) =>
+    p.length > 1 && p.endsWith("/") ? p.slice(0, -1) : p;
+  const target = normalise(href);
+  const current = normalise(currentPath);
+  if (target === "/") return current === "/";
+  return current === target || current.startsWith(`${target}/`);
+}

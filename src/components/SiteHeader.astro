@@ -1,0 +1,79 @@
+---
+/**
+ * SiteHeader —— 全站黑色高对比 header（见 AGENTS.md「视觉方向」/「页面结构要点」）。
+ *
+ * 组成：serif 字标 Logo + 桌面 PrimaryNav + 深色圆角 SampleRequestButton；
+ * 移动端折叠为 MobileNav 抽屉（唯一 island，client:visible）。
+ * 语义 <header><nav>，桌面 nav 标 aria-label。currentPath 传给 nav 做激活态。
+ */
+import Logo from "@/components/Logo.astro";
+import PrimaryNav from "@/components/PrimaryNav.astro";
+import SampleRequestButton from "@/components/SampleRequestButton.astro";
+import MobileNav from "@/components/MobileNav.tsx";
+
+const currentPath = Astro.url.pathname;
+// 首页时字标渲染为非链接（避免自指链接），其余页回首页。
+const isHome = currentPath === "/" || currentPath === "";
+---
+
+<header class="site-header on-ink">
+  <div class="site-header__inner">
+    <Logo size="sm" href={isHome ? null : "/"} class="site-header__logo" />
+
+    <nav class="site-header__nav" aria-label="Primary">
+      <PrimaryNav currentPath={currentPath} />
+    </nav>
+
+    <div class="site-header__actions">
+      <SampleRequestButton class="site-header__cta" />
+      <div class="site-header__mobile">
+        <MobileNav currentPath={currentPath} client:visible />
+      </div>
+    </div>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    background: var(--color-ink);
+    color: #fff;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  .site-header__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    max-width: 80rem;
+    margin-inline: auto;
+    padding: 1.1rem clamp(1rem, 4vw, 2.5rem);
+  }
+
+  .site-header__nav {
+    display: none;
+  }
+  .site-header__actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  .site-header__cta {
+    display: none;
+  }
+  .site-header__mobile {
+    display: inline-flex;
+  }
+
+  /* 桌面（≥ 960px）：展开横排 nav + CTA，收起汉堡。 */
+  @media (min-width: 60rem) {
+    .site-header__nav {
+      display: block;
+    }
+    .site-header__cta {
+      display: inline-flex;
+    }
+    .site-header__mobile {
+      display: none;
+    }
+  }
+</style>

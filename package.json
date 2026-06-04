@@ -19,7 +19,10 @@
     "@fontsource-variable/hanken-grotesk": "^5.2.8",
     "@sanity/client": "^7",
     "astro": "^5",
+    "class-variance-authority": "^0.7.1",
     "clsx": "^2",
+    "lucide-react": "^1.17.0",
+    "radix-ui": "^1.4.3",
     "react": "^19",
     "react-dom": "^19",
     "tailwind-merge": "^3"
