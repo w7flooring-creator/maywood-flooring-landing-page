@@ -43,7 +43,7 @@ function resolveToken(): string {
     // 落到下方报错
   }
   throw new Error(
-    "找不到写入 token：请先 `sanity login`，或设置 SANITY_AUTH_TOKEN 环境变量。",
+    "找不到写入 token：请先 `sanity login`，或设置 SANITY_AUTH_TOKEN 环境变量。"
   );
 }
 
@@ -58,7 +58,7 @@ async function run(): Promise<void> {
 
   const docs = buildSeedDocuments();
   console.log(
-    `写入 ${docs.length} 个分类法文档到 ${PROJECT_ID}/${DATASET}（createOrReplace，幂等）…`,
+    `写入 ${docs.length} 个分类法文档到 ${PROJECT_ID}/${DATASET}（createOrReplace，幂等）…`
   );
 
   // 事务一次性 createOrReplace：要么全成要么全败。
@@ -78,7 +78,7 @@ async function run(): Promise<void> {
     client.fetch<number>('count(*[_type == "productCategory"])'),
     client.fetch<number>('count(*[_type == "productCollection"])'),
     client.fetch<number>(
-      'count(*[_type == "productCollection" && isSignature == true])',
+      'count(*[_type == "productCollection" && isSignature == true])'
     ),
   ]);
 

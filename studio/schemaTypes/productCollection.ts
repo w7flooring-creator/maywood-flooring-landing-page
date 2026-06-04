@@ -14,8 +14,7 @@ export const productCollection = defineType({
   name: "productCollection",
   title: "系列 (Collection)",
   type: "document",
-  description:
-    "隶属于某个分类的品牌产品系列（如 Engineered 下的 Bushland）。",
+  description: "隶属于某个分类的品牌产品系列（如 Engineered 下的 Bushland）。",
   fields: [
     defineField({
       name: "title",

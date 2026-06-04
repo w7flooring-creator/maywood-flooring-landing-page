@@ -84,10 +84,10 @@ export async function getSignatureCollections(): Promise<Collection[]> {
 
 /** 取某 Category（按 slug）下的全部 Collection。 */
 export async function getCollectionsByCategory(
-  categorySlug: string,
+  categorySlug: string
 ): Promise<Collection[]> {
   return getSanityClient().fetch<Collection[]>(
     buildCollectionsByCategoryQuery(),
-    { categorySlug },
+    { categorySlug }
   );
 }

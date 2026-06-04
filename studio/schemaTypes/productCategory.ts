@@ -56,7 +56,8 @@ export const productCategory = defineType({
       name: "heroImage",
       title: "Hero 主图",
       type: "image",
-      description: "分类页顶部宽幅主图。请填写有意义的替代文字（alt）以利无障碍与 SEO。",
+      description:
+        "分类页顶部宽幅主图。请填写有意义的替代文字（alt）以利无障碍与 SEO。",
       options: { hotspot: true },
       fields: [
         defineField({

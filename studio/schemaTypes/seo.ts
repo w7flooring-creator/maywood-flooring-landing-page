@@ -15,8 +15,7 @@ export const seo = defineType({
   name: "seo",
   title: "SEO 设置",
   type: "object",
-  description:
-    "搜索引擎与社交分享设置。留空则由页面自动回落到站点级默认值。",
+  description: "搜索引擎与社交分享设置。留空则由页面自动回落到站点级默认值。",
   options: { collapsible: true, collapsed: true },
   fields: [
     defineField({
@@ -48,8 +47,7 @@ export const seo = defineType({
       type: "url",
       description:
         "本页的权威 URL。仅在本页与另一页内容近重复、需指向主版本时填写（见 ADR-0001）。一般留空。",
-      validation: (rule) =>
-        rule.uri({ scheme: ["http", "https"] }),
+      validation: (rule) => rule.uri({ scheme: ["http", "https"] }),
     }),
     defineField({
       name: "ogImage",

@@ -29,7 +29,7 @@ describe("GROQ 查询字符串", () => {
   it("SIGNATURE_COLLECTIONS_QUERY 仅取 isSignature == true", () => {
     expect(SIGNATURE_COLLECTIONS_QUERY).toContain("isSignature == true");
     expect(SIGNATURE_COLLECTIONS_QUERY).toContain(
-      '_type == "productCollection"',
+      '_type == "productCollection"'
     );
   });
 

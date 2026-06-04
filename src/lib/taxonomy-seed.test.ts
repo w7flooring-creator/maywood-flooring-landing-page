@@ -9,7 +9,11 @@ import {
   buildSeedDocuments,
 } from "@/lib/taxonomy-seed";
 
-const CATEGORY_KEYS: readonly CategoryKey[] = ["engineered", "laminate", "hybrid"];
+const CATEGORY_KEYS: readonly CategoryKey[] = [
+  "engineered",
+  "laminate",
+  "hybrid",
+];
 
 describe("SEED_CATEGORIES — 三个材质族 Category", () => {
   it("恰好 3 个", () => {
@@ -26,13 +30,13 @@ describe("SEED_CATEGORIES — 三个材质族 Category", () => {
 
   it("key 覆盖 engineered / laminate / hybrid（各一次）", () => {
     expect(SEED_CATEGORIES.map((c) => c.key).sort()).toEqual(
-      [...CATEGORY_KEYS].sort(),
+      [...CATEGORY_KEYS].sort()
     );
   });
 
   it("展示名与 slug 精确匹配 ADR-0001 的故意误导映射", () => {
     const bySlug = Object.fromEntries(
-      SEED_CATEGORIES.map((c) => [c.slug, c.title]),
+      SEED_CATEGORIES.map((c) => [c.slug, c.title])
     );
     // 名实相符
     expect(bySlug["engineered-flooring"]).toBe("Engineered Flooring");
@@ -57,7 +61,7 @@ describe("SEED_CATEGORIES — 三个材质族 Category", () => {
 
   it("sortOrder 为 1/2/3（Engineered → Laminate → Hybrid）", () => {
     const byKey = Object.fromEntries(
-      SEED_CATEGORIES.map((c) => [c.key, c.sortOrder]),
+      SEED_CATEGORIES.map((c) => [c.key, c.sortOrder])
     );
     expect(byKey.engineered).toBe(1);
     expect(byKey.laminate).toBe(2);
@@ -91,13 +95,13 @@ describe("SEED_COLLECTIONS — 九个品牌系列 Collection", () => {
       expect(s.categoryKey).toBe("engineered");
     }
     expect(signatures.map((s) => s.slug).sort()).toEqual(
-      ["bellavale", "bushland", "manor", "puregrain"].sort(),
+      ["bellavale", "bushland", "manor", "puregrain"].sort()
     );
   });
 
   it("Engineered 下恰好这 4 个、且全部是招牌系列", () => {
     const engineered = SEED_COLLECTIONS.filter(
-      (c) => c.categoryKey === "engineered",
+      (c) => c.categoryKey === "engineered"
     );
     expect(engineered).toHaveLength(4);
     expect(engineered.every((c) => c.isSignature)).toBe(true);
@@ -105,7 +109,7 @@ describe("SEED_COLLECTIONS — 九个品牌系列 Collection", () => {
 
   it("Laminate / Hybrid 下的系列都不是招牌系列", () => {
     const nonEngineered = SEED_COLLECTIONS.filter(
-      (c) => c.categoryKey !== "engineered",
+      (c) => c.categoryKey !== "engineered"
     );
     expect(nonEngineered.every((c) => c.isSignature === false)).toBe(true);
   });
@@ -113,7 +117,12 @@ describe("SEED_COLLECTIONS — 九个品牌系列 Collection", () => {
   it("title / slug / categoryKey 与需求表逐行精确匹配", () => {
     const table: Record<
       string,
-      { title: string; slug: string; categoryKey: CategoryKey; isSignature: boolean }
+      {
+        title: string;
+        slug: string;
+        categoryKey: CategoryKey;
+        isSignature: boolean;
+      }
     > = {
       "collection.puregrain": {
         title: "PureGrain",
@@ -220,7 +229,9 @@ describe("映射到 Sanity 文档形状", () => {
   });
 
   it("toCollectionDoc 产出 productCollection，category 为指向所属 Category 的 reference", () => {
-    const bushland = SEED_COLLECTIONS.find((c) => c._id === "collection.bushland")!;
+    const bushland = SEED_COLLECTIONS.find(
+      (c) => c._id === "collection.bushland"
+    )!;
     const doc = toCollectionDoc(bushland);
     expect(doc._type).toBe("productCollection");
     expect(doc.slug).toEqual({ _type: "slug", current: "bushland" });
@@ -251,7 +262,7 @@ describe("buildSeedDocuments — 全量种子文档", () => {
 
   it("Category 排在 Collection 之前（引用先建）", () => {
     const firstCollectionIdx = docs.findIndex(
-      (d) => d._type === "productCollection",
+      (d) => d._type === "productCollection"
     );
     const lastCategoryIdx =
       docs.length -
