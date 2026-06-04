@@ -1,0 +1,39 @@
+---
+/**
+ * MapEmbed —— 展厅位置地图（原生 Google Maps iframe，无 JS 库，见组件策略）。
+ *
+ * 地址由 site.ts 的 NAP 组装查询串（单一来源，禁止硬编码）。用 maps?q=&output=embed
+ * 这一无需 API key 的公开嵌入形式。iframe 有 title（a11y）、loading=lazy（首屏外
+ * 延迟加载，省带宽）、referrerpolicy 收敛。线上 Wix 页原无地图，这是允许的增强。
+ */
+import { NAP } from "@/lib/site";
+
+const { street, locality, region, postalCode } = NAP.address;
+const query = `${street}, ${locality}, ${region} ${postalCode}, Australia`;
+const src = `https://www.google.com/maps?q=${encodeURIComponent(query)}&output=embed`;
+---
+
+<div class="map-embed">
+  <iframe
+    class="map-embed__frame"
+    title="Map showing Maywood Flooring showroom location"
+    src={src}
+    loading="lazy"
+    referrerpolicy="no-referrer-when-downgrade"
+    allowfullscreen></iframe>
+</div>
+
+<style>
+  .map-embed {
+    width: 100%;
+    aspect-ratio: 16 / 7;
+    background: var(--color-bg-muted);
+    border-top: 1px solid var(--color-border-hairline);
+  }
+  .map-embed__frame {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+</style>

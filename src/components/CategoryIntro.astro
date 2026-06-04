@@ -1,0 +1,71 @@
+---
+/**
+ * CategoryIntro —— 分类页的 H1 + 介绍文字。
+ *
+ * 承担页面**唯一 H1**（分类展示名），故无论 description 是否存在都渲染 H1。
+ * description 由编辑在 Studio 填，是「内容债」修复点：误导 slug 的 Laminate /
+ * Hybrid 分类，其文案以 Sanity description 为准（编辑可改成与实际材质相符），
+ * **不在代码里硬编码材质措辞**（见 ADR-0001 内容债）。
+ *
+ *  - 有 description：按段落（空行）切分渲染纯文本。
+ *  - 无 description：只渲染 H1，绝不输出 lorem / 占位文案。
+ *
+ * 纯静态（零 client JS）。
+ */
+interface Props {
+  title: string;
+  description: string | null;
+}
+
+const { title, description } = Astro.props;
+
+// 把多行纯文本按空行切成段落，过滤空段；无内容则只渲染 H1。
+const paragraphs = (description ?? "")
+  .split(/\n\s*\n/)
+  .map((p) => p.trim())
+  .filter((p) => p.length > 0);
+const hasDescription = paragraphs.length > 0;
+---
+
+<header class="intro">
+  <h1 class="intro__title">{title}</h1>
+  {
+    hasDescription && (
+      <div class="intro__body">
+        {paragraphs.map((p) => (
+          <p class="intro__para">{p}</p>
+        ))}
+      </div>
+    )
+  }
+</header>
+
+<style>
+  .intro {
+    max-width: 48rem;
+  }
+
+  .intro__title {
+    margin: 0;
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-size: clamp(1.75rem, 4vw, 2.75rem);
+    line-height: 1.1;
+    color: var(--color-ink);
+  }
+
+  .intro__body {
+    margin-top: 1.25rem;
+  }
+
+  .intro__para {
+    margin: 0 0 1rem;
+    font-size: 1.0625rem;
+    line-height: 1.7;
+    color: #333;
+  }
+
+  .intro__para:last-child {
+    margin-bottom: 0;
+  }
+</style>

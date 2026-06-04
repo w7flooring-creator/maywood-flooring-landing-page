@@ -1,0 +1,115 @@
+---
+/**
+ * /category/[slug] —— Category store 视图（3 个分类：engineered / Laminate / Hybrid）。
+ *
+ * getStaticPaths 从 getCategoryLandings() 取全部 Category，生成 3 条路由。其中两个
+ * slug 与展示名不符（solid-flooring=Laminate、sustainable-flooring=Hybrid）——故意
+ * 保留 Wix 历史值（ADR-0001），展示名取 Sanity category.title，不在代码里硬编码。
+ *
+ * 本地匿名读 dataset 返回空 → getStaticPaths 产 0 页，build 0 页，属预期
+ * （CI/prod 有 SANITY_API_READ_TOKEN → 拉到 3 个分类生成 3 页，见 ADR-0003）。
+ * 因此正确性由单测 + Astro Container 渲染测试（mock 数据）保证，而非本地页数。
+ *
+ * 内容债修复：intro 文案来自 Sanity category.description（编辑可改成与实际材质相符），
+ * 不在代码里硬编码材质措辞。product 文档 Phase 1 未灌入 → 计数 0、网格走空态。
+ *
+ * canonical 指向自身 /category/<slug>（分类是 store 视图，无独立营销落地页）。纯静态。
+ */
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import CategoryHero from "@/components/CategoryHero.astro";
+import CategoryIntro from "@/components/CategoryIntro.astro";
+import CategorySidebar from "@/components/CategorySidebar.astro";
+import ProductCount from "@/components/ProductCount.astro";
+import ProductGrid from "@/components/ProductGrid.astro";
+import {
+  getCategoryLandings,
+  getCategoryProducts,
+  toStaticPaths,
+  buildCategoryBreadcrumbs,
+  buildCategorySeo,
+  type CategoryLanding,
+} from "@/lib/category-page";
+import { getCollectionsByCategory } from "@/lib/taxonomy";
+
+export async function getStaticPaths() {
+  const categories = await getCategoryLandings();
+  return toStaticPaths(categories);
+}
+
+interface Props {
+  category: CategoryLanding;
+}
+
+const { category } = Astro.props as Props;
+
+// 侧栏 Collection 与产品网格 build 时拉取。
+// product 未灌入 → products 恒空（计数 0 + 网格空态）。
+const collections = await getCollectionsByCategory(category.slug);
+const products = await getCategoryProducts(category.slug);
+
+const breadcrumbs = buildCategoryBreadcrumbs(category);
+const seo = buildCategorySeo(category);
+---
+
+<BaseLayout {...seo}>
+  <div class="category">
+    <div class="category__crumbs">
+      {
+        /* Breadcrumbs 同时渲染语义 nav 与 BreadcrumbList JSON-LD（见组件注释）。 */
+      }
+      <Breadcrumbs items={breadcrumbs} />
+    </div>
+
+    <CategoryHero
+      title={category.title}
+      eyebrow="Products"
+      image={category.heroImage}
+    />
+
+    <div class="category__body">
+      <aside class="category__sidebar">
+        <CategorySidebar collections={collections} />
+      </aside>
+
+      <section class="category__main" aria-label={category.title}>
+        <CategoryIntro
+          title={category.title}
+          description={category.description}
+        />
+        <div class="category__count">
+          <ProductCount count={products.length} />
+        </div>
+        <ProductGrid products={products} />
+      </section>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .category__crumbs {
+    max-width: 72rem;
+    margin-inline: auto;
+    padding: 1.25rem 1.25rem 0;
+  }
+
+  .category__body {
+    max-width: 72rem;
+    margin-inline: auto;
+    padding: clamp(2rem, 5vw, 3.5rem) 1.25rem var(--spacing-section);
+    display: grid;
+    gap: clamp(2rem, 4vw, 3rem);
+  }
+
+  /* 桌面：左 Browse-by 侧栏 + 右主内容（呼应 AGENTS.md「左侧 Browse by sidebar」）。 */
+  @media (min-width: 60rem) {
+    .category__body {
+      grid-template-columns: 16rem 1fr;
+      align-items: start;
+    }
+  }
+
+  .category__count {
+    margin: 1.5rem 0;
+  }
+</style>
