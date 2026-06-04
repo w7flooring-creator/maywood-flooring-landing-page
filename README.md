@@ -1,11 +1,13 @@
 # Maywood Flooring — 官网重建
 
 将现有 Wix 站点 [`maywoodflooring.com.au`](https://www.maywoodflooring.com.au/) 按其视觉、结构与
-组件颗粒度，用 **Astro + React islands + Sanity + Cloudflare Pages** 重建。这是一个**内容驱动的
-澳洲本地 SEO 获客站**（高端 timber / flooring supplier），不是 Web App。
+组件颗粒度，用 **Astro + React islands + Sanity + Cloudflare Workers（Static Assets）** 重建。这是一个
+**内容驱动的澳洲本地 SEO 获客站**（高端 timber / flooring supplier），不是 Web App。
 
-> 状态：**骨架已就位、功能未开发**（截至 2026-06-04）。Astro + Tailwind v4 + React + Sanity client 已可
-> `npm run dev/build`（构建通过、静态页零 JS），但页面/组件/schema 均为占位。功能开发按 GitHub issues 推进。
+> 状态：**全部页面架构已上线**（截至 2026-06-04）。23 个 issue 已合并，CI + 自动部署运行中，生产站：
+> `https://maywood-flooring-landing-page.w7flooring.workers.dev`。首页 / 分类 / 产品 / 系列 / Contact /
+> Request-Sample / 内容页 / Gallery / Service / Projects / FAQ / sitemap / redirects 均已实现。
+> **仍待办（HITL）**：Wix 产品+图片迁移（#10/#11，分类/产品页目前空网格）、表单后端（#25）、上线 QA + DNS（#27）。
 
 ## 技术栈
 
