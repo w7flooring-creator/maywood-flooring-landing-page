@@ -43,3 +43,5 @@ jobs:
           # PUBLIC_* 是公开非敏感值（会进前端 bundle）→ 用 Variables，不用 Secrets
           PUBLIC_SANITY_PROJECT_ID: ${{ vars.PUBLIC_SANITY_PROJECT_ID }}
           PUBLIC_SANITY_DATASET: ${{ vars.PUBLIC_SANITY_DATASET || 'production' }}
+          # 只读 token（敏感）→ Secret；该 dataset 匿名读实测返回空，build 需 token（见 ADR-0003）
+          SANITY_API_READ_TOKEN: ${{ secrets.SANITY_API_READ_TOKEN }}
