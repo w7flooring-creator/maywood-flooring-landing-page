@@ -1,0 +1,112 @@
+---
+/**
+ * /faqs —— 常见问题列表页（faq 文档驱动；见 #22）。
+ *
+ * 数据：build 时拉全部 `faq`（按 question A→Z）。有条目则渲染 FaqAccordion
+ * （shadcn Accordion island + FAQPage JSON-LD），否则降级为优雅空状态
+ * （一句符合事实的说明 + Contact CTA，绝不 lorem / 占位）。
+ *
+ * SEO：唯一 title / meta description；canonical 自指；Breadcrumbs（含 BreadcrumbList
+ * JSON-LD）；有 FAQ 时额外注入 FAQPage 结构化数据。
+ * 列表本身静态（SSG）；仅折叠交互是 client island。
+ */
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import HeroImageSection from "@/components/HeroImageSection.astro";
+import FaqAccordion from "@/components/FaqAccordion.astro";
+import { getFaqs } from "@/lib/faq";
+import { buildContentBreadcrumbs, buildContentSeo } from "@/lib/content-pages";
+
+const PATH = "/faqs";
+const TITLE = "FAQs";
+const DESCRIPTION =
+  "Answers to common questions about Maywood Flooring — engineered timber, laminate and hybrid floors, samples, delivery across Melbourne and VIC, installation, warranty and care.";
+
+const faqs = await getFaqs();
+// 只有问题与答案都非空的条目才算可渲染（与 FaqAccordion 内部过滤一致）。
+const renderableFaqs = faqs.filter(
+  (faq) => faq.question.trim().length > 0 && faq.answer.length > 0
+);
+const hasFaqs = renderableFaqs.length > 0;
+
+const breadcrumbs = buildContentBreadcrumbs(PATH, "FAQs");
+const seo = buildContentSeo({
+  path: PATH,
+  page: null,
+  fallbackTitle: TITLE,
+  fallbackDescription: DESCRIPTION,
+});
+---
+
+<BaseLayout {...seo}>
+  <section class="faqs">
+    <div class="faqs__crumbs">
+      <Breadcrumbs items={breadcrumbs} />
+    </div>
+
+    <HeroImageSection
+      title="Frequently Asked Questions"
+      eyebrow="Support"
+      intro="Everything you need to know about our timber, laminate and hybrid floors — from samples and delivery to installation, warranty and care."
+    />
+
+    <div class="faqs__body">
+      {
+        hasFaqs ? (
+          <FaqAccordion faqs={renderableFaqs} />
+        ) : (
+          <div class="faqs__empty">
+            <p>
+              Our FAQ library is being prepared. If you have a question about
+              our timber, laminate or hybrid flooring — samples, delivery,
+              installation, warranty or care — please get in touch and our team
+              will be glad to help.
+            </p>
+            <a class="faqs__cta" href="/contact">
+              Contact our team
+            </a>
+          </div>
+        )
+      }
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .faqs__crumbs {
+    max-width: 80rem;
+    margin-inline: auto;
+    padding: 1.25rem clamp(1rem, 4vw, 2.5rem) 0;
+  }
+
+  .faqs__body {
+    max-width: 48rem;
+    margin-inline: auto;
+    padding: var(--spacing-section) clamp(1rem, 4vw, 2.5rem);
+  }
+
+  /* 优雅空状态：克制居中说明 + 深色圆角小 CTA（呼应品牌 CTA token）。 */
+  .faqs__empty {
+    max-width: 38rem;
+    margin-inline: auto;
+    text-align: center;
+  }
+  .faqs__empty p {
+    margin: 0 0 1.75rem;
+    font-size: 1.0625rem;
+    line-height: 1.7;
+    color: var(--color-ink);
+  }
+  .faqs__cta {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    background: var(--color-cta);
+    color: #fff;
+    border-radius: var(--radius-cta);
+    text-decoration: none;
+    font-size: 0.95rem;
+  }
+  .faqs__cta:hover {
+    opacity: 0.9;
+  }
+</style>

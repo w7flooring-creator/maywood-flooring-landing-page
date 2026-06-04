@@ -1,0 +1,123 @@
+---
+/**
+ * FaqAccordion —— FAQ 区块包装件（见 AGENTS.md「组件颗粒度：FaqAccordion」）。
+ *
+ * 职责：
+ *  1. 把 Faq[] 的 Portable Text 答案在 **build 时**用 faq.ts 的 portableTextToHtml
+ *     序列化为安全 HTML（已转义），传给 FaqAccordionIsland（client:visible）—— island
+ *     保持简单，不在客户端引入 Portable Text 渲染器。
+ *  2. 同步输出 FAQPage JSON-LD（buildFaqPageJsonLd → StructuredData，零 client JS）。
+ *
+ * 可复用：资源详情 / location / 落地页等都可传一组 faq 嵌入本组件（见 #22）。
+ * 空内容由调用方判空决定是否渲染本组件；本组件只负责「有 FAQ 时渲染好」。
+ *
+ * 动画（展开/收起）与答案排版走本组件 scoped CSS（消费 Radix 注入的
+ * --radix-accordion-content-height，尊重 prefers-reduced-motion），不引入 tw-animate-css，
+ * 也不污染 globals.css。
+ */
+import StructuredData from "@/components/StructuredData.astro";
+import FaqAccordionIsland from "@/components/FaqAccordionIsland";
+import { portableTextToHtml, buildFaqPageJsonLd, type Faq } from "@/lib/faq";
+
+interface Props {
+  faqs: Faq[];
+  /** 是否输出 FAQPage 结构化数据（默认 true；同页有多组 FAQ 时可只让一组输出）。 */
+  structuredData?: boolean;
+}
+
+const { faqs, structuredData = true } = Astro.props;
+
+// build 时序列化：每条答案 → 安全 HTML（已转义）；过滤问题或答案为空的残缺条目。
+const items = faqs
+  .map((faq) => ({
+    id: faq._id,
+    question: faq.question.trim(),
+    answerHtml: portableTextToHtml(faq.answer),
+  }))
+  .filter((item) => item.question.length > 0 && item.answerHtml.length > 0);
+
+const jsonLd = buildFaqPageJsonLd(faqs);
+const hasJsonLd = structuredData && jsonLd.mainEntity.length > 0;
+---
+
+{
+  items.length > 0 && (
+    <div class="faq">
+      <FaqAccordionIsland items={items} client:visible />
+      {hasJsonLd && <StructuredData data={jsonLd} />}
+    </div>
+  )
+}
+
+<style>
+  /* 答案富文本排版 —— 品牌 token（克制行高 / 留白 / 链接下划线），作用于 island
+     注入的 .faq-answer 内 HTML 标签，不污染全局。 */
+  .faq :global(.faq-answer) {
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    line-height: 1.7;
+  }
+  .faq :global(.faq-answer p) {
+    margin: 0 0 0.75rem;
+  }
+  .faq :global(.faq-answer p:last-child) {
+    margin-bottom: 0;
+  }
+  .faq :global(.faq-answer h2),
+  .faq :global(.faq-answer h3),
+  .faq :global(.faq-answer h4) {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    line-height: 1.2;
+    margin: 1.25rem 0 0.5rem;
+  }
+  .faq :global(.faq-answer ul),
+  .faq :global(.faq-answer ol) {
+    margin: 0 0 0.75rem;
+    padding-inline-start: 1.4rem;
+  }
+  .faq :global(.faq-answer li) {
+    margin: 0 0 0.35rem;
+  }
+  .faq :global(.faq-answer strong) {
+    font-weight: 600;
+  }
+  .faq :global(.faq-answer a) {
+    color: var(--color-ink);
+    text-decoration: underline;
+    text-underline-offset: 0.18em;
+    text-decoration-thickness: 1px;
+  }
+  .faq :global(.faq-answer a:hover) {
+    text-decoration-thickness: 2px;
+  }
+
+  /* 展开/收起动画 —— 消费 Radix 注入的内容高度变量；克制、editorial（短时长、ease）。
+     尊重 prefers-reduced-motion（无偏好才动）。closed 态由 Radix 保留到动画结束。 */
+  @media (prefers-reduced-motion: no-preference) {
+    .faq :global(.accordion-content[data-state="open"]) {
+      animation: faq-accordion-down 220ms ease;
+    }
+    .faq :global(.accordion-content[data-state="closed"]) {
+      animation: faq-accordion-up 200ms ease;
+    }
+  }
+
+  @keyframes faq-accordion-down {
+    from {
+      height: 0;
+    }
+    to {
+      height: var(--radix-accordion-content-height);
+    }
+  }
+  @keyframes faq-accordion-up {
+    from {
+      height: var(--radix-accordion-content-height);
+    }
+    to {
+      height: 0;
+    }
+  }
+</style>
