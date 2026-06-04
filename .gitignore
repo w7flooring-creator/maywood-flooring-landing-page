@@ -15,6 +15,9 @@ studio/.sanity/
 .env.*
 !.env.example
 
+# claude code（含后台 agent 的隔离 worktree，勿提交）
+.claude/
+
 # os / editor
 .DS_Store
 *.log
