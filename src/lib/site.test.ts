@@ -1,5 +1,13 @@
 import { describe, it, expect } from "vitest";
-import { SITE, NAP, absoluteUrl } from "@/lib/site";
+import {
+  SITE,
+  NAP,
+  absoluteUrl,
+  PRIMARY_NAV,
+  SAMPLE_REQUEST,
+  SOCIAL_LINKS,
+  isNavLinkActive,
+} from "@/lib/site";
 
 // 站点常量是全站 NAP 的单一来源（见 AGENTS.md「关键业务事实」）。
 // 这些测试把 NAP 的精确值钉死，防止任何页面/组件出现不一致。
@@ -58,5 +66,105 @@ describe("absoluteUrl", () => {
 
   it("根路径返回带尾斜杠的站点根", () => {
     expect(absoluteUrl("/")).toBe("https://www.maywoodflooring.com.au/");
+  });
+});
+
+describe("PRIMARY_NAV（SiteHeader / MobileNav 共用的单一来源）", () => {
+  it("条目顺序与文案符合规范", () => {
+    expect(PRIMARY_NAV.map((l) => l.label)).toEqual([
+      "Home",
+      "Products",
+      "Resources",
+      "Gallery",
+      "About Us",
+      "Contact",
+    ]);
+  });
+
+  it("Products 指向 engineered Category 的 legacy URL（ADR-0001，不改 slug）", () => {
+    const products = PRIMARY_NAV.find((l) => l.label === "Products");
+    expect(products?.href).toBe("/category/engineered-flooring");
+  });
+
+  it("关键路由 href 与保留的 Wix 结构一致", () => {
+    const byLabel = Object.fromEntries(
+      PRIMARY_NAV.map((l) => [l.label, l.href])
+    );
+    expect(byLabel["Home"]).toBe("/");
+    expect(byLabel["Resources"]).toBe("/resources");
+    expect(byLabel["Gallery"]).toBe("/gallery");
+    expect(byLabel["About Us"]).toBe("/about-us");
+    expect(byLabel["Contact"]).toBe("/contact");
+  });
+
+  it("所有 href 都是站内相对路径", () => {
+    for (const link of PRIMARY_NAV) {
+      expect(link.href.startsWith("/")).toBe(true);
+    }
+  });
+});
+
+describe("SAMPLE_REQUEST CTA", () => {
+  it("Phase 1 指向 Contact（见已敲定决策）", () => {
+    expect(SAMPLE_REQUEST.href).toBe("/contact");
+    expect(SAMPLE_REQUEST.label.length).toBeGreaterThan(0);
+  });
+});
+
+describe("SOCIAL_LINKS（SocialLinks 单一来源，核对自线上 Social Bar）", () => {
+  it("含 Instagram / Facebook / YouTube 三个平台", () => {
+    expect(SOCIAL_LINKS.map((s) => s.icon)).toEqual([
+      "instagram",
+      "facebook",
+      "youtube",
+    ]);
+  });
+
+  it("每条都有 https 外链、可读 label 与图标标识", () => {
+    for (const social of SOCIAL_LINKS) {
+      expect(social.href.startsWith("https://")).toBe(true);
+      expect(social.label.length).toBeGreaterThan(0);
+      expect(social.icon.length).toBeGreaterThan(0);
+    }
+  });
+
+  it("链接精确匹配品牌账号", () => {
+    const byIcon = Object.fromEntries(
+      SOCIAL_LINKS.map((s) => [s.icon, s.href])
+    );
+    expect(byIcon.instagram).toBe("https://www.instagram.com/maywood_au/");
+    expect(byIcon.facebook).toBe(
+      "https://www.facebook.com/profile.php?id=61588526080799"
+    );
+    expect(byIcon.youtube).toBe("https://www.youtube.com/@maywood_au");
+  });
+});
+
+describe("isNavLinkActive", () => {
+  it("Home 只在站点根激活，不在每页高亮", () => {
+    expect(isNavLinkActive("/", "/")).toBe(true);
+    expect(isNavLinkActive("/", "/contact")).toBe(false);
+  });
+
+  it("精确路径匹配即激活", () => {
+    expect(isNavLinkActive("/contact", "/contact")).toBe(true);
+    expect(isNavLinkActive("/gallery", "/contact")).toBe(false);
+  });
+
+  it("子路径激活父级导航项（如产品页高亮 Products）", () => {
+    expect(
+      isNavLinkActive(
+        "/category/engineered-flooring",
+        "/category/engineered-flooring/some-product"
+      )
+    ).toBe(true);
+  });
+
+  it("忽略尾斜杠差异", () => {
+    expect(isNavLinkActive("/about-us", "/about-us/")).toBe(true);
+  });
+
+  it("前缀相近但非子路径不误判", () => {
+    expect(isNavLinkActive("/gallery", "/gallery-extra")).toBe(false);
   });
 });
