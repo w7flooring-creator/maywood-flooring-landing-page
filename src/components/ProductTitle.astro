@@ -1,0 +1,52 @@
+---
+/**
+ * ProductTitle —— 产品详情页标题区（H1 + 可选系列/分类 eyebrow + 简介）。
+ *
+ * 唯一 H1（SEO 要求）。eyebrow 用所属 Collection（无则 Category）作小标，
+ * 呼应线上「品牌系列 → 产品」的语境；缺失时不渲染该行（不编造）。
+ * 纯静态（零 client JS）。
+ */
+interface Props {
+  title: string;
+  /** 所属系列/分类名，作 H1 上方小标；缺省不渲染。 */
+  eyebrow?: string | null;
+  /** 简介，作 H1 下方一两句话；缺省不渲染。 */
+  description?: string | null;
+}
+
+const { title, eyebrow = null, description = null } = Astro.props;
+---
+
+<header class="product-title">
+  {eyebrow && <p class="product-title__eyebrow">{eyebrow}</p>}
+  <h1 class="product-title__heading">{title}</h1>
+  {description && <p class="product-title__desc">{description}</p>}
+</header>
+
+<style>
+  .product-title__eyebrow {
+    margin: 0 0 0.75rem;
+    font-family: var(--font-sans);
+    font-size: 0.8125rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+  }
+
+  .product-title__heading {
+    margin: 0;
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-size: clamp(2rem, 5vw, 3rem);
+    line-height: 1.1;
+    color: var(--color-ink);
+  }
+
+  .product-title__desc {
+    margin: 1.25rem 0 0;
+    max-width: 42rem;
+    font-size: 1.0625rem;
+    line-height: 1.6;
+    color: var(--muted-foreground);
+  }
+</style>
