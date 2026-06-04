@@ -1,3 +1,4 @@
+/// <reference types="vitest/config" />
 import { getViteConfig } from "astro/config";
 
 // 用 Astro 的 getViteConfig，保证测试与 Astro 构建共享同一套别名（@/*）、

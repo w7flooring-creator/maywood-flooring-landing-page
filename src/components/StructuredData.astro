@@ -1,0 +1,19 @@
+---
+/**
+ * StructuredData —— 把任意 JSON-LD 对象注入 <script type="application/ld+json">。
+ *
+ * 统一一个注入点，保证：
+ *  - 转义 `<`，避免 JSON 内容意外闭合 </script> 导致 XSS / 解析中断。
+ *  - 零 client JS（纯静态输出）。
+ * SeoHead（LocalBusiness）、Breadcrumbs（BreadcrumbList）等都复用本组件。
+ */
+interface Props {
+  data: Record<string, unknown>;
+}
+
+const { data } = Astro.props as Props;
+// 转义 `<` 为 unicode，标准做法，防止 "</script>" 提前闭合脚本块。
+const json = JSON.stringify(data).replace(/</g, "\\u003c");
+---
+
+<script type="application/ld+json" is:inline set:html={json} />

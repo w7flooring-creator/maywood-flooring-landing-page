@@ -1,0 +1,40 @@
+---
+/**
+ * SeoHead —— 每页唯一 title / meta description / canonical / Open Graph，
+ * 并注入站点级 LocalBusiness 结构化数据。
+ *
+ * 设计为「缺字段不报错」：除 `path` 外全部可省，未提供即回落到站点级默认值
+ * （见 src/lib/seo.ts:resolveSeoMeta）。放进 BaseLayout 的 <head>，零 client JS。
+ *
+ * 用法（页面侧）：
+ *   <SeoHead title="Contact Us" description="..." path={Astro.url.pathname} slot="head" />
+ */
+import { resolveSeoMeta, buildLocalBusinessJsonLd, type SeoInput } from "@/lib/seo";
+import StructuredData from "@/components/StructuredData.astro";
+
+type Props = SeoInput & {
+  /** 是否随 SeoHead 输出站点级 LocalBusiness JSON-LD（默认 true）。 */
+  localBusiness?: boolean;
+};
+
+const { localBusiness = true, ...seoInput } = Astro.props;
+const meta = resolveSeoMeta(seoInput);
+const localBusinessLd = buildLocalBusinessJsonLd();
+---
+
+<title>{meta.title}</title>
+<meta name="description" content={meta.description} />
+<link rel="canonical" href={meta.canonical} />
+{meta.noindex && <meta name="robots" content="noindex, nofollow" />}
+
+{/* Open Graph */}
+<meta property="og:title" content={meta.ogTitle} />
+<meta property="og:description" content={meta.ogDescription} />
+<meta property="og:type" content={meta.ogType} />
+<meta property="og:url" content={meta.ogUrl} />
+<meta property="og:image" content={meta.ogImage} />
+<meta property="og:site_name" content={meta.ogSiteName} />
+<meta property="og:locale" content="en_AU" />
+
+{/* 站点级结构化数据（全站 LocalBusiness） */}
+{localBusiness && <StructuredData data={localBusinessLd} />}
