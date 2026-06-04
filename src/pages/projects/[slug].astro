@@ -1,0 +1,232 @@
+---
+/**
+ * /projects/[slug] —— 案例 / 项目详情页（issue #21；caseStudy 文档驱动）。
+ *
+ * getStaticPaths 从 getCaseStudySlugs()（有 slug 的 caseStudy）拉全量。
+ * Phase 1 案例尚未灌入（无 read token / 内容未建）→ slug 列表恒空 →
+ * 本地/CI 构建 0 项目页，**符合预期**（验证靠 src/lib 单测 + Container API 渲染测试，
+ * 不靠线上页数）。4 个已知 legacy slug（zero-carbon-world 等）待编辑在 Studio
+ * 建成 caseStudy 文档后自动「亮起」。
+ *
+ * 页面结构（AGENTS.md「内容页」+ caseStudy 字段）：
+ *   Breadcrumbs(Home > Projects > Project) → 标题 + 地点·类型 eyebrow + summary
+ *   → 正文 body（RichTextRenderer，复用 #18，无 body 则不渲染）
+ *   → 项目图库（静态 figure 网格，零 JS）→ 所用产品交叉链接。
+ * SEO：唯一 title/desc/canonical/OG（SeoHead，type=article）；Article + BreadcrumbList JSON-LD。
+ * 纯静态（SSG），零 client JS。
+ */
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import StructuredData from "@/components/StructuredData.astro";
+import RichTextRenderer from "@/components/RichTextRenderer.astro";
+import {
+  getCaseStudySlugs,
+  getCaseStudyBySlug,
+  buildCaseStudyBreadcrumbs,
+  buildCaseStudySeo,
+  buildCaseStudyJsonLd,
+  hasBody,
+  toCaseStudyPaths,
+  type CaseStudy,
+} from "@/lib/case-studies";
+
+export async function getStaticPaths() {
+  const slugs = await getCaseStudySlugs();
+  return toCaseStudyPaths(slugs);
+}
+
+const { slug } = Astro.params as { slug: string };
+
+// build 时按 slug 取案例（getStaticPaths 只产出存在的 slug，故正常应非空；
+// 仍判 null 以防数据竞态，缺失则 404）。
+const caseStudy = (await getCaseStudyBySlug(slug)) as CaseStudy | null;
+if (!caseStudy) {
+  return Astro.redirect("/404");
+}
+
+const breadcrumbs = buildCaseStudyBreadcrumbs(caseStudy);
+const seo = buildCaseStudySeo(caseStudy);
+const jsonLd = buildCaseStudyJsonLd(caseStudy);
+const showBody = hasBody(caseStudy);
+const metaParts = [caseStudy.projectType, caseStudy.location].filter(
+  (part): part is string => part !== null
+);
+const hasImages = caseStudy.images.length > 0;
+const hasProducts = caseStudy.productsUsed.length > 0;
+---
+
+<BaseLayout {...seo}>
+  {
+    /* 案例页专属结构化数据：Article（站点级 LocalBusiness 由 SeoHead 注入）。 */
+  }
+  <StructuredData data={jsonLd} slot="head" />
+
+  <article class="project">
+    <div class="project__crumbs">
+      <Breadcrumbs items={breadcrumbs} />
+    </div>
+
+    <header class="project__header">
+      {
+        metaParts.length > 0 && (
+          <p class="project__eyebrow">{metaParts.join(" · ")}</p>
+        )
+      }
+      <h1 class="project__title">{caseStudy.title}</h1>
+      {caseStudy.summary && <p class="project__summary">{caseStudy.summary}</p>}
+    </header>
+
+    {
+      showBody && (
+        <div class="project__body">
+          <RichTextRenderer value={caseStudy.body} />
+        </div>
+      )
+    }
+
+    {
+      hasImages && (
+        <section class="project__gallery" aria-label="Project gallery">
+          {caseStudy.images.map((image) => (
+            <figure class="project__figure">
+              <img
+                src={image.url}
+                alt={image.alt ?? caseStudy.title}
+                loading="lazy"
+                decoding="async"
+              />
+            </figure>
+          ))}
+        </section>
+      )
+    }
+
+    {
+      hasProducts && (
+        <section class="project__products" aria-labelledby="products-heading">
+          <h2 id="products-heading" class="project__products-heading">
+            Products used
+          </h2>
+          <ul class="project__products-list" role="list">
+            {caseStudy.productsUsed.map((product) => (
+              <li class="project__products-item">
+                <a
+                  class="project__products-link"
+                  href={`/product-page/${product.slug}`}
+                >
+                  {product.title}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )
+    }
+  </article>
+</BaseLayout>
+
+<style>
+  .project {
+    max-width: 72rem;
+    margin-inline: auto;
+    padding: 1.25rem clamp(1rem, 4vw, 2.5rem) var(--spacing-section);
+  }
+
+  .project__header {
+    margin: 2.5rem 0;
+    max-width: 44rem;
+  }
+
+  .project__eyebrow {
+    margin: 0 0 0.75rem;
+    font-family: var(--font-sans);
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted-foreground, #6b6258);
+  }
+
+  .project__title {
+    margin: 0;
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-size: clamp(2rem, 5vw, 3.25rem);
+    line-height: 1.1;
+    color: var(--color-ink);
+  }
+
+  .project__summary {
+    margin: 1.25rem 0 0;
+    font-size: 1.15rem;
+    line-height: 1.6;
+    color: var(--color-ink);
+  }
+
+  .project__body {
+    margin: 2.5rem 0;
+  }
+
+  .project__gallery {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    margin: 3rem 0;
+  }
+
+  @media (min-width: 48rem) {
+    .project__gallery {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  .project__figure {
+    margin: 0;
+  }
+
+  .project__figure img {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    border-radius: var(--radius-cta);
+    background: var(--color-bg-muted);
+  }
+
+  .project__products {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--color-border-hairline);
+  }
+
+  .project__products-heading {
+    margin: 0 0 1.25rem;
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-size: clamp(1.25rem, 3vw, 1.5rem);
+    color: var(--color-ink);
+  }
+
+  .project__products-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .project__products-link {
+    font-family: var(--font-serif);
+    font-size: 1.0625rem;
+    color: var(--color-ink);
+    text-decoration: none;
+    border-bottom: 1px solid var(--color-border-hairline);
+    transition: border-color 0.2s ease;
+  }
+
+  .project__products-link:hover,
+  .project__products-link:focus-visible {
+    border-color: var(--color-ink);
+  }
+</style>
