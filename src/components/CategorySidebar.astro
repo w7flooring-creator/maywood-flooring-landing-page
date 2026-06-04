@@ -1,0 +1,80 @@
+---
+/**
+ * CategorySidebar —— 分类页左侧「Browse by」侧栏，列出该 Category 下的 Collection。
+ *
+ * 数据由页面经 getCollectionsByCategory(categorySlug) 拉取传入。每个 Collection
+ * 链接到其 store 视图 /category/<collection-slug>（保留 legacy URL，见 ADR-0001）。
+ * 招牌系列另有营销落地页 /<slug>，但侧栏统一指向 store 视图，保持「在分类内浏览」语义。
+ *
+ *  - 有 Collection：渲染 <nav aria-label="Browse by"> + 链接列表。
+ *  - 无 Collection：**整块不渲染**（return null），不输出空侧栏。
+ *
+ * 纯静态（零 client JS）。语义用 <nav>，便于无障碍与 SEO。
+ */
+import type { Collection } from "@/lib/taxonomy";
+
+interface Props {
+  /** 侧栏标题；默认 "Browse by"（呼应 Wix 站点措辞）。 */
+  heading?: string;
+  collections: Collection[];
+}
+
+const { heading = "Browse by", collections } = Astro.props;
+const hasCollections = collections.length > 0;
+---
+
+{
+  hasCollections && (
+    <nav class="sidebar" aria-label={heading}>
+      <h2 class="sidebar__heading">{heading}</h2>
+      <ul class="sidebar__list" role="list">
+        {collections.map((collection) => (
+          <li class="sidebar__item">
+            <a class="sidebar__link" href={`/category/${collection.slug}`}>
+              {collection.title}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  )
+}
+
+<style>
+  .sidebar {
+    --sidebar-rule: var(--color-border-hairline, #e5e2dd);
+  }
+
+  .sidebar__heading {
+    margin: 0 0 1rem;
+    font-size: 0.8rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: #777;
+    font-weight: 600;
+  }
+
+  .sidebar__list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .sidebar__item + .sidebar__item {
+    border-top: 1px solid var(--sidebar-rule);
+  }
+
+  .sidebar__link {
+    display: block;
+    padding: 0.75rem 0;
+    font-family: var(--font-serif);
+    font-size: 1.0625rem;
+    color: var(--color-ink);
+    text-decoration: none;
+  }
+
+  .sidebar__link:hover,
+  .sidebar__link:focus-visible {
+    text-decoration: underline;
+  }
+</style>
