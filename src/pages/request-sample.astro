@@ -1,0 +1,52 @@
+---
+/**
+ * /request-sample —— 样品申请页（Phase 1，见 issue #26）。
+ *
+ * 结构：Header → Breadcrumbs（Home > Request a Sample）→ 左右分栏
+ * （左 muted 面板叠标题 + 联系渠道 / 右 SampleRequestIsland）→ Footer。
+ *
+ * SEO：唯一 title / meta description（澳洲拼写，自然提及 Keysborough/Melbourne），
+ * canonical 自指（缺省由 BaseLayout 取当前路径）。NAP / 渠道均来自单一来源（site.ts）。
+ * 纯静态（SSG）；唯一交互件是分栏内的 SampleRequestIsland（client:visible）。
+ *
+ * Phase 1 提交为 mailto: 占位（无后端，见 #25 / Phase 2）。SampleRequestButton /
+ * MobileNav 的 “Request a Sample” CTA 全站指向此页（SAMPLE_REQUEST，见 site.ts）。
+ */
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import SampleRequestHero from "@/components/SampleRequestHero.astro";
+import type { BreadcrumbItem } from "@/lib/seo";
+
+const breadcrumbs: BreadcrumbItem[] = [
+  { name: "Home", url: "/" },
+  { name: "Request a Sample", url: "/request-sample" },
+];
+
+const seo = {
+  title: "Request a Sample",
+  description:
+    "Order free flooring samples from Maywood Flooring. Feel the grain and colour of our timber, laminate and hybrid floors at home before you buy — delivered across Melbourne and Victoria from our Keysborough showroom.",
+};
+---
+
+<BaseLayout {...seo}>
+  <div class="sample-page">
+    <div class="sample-page__crumbs">
+      <Breadcrumbs items={breadcrumbs} />
+    </div>
+
+    <SampleRequestHero
+      title="Request a Sample"
+      eyebrow="Samples"
+      intro="See and feel the grain, colour and finish in your own space before you commit. Tell us where to send your samples and our team will be in touch."
+    />
+  </div>
+</BaseLayout>
+
+<style>
+  .sample-page__crumbs {
+    max-width: 80rem;
+    margin-inline: auto;
+    padding: 1.25rem clamp(1rem, 4vw, 2.5rem) 0;
+  }
+</style>
