@@ -1,0 +1,44 @@
+---
+/**
+ * AtfaBadge —— ATFA（Australasian Timber Flooring Association）会员标识。
+ *
+ * Phase 1 用纯文本徽章（暂无官方图片资源；见 AGENTS.md「行业 badge」）。
+ * 待拿到授权 logo 后可替换为图片。整体克制、editorial，非花哨徽章。
+ */
+type Props = {
+  class?: string;
+};
+const { class: className } = Astro.props;
+---
+
+<span
+  class:list={["atfa-badge", className]}
+  title="Australasian Timber Flooring Association member"
+>
+  <span class="atfa-badge__mark" aria-hidden="true">ATFA</span>
+  <span class="atfa-badge__text">Member</span>
+</span>
+
+<style>
+  .atfa-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.45rem 0.8rem;
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    border-radius: var(--radius-cta);
+    font-family: var(--font-sans);
+    line-height: 1;
+  }
+  .atfa-badge__mark {
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    font-size: 0.85rem;
+  }
+  .atfa-badge__text {
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    opacity: 0.75;
+  }
+</style>

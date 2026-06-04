@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* tw-animate-css 替代品：Sheet/Dialog 进出场动画用到的 keyframes 由
+   Tailwind v4 内置 animate 工具覆盖；此处仅声明 enter/exit 所需变量默认值。 */
+
 /* ────────────────────────────────────────────────────────────────
    Maywood 设计 token —— 单一来源（CSS variables）
    品牌方向：克制、高端、editorial 木地板；非通用 SaaS。
@@ -10,6 +13,7 @@
   --color-bg: #ffffff; /* 白 / 近白页面背景 */
   --color-bg-muted: #f4f2ef; /* signature collections 等灰背景区 */
   --color-cta: #1a1a1a; /* 深色圆角小 CTA 按钮 */
+  --color-border-hairline: #e5e2dd; /* 描边 / 分隔 */
 
   /* 品牌字体（self-host via Fontsource，import 见 BaseLayout）：
      serif=Fraunces（暖、editorial、大标题）；sans=Hanken Grotesk（克制正文） */
@@ -20,20 +24,166 @@
   --spacing-section: clamp(4rem, 8vw, 8rem); /* 大留白、慢节奏 */
 }
 
-/* shadcn/ui 语义变量 → 映射到品牌 token。
-   组件落地时消费这里，禁止 shadcn 默认中性灰 / SaaS 渐变。 */
+/* shadcn/ui 语义变量 → 全部映射到品牌 token（单一来源）。
+   组件落地时消费这里，禁止 shadcn 默认中性灰 / SaaS 渐变。
+   注意：黑色 header/footer 内的交互件会就地覆盖这些变量（见 .on-ink）。 */
 :root {
+  --radius: var(--radius-cta);
+
   --background: var(--color-bg);
   --foreground: var(--color-ink);
+
+  /* 卡片 / 弹层 表面 */
+  --card: var(--color-bg);
+  --card-foreground: var(--color-ink);
+  --popover: var(--color-bg);
+  --popover-foreground: var(--color-ink);
+
+  /* 主操作（深色圆角小 CTA） */
   --primary: var(--color-cta);
   --primary-foreground: #ffffff;
+
+  /* 次级 / 柔和表面（灰背景区） */
+  --secondary: var(--color-bg-muted);
+  --secondary-foreground: var(--color-ink);
   --muted: var(--color-bg-muted);
-  --border: #e5e2dd;
-  --radius: var(--radius-cta);
+  --muted-foreground: #5b5750; /* 暖中性灰，达 WCAG AA 正文对比 */
+  --accent: var(--color-bg-muted);
+  --accent-foreground: var(--color-ink);
+
+  /* 危险态（表单校验用，保守红） */
+  --destructive: #b3261e;
+  --destructive-foreground: #ffffff;
+
+  /* 描边 / 输入框 / focus ring */
+  --border: var(--color-border-hairline);
+  --input: var(--color-border-hairline);
+  --ring: var(--color-cta);
+}
+
+/* shadcn 组件用的是 Tailwind 颜色工具（bg-primary / text-foreground / ring-ring …）。
+   Tailwind v4 下这些工具只有在 @theme 注册了对应 --color-* 时才存在，
+   故在此把上面的语义变量桥接成 Tailwind 颜色 token。inline 表示直接引用变量。 */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 2px);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+/* 深色（黑底）语境：header / footer / 移动抽屉里复用 shadcn 交互件时，
+   就地反转语义变量，避免黑底上出现黑字。给容器加 class="on-ink" 即可。 */
+.on-ink {
+  --background: var(--color-ink);
+  --foreground: #ffffff;
+  --primary: #ffffff;
+  --primary-foreground: var(--color-ink);
+  --secondary: #1f1f1f;
+  --secondary-foreground: #ffffff;
+  --accent: #1f1f1f;
+  --accent-foreground: #ffffff;
+  --muted-foreground: #b8b3aa;
+  --border: rgba(255, 255, 255, 0.16);
+  --input: rgba(255, 255, 255, 0.16);
+  --ring: #ffffff;
 }
 
 body {
   background-color: var(--color-bg);
   color: var(--color-ink);
   font-family: var(--font-sans);
+}
+
+/* 全站统一 focus 可见性（键盘可达 / a11y）。 */
+:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* ────────────────────────────────────────────────────────────────
+   Sheet（移动抽屉）进出场动画 —— 自有 CSS，不引入 tw-animate-css。
+   Radix Dialog 在 data-state=open/closed 间切换，closed 态保留到动画结束。
+   克制、editorial：短时长、ease，无弹跳。
+   ──────────────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: no-preference) {
+  .sheet-overlay {
+    animation: sheet-fade 200ms ease;
+  }
+  .sheet-overlay[data-state="closed"] {
+    animation: sheet-fade 200ms ease reverse;
+  }
+  .sheet-content {
+    animation: sheet-in-right 280ms cubic-bezier(0.32, 0.72, 0, 1);
+  }
+  .sheet-content[data-side="left"] {
+    animation-name: sheet-in-left;
+  }
+  .sheet-content[data-state="closed"] {
+    animation-duration: 220ms;
+    animation-name: sheet-out-right;
+  }
+  .sheet-content[data-side="left"][data-state="closed"] {
+    animation-name: sheet-out-left;
+  }
+}
+
+@keyframes sheet-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes sheet-in-right {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+@keyframes sheet-out-right {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+@keyframes sheet-in-left {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+@keyframes sheet-out-left {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-100%);
+  }
 }

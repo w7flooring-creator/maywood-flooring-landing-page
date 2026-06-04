@@ -1,0 +1,66 @@
+---
+/**
+ * SampleRequestButton —— 深色圆角小 CTA（见 AGENTS.md「视觉方向」）。
+ *
+ * Phase 1 链向 Contact（SAMPLE_REQUEST，见已敲定决策）。
+ * 渲染为锚点（语义上是导航跳转，非表单按钮）。样式与 shadcn Button 的
+ * 深色主操作一致，但作为 .astro 静态件零 JS；移动抽屉内复用同一 class。
+ */
+import { SAMPLE_REQUEST } from "@/lib/site";
+
+type Props = {
+  /** full：占满容器宽度（移动抽屉用）。 */
+  variant?: "default" | "full";
+  class?: string;
+};
+
+const { variant = "default", class: className } = Astro.props;
+---
+
+<a
+  class:list={[
+    "sample-cta",
+    variant === "full" && "sample-cta--full",
+    className,
+  ]}
+  href={SAMPLE_REQUEST.href}
+>
+  {SAMPLE_REQUEST.label}
+</a>
+
+<style>
+  .sample-cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-cta);
+    color: #fff;
+    font-family: var(--font-sans);
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-decoration: none;
+    padding: 0.65rem 1.25rem;
+    border-radius: var(--radius-cta);
+    border: 1px solid transparent;
+    transition:
+      background-color 150ms ease,
+      opacity 150ms ease;
+    white-space: nowrap;
+  }
+  .sample-cta:hover {
+    background: #2c2c2c;
+  }
+  .sample-cta--full {
+    width: 100%;
+  }
+  /* 黑底语境（header）里 CTA 反相为白底深字，保证对比。 */
+  :global(.on-ink) .sample-cta {
+    background: #fff;
+    color: var(--color-ink);
+  }
+  :global(.on-ink) .sample-cta:hover {
+    background: #ececec;
+  }
+</style>
