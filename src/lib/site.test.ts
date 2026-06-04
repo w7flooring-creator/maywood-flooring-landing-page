@@ -105,8 +105,8 @@ describe("PRIMARY_NAV（SiteHeader / MobileNav 共用的单一来源）", () => 
 });
 
 describe("SAMPLE_REQUEST CTA", () => {
-  it("Phase 1 指向 Contact（见已敲定决策）", () => {
-    expect(SAMPLE_REQUEST.href).toBe("/contact");
+  it("指向专属样品申请页 /request-sample（见 #26）", () => {
+    expect(SAMPLE_REQUEST.href).toBe("/request-sample");
     expect(SAMPLE_REQUEST.label.length).toBeGreaterThan(0);
   });
 });

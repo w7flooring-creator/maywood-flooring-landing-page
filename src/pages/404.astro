@@ -1,0 +1,134 @@
+---
+/**
+ * 自定义 404（见 issue #23 / AGENTS.md「SEO：必须产出 404 页」）。
+ *
+ * 品牌克制 editorial 风格：大留白、Fraunces 大标题、深色圆角小 CTA，
+ * 不是通用 SaaS 报错页。SEO 上标 noindex（错误页不进索引、不进 sitemap，
+ * 见 astro.config.mjs filter）。canonical 自指由 BaseLayout 取当前路径。
+ *
+ * Cloudflare Workers Static Assets 会自动以 dist/404.html 作为未命中路由的回退。
+ * 纯静态（SSG，零 client JS）。提供回首页 / 产品 / 联系三条出路。
+ */
+import BaseLayout from "@/layouts/BaseLayout.astro";
+
+// 出路指向现有 legacy 路由（见 src/lib/site.ts PRIMARY_NAV，保留 Wix URL）。
+const links = [
+  { label: "Return home", href: "/" },
+  { label: "Browse flooring", href: "/category/engineered-flooring" },
+  { label: "Contact us", href: "/contact" },
+];
+---
+
+<BaseLayout
+  title="Page Not Found"
+  description="The page you were looking for could not be found. Explore Maywood Flooring's premium timber, laminate and hybrid flooring, or get in touch with our Keysborough showroom."
+  noindex={true}
+>
+  <section class="notfound">
+    <p class="notfound__eyebrow">Error 404</p>
+    <h1 class="notfound__title">This page has been retired.</h1>
+    <p class="notfound__lede">
+      The page you were looking for may have moved or no longer exists. Let us
+      help you find your footing — explore our flooring, or get in touch with
+      our Keysborough showroom.
+    </p>
+
+    <nav class="notfound__links" aria-label="Suggested pages">
+      {
+        links.map((link, index) => (
+          <a
+            class:list={[
+              "notfound__link",
+              index === 0 && "notfound__link--cta",
+            ]}
+            href={link.href}
+          >
+            {link.label}
+          </a>
+        ))
+      }
+    </nav>
+  </section>
+</BaseLayout>
+
+<style>
+  .notfound {
+    max-width: 44rem;
+    margin-inline: auto;
+    padding: var(--spacing-section) clamp(1rem, 4vw, 2.5rem);
+    text-align: center;
+  }
+
+  .notfound__eyebrow {
+    font-family: var(--font-sans);
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+    margin: 0 0 1.25rem;
+  }
+
+  .notfound__title {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-size: clamp(2.25rem, 6vw, 3.5rem);
+    line-height: 1.08;
+    letter-spacing: -0.01em;
+    color: var(--color-ink);
+    margin: 0;
+  }
+
+  .notfound__lede {
+    font-family: var(--font-sans);
+    font-size: clamp(1rem, 1.6vw, 1.125rem);
+    line-height: 1.6;
+    color: var(--muted-foreground);
+    max-width: 34rem;
+    margin: 1.5rem auto 0;
+  }
+
+  .notfound__links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 0.75rem 2rem;
+    margin-top: clamp(2rem, 4vw, 3rem);
+  }
+
+  /* 次级出路：克制的下划线文字链接，不与主 CTA 抢视觉重心。 */
+  .notfound__link {
+    font-family: var(--font-sans);
+    font-size: 0.95rem;
+    color: var(--color-ink);
+    text-decoration: none;
+    border-bottom: 1px solid var(--color-border-hairline);
+    padding-bottom: 0.15rem;
+    transition: border-color 150ms ease;
+  }
+  .notfound__link:hover {
+    border-color: var(--color-ink);
+  }
+
+  /* 主出路：深色圆角小 CTA（与 SampleRequestButton 同语言）。 */
+  .notfound__link--cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-cta);
+    color: #fff;
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.7rem 1.4rem;
+    border-radius: var(--radius-cta);
+    border: 1px solid transparent;
+    transition: background-color 150ms ease;
+  }
+  .notfound__link--cta:hover {
+    background: #2c2c2c;
+    border-color: transparent;
+  }
+</style>

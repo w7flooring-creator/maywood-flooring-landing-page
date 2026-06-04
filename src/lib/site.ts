@@ -72,10 +72,10 @@ export const PRIMARY_NAV: readonly NavLink[] = [
   { label: "Contact", href: "/contact" },
 ] as const;
 
-/** Sample Request CTA —— Phase 1 指向 Contact（见已敲定决策）。 */
+/** Sample Request CTA —— 全站 “Request a Sample” 指向专属样品申请页（见 #26）。 */
 export const SAMPLE_REQUEST = {
   label: "Request a Sample",
-  href: "/contact",
+  href: "/request-sample",
 } as const;
 
 /** 单个社媒链接。`icon` 对应 lucide 图标名，供 SocialLinks 取用。 */
