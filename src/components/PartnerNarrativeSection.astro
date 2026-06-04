@@ -1,0 +1,81 @@
+---
+/**
+ * PartnerNarrativeSection —— 首页「专业供应伙伴」双栏叙事区。
+ *
+ * 对照线上首页 “Your Professional Partner in Timber Supply”：左侧 serif 大标题，
+ * 右侧两段正文。桌面双栏、移动单列堆叠。文案来自 PARTNER_NARRATIVE
+ * （src/lib/home-narrative.ts，单一来源）。区块标题用 h2（首页唯一 h1 归 hero）。
+ *
+ * 设计为「无图也好看」：本区为纯文字叙事，不依赖品牌图（生产禁止热链 Wix），
+ * 故无图片插槽。纯静态（零 client JS）。
+ */
+import { PARTNER_NARRATIVE } from "@/lib/home-narrative";
+
+const { eyebrow, heading, paragraphs } = PARTNER_NARRATIVE;
+---
+
+<section class="partner" aria-labelledby="partner-heading">
+  <div class="partner__inner">
+    <div class="partner__lead">
+      {eyebrow && <p class="partner__eyebrow">{eyebrow}</p>}
+      <h2 id="partner-heading" class="partner__heading">{heading}</h2>
+    </div>
+    <div class="partner__body">
+      {paragraphs.map((para) => <p class="partner__para">{para}</p>)}
+    </div>
+  </div>
+</section>
+
+<style>
+  .partner {
+    padding: var(--spacing-section) 1.25rem;
+    background: var(--color-bg);
+  }
+
+  .partner__inner {
+    max-width: 72rem;
+    margin-inline: auto;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+  }
+
+  .partner__eyebrow {
+    margin: 0 0 0.75rem;
+    font-family: var(--font-sans);
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+  }
+
+  .partner__heading {
+    margin: 0;
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-size: clamp(1.75rem, 4vw, 2.75rem);
+    line-height: 1.12;
+    color: var(--color-ink);
+  }
+
+  .partner__para {
+    margin: 0 0 1.25rem;
+    font-size: 1.0625rem;
+    line-height: 1.7;
+    color: var(--muted-foreground);
+  }
+
+  .partner__para:last-child {
+    margin-bottom: 0;
+  }
+
+  /* 桌面：左标题、右正文双栏（editorial 留白）。 */
+  @media (min-width: 60rem) {
+    .partner__inner {
+      grid-template-columns: 5fr 6fr;
+      gap: clamp(3rem, 6vw, 6rem);
+      align-items: start;
+    }
+  }
+</style>

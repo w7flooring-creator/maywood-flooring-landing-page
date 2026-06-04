@@ -1,0 +1,63 @@
+---
+/**
+ * BrandStatementSection —— 首页品牌理念陈述区。
+ *
+ * 对照线上首页 “…we believe that quality flooring is vital in bringing a space
+ * to life…”：一句大字 serif 信念陈述，居中、大留白。文案来自 BRAND_STATEMENT
+ * （src/lib/home-narrative.ts，单一来源）。区块标题用 h2（首页唯一 h1 归 hero）。
+ *
+ * 用深色（ink）背景营造 editorial 反差与节奏（呼应黑色 header/footer 的品牌语言），
+ * 而非通用 SaaS 渐变。纯静态（零 client JS）。
+ */
+import { BRAND_STATEMENT } from "@/lib/home-narrative";
+
+const { eyebrow, heading, paragraphs } = BRAND_STATEMENT;
+---
+
+<section class="brand" aria-labelledby="brand-heading">
+  <div class="brand__inner">
+    {eyebrow && <p class="brand__eyebrow">{eyebrow}</p>}
+    <h2 id="brand-heading" class="brand__heading">{heading}</h2>
+    {paragraphs.map((para) => <p class="brand__para">{para}</p>)}
+  </div>
+</section>
+
+<style>
+  .brand {
+    padding: var(--spacing-section) 1.25rem;
+    background: var(--color-ink);
+    color: #fff;
+  }
+
+  .brand__inner {
+    max-width: 50rem;
+    margin-inline: auto;
+    text-align: center;
+  }
+
+  .brand__eyebrow {
+    margin: 0 0 1.25rem;
+    font-family: var(--font-sans);
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.66);
+  }
+
+  .brand__heading {
+    margin: 0;
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-size: clamp(1.6rem, 3.4vw, 2.5rem);
+    line-height: 1.3;
+    color: #fff;
+  }
+
+  .brand__para {
+    margin: 1.5rem 0 0;
+    font-size: 1.0625rem;
+    line-height: 1.7;
+    color: rgba(255, 255, 255, 0.82);
+  }
+</style>
