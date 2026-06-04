@@ -1,0 +1,106 @@
+---
+/**
+ * HeroImageSection —— 内容页（About / Sustainability 等）顶部 hero。
+ *
+ * 设计为「内容未灌入也好看」（呼应 CollectionHero）：
+ *  - 有 image：宽幅暖色主图 + 白色内容面板叠放标题。
+ *  - 无 image：克制的居中 serif 大标题，留白主导，绝不放占位图 / lorem。
+ *
+ * 通用件：仅接 title / eyebrow / image，不耦合具体页面。纯静态（零 client JS）。
+ * 视觉用品牌 token（serif 大标题、muted 背景、editorial 留白）。
+ */
+import type { ContentImage } from "@/lib/content-pages";
+
+interface Props {
+  title: string;
+  /** 可选 eyebrow（小标签），缺省不渲染。 */
+  eyebrow?: string | null;
+  /** 可选 intro（标题下一句导语），缺省不渲染。 */
+  intro?: string | null;
+  image?: ContentImage | null;
+}
+
+const { title, eyebrow = null, intro = null, image = null } = Astro.props;
+const hasImage = image !== null;
+// hero 图在首屏 → 不 lazy load（首屏 LCP）；alt 缺省给空串（装饰性回落）。
+const altText = image?.alt ?? "";
+---
+
+<section class:list={["hero", { "hero--image": hasImage }]}>
+  {
+    hasImage && (
+      <img
+        class="hero__bg"
+        src={image!.url}
+        alt={altText}
+        loading="eager"
+        decoding="async"
+      />
+    )
+  }
+  <div class="hero__panel">
+    {eyebrow && <p class="hero__eyebrow">{eyebrow}</p>}
+    <h1 class="hero__title">{title}</h1>
+    {intro && <p class="hero__intro">{intro}</p>}
+  </div>
+</section>
+
+<style>
+  .hero {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: clamp(16rem, 34vw, 26rem);
+    padding: var(--spacing-section) 1.25rem;
+    background: var(--color-bg-muted);
+    overflow: hidden;
+  }
+
+  .hero__bg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 0;
+  }
+
+  /* 有图时给内容面板一块白底，保证 serif 标题对比度（呼应首页 hero 白面板）。 */
+  .hero--image .hero__panel {
+    position: relative;
+    z-index: 1;
+    background: var(--color-bg);
+    padding: clamp(2rem, 5vw, 3.5rem);
+    max-width: 46rem;
+  }
+
+  .hero__panel {
+    text-align: center;
+  }
+
+  .hero__eyebrow {
+    margin: 0 0 0.75rem;
+    font-size: 0.8rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #777;
+  }
+
+  .hero__title {
+    margin: 0;
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-size: clamp(2.25rem, 5.5vw, 4rem);
+    line-height: 1.05;
+    color: var(--color-ink);
+  }
+
+  .hero__intro {
+    margin: 1.25rem auto 0;
+    max-width: 38rem;
+    font-size: 1.0625rem;
+    line-height: 1.6;
+    color: var(--muted-foreground);
+  }
+</style>

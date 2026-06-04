@@ -1,0 +1,95 @@
+---
+/**
+ * /about-us —— About 内容页（page 文档驱动，slug "about-us"，见 ADR-0001 保留 legacy URL）。
+ *
+ * 数据：build 时按 slug 拉 `page` 文档；有 body 则用 RichTextRenderer 渲染编辑正文，
+ * 否则降级为**静态 editorial 回落**（文案核对自线上 Wix About 页，澳洲拼写，
+ * 修正其拼写 “Quailty”→正常正文；绝不 lorem）。
+ *
+ * SEO：唯一 title / meta description（优先用编辑填的 seo，否则回落）；canonical 自指
+ * （BaseLayout 取当前路径）。Breadcrumbs：Home > About Us（含 BreadcrumbList JSON-LD）。
+ * 纯静态（SSG），零 client JS。
+ */
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import HeroImageSection from "@/components/HeroImageSection.astro";
+import EditorialTextBlock from "@/components/EditorialTextBlock.astro";
+import ImageTextSplit from "@/components/ImageTextSplit.astro";
+import RichTextRenderer from "@/components/RichTextRenderer.astro";
+import {
+  getPageBySlug,
+  hasBody,
+  buildContentBreadcrumbs,
+  buildContentSeo,
+} from "@/lib/content-pages";
+
+const PATH = "/about-us";
+const SLUG = "about-us";
+const FALLBACK_TITLE = "About Us";
+const FALLBACK_DESCRIPTION =
+  "Maywood Flooring is a premium timber flooring wholesaler in Keysborough, Melbourne — pairing decades of Australian timber expertise with precision craftsmanship for trade and homeowners across Victoria.";
+
+const page = await getPageBySlug(SLUG);
+
+const title = page?.title ?? FALLBACK_TITLE;
+const breadcrumbs = buildContentBreadcrumbs(PATH, title);
+const seo = buildContentSeo({
+  path: PATH,
+  page,
+  fallbackTitle: FALLBACK_TITLE,
+  fallbackDescription: FALLBACK_DESCRIPTION,
+});
+
+const showBody = hasBody(page);
+---
+
+<BaseLayout {...seo}>
+  <article class="about">
+    <div class="about__crumbs">
+      <Breadcrumbs items={breadcrumbs} />
+    </div>
+
+    <HeroImageSection
+      title={title}
+      eyebrow="About Maywood"
+      intro="See how Maywood pairs quality materials and precision craftsmanship to bring Australian homes and businesses the flooring experience they deserve."
+      image={page?.heroImage ?? null}
+    />
+
+    {
+      showBody ? (
+        <EditorialTextBlock>
+          <RichTextRenderer value={page!.body} />
+        </EditorialTextBlock>
+      ) : (
+        <>
+          {/* 静态 editorial 回落（核对自线上 Wix About 页，澳洲拼写）。 */}
+          <EditorialTextBlock
+            heading="Your Trusted Flooring Partner"
+            paragraphs={[
+              "With decades of deep-rooted expertise in the Australian timber industry, Maywood Flooring harmonises traditional craftsmanship with cutting-edge technology to deliver unmatched quality and structural integrity.",
+              "From rigorous density selection to moisture-controlled precision, our collections are curated to evoke the naturalistic style of Australian homes while balancing timeless beauty with local resilience. Every plank we craft upholds strict sustainability standards, so the elegance we bring into your space is built responsibly and designed to last a lifetime.",
+            ]}
+          />
+
+          <ImageTextSplit
+            eyebrow="Pure Oak. Pure Design."
+            heading="A wholesaler dedicated to the trade"
+            paragraphs={[
+              "Maywood is a premier timber flooring wholesaler dedicated to supplying the finest European Oak, American Oak and Ash to the professional trade. We specialise in large-format engineered planks and bespoke parquetry that balance aesthetic elegance with structural integrity.",
+              "By combining direct-to-trade distribution with uncompromising quality control, Maywood delivers the foundation for Australia's most inspired architectural spaces.",
+            ]}
+          />
+        </>
+      )
+    }
+  </article>
+</BaseLayout>
+
+<style>
+  .about__crumbs {
+    max-width: 80rem;
+    margin-inline: auto;
+    padding: 1.25rem clamp(1rem, 4vw, 2.5rem) 0;
+  }
+</style>

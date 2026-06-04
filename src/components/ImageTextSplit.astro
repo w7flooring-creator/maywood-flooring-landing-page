@@ -1,0 +1,130 @@
+---
+/**
+ * ImageTextSplit —— 图文左右分栏（editorial）。
+ *
+ * 用于内容页的图文交替叙事（如 Sustainability 的取材 / 认证段落）。
+ *  - 有 image：桌面左右分栏，移动端堆叠（图在上）。
+ *  - 无 image：优雅降级为纯文字块（不放占位图）。
+ *  - reverse 把图文左右对调，便于多段交替排版。
+ *
+ * 正文走 paragraphs（静态文案）或默认 slot（如 RichTextRenderer）。
+ * 通用件、纯静态（零 client JS）。品牌 token：serif 标题、暖中性、克制留白。
+ */
+import type { ContentImage } from "@/lib/content-pages";
+
+interface Props {
+  heading?: string | null;
+  eyebrow?: string | null;
+  image?: ContentImage | null;
+  /** 静态正文段落；为空则渲染默认 slot。 */
+  paragraphs?: string[];
+  /** true 时图在右、文在左（用于交替排版）。 */
+  reverse?: boolean;
+}
+
+const {
+  heading = null,
+  eyebrow = null,
+  image = null,
+  paragraphs = [],
+  reverse = false,
+} = Astro.props;
+const hasImage = image !== null;
+const hasParagraphs = paragraphs.length > 0;
+const altText = image?.alt ?? "";
+---
+
+<section
+  class:list={[
+    "split",
+    { "split--reverse": reverse, "split--no-image": !hasImage },
+  ]}
+>
+  {
+    hasImage && (
+      <div class="split__media">
+        <img src={image!.url} alt={altText} loading="lazy" decoding="async" />
+      </div>
+    )
+  }
+  <div class="split__text">
+    {eyebrow && <p class="split__eyebrow">{eyebrow}</p>}
+    {heading && <h2 class="split__heading">{heading}</h2>}
+    {
+      hasParagraphs ? (
+        <div class="split__body">
+          {paragraphs.map((p) => (
+            <p>{p}</p>
+          ))}
+        </div>
+      ) : (
+        <slot />
+      )
+    }
+  </div>
+</section>
+
+<style>
+  .split {
+    display: grid;
+    gap: clamp(1.5rem, 5vw, 4rem);
+    align-items: center;
+    max-width: 80rem;
+    margin-inline: auto;
+    padding: var(--spacing-section) 1.25rem;
+  }
+
+  @media (min-width: 48rem) {
+    .split:not(.split--no-image) {
+      grid-template-columns: 1fr 1fr;
+    }
+    /* reverse：文字列移到第二列、图移到第一列之后 → 视觉上图在右。 */
+    .split--reverse .split__media {
+      order: 2;
+    }
+  }
+
+  .split__media img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: var(--radius-cta);
+    object-fit: cover;
+  }
+
+  .split__eyebrow {
+    margin: 0 0 0.75rem;
+    font-size: 0.8rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #777;
+  }
+
+  .split__heading {
+    margin: 0 0 1.25rem;
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-size: clamp(1.6rem, 3.5vw, 2.4rem);
+    line-height: 1.12;
+    color: var(--color-ink);
+  }
+
+  .split__body {
+    font-family: var(--font-sans);
+    font-size: 1.0625rem;
+    line-height: 1.7;
+    color: var(--color-ink);
+  }
+  .split__body :global(p) {
+    margin: 0 0 1.25rem;
+  }
+  .split__body :global(p:last-child) {
+    margin-bottom: 0;
+  }
+
+  /* 无图时正文居中、收窄，避免满屏长行。 */
+  .split--no-image {
+    max-width: 44rem;
+    text-align: center;
+  }
+</style>

@@ -21,6 +21,7 @@
     "@hookform/resolvers": "^5.4.0",
     "@sanity/client": "^7",
     "astro": "^5",
+    "astro-portabletext": "^0.13.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2",
     "embla-carousel-react": "^8.6.0",

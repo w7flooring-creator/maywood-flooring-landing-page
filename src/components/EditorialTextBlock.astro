@@ -1,0 +1,92 @@
+---
+/**
+ * EditorialTextBlock —— 居中、克制的 editorial 文字区块。
+ *
+ * 两个用途：
+ *  1. 包裹 RichTextRenderer 渲染的 Sanity 正文，统一区块留白（slot 用法）。
+ *  2. 当某内容页尚无 Sanity 文档时，承载页面提供的**静态 editorial 回落文案**
+ *     （符合事实、品牌调性，绝不 lorem）—— 通过 paragraphs prop 传入。
+ *
+ * 通用件：可选 eyebrow / heading，正文走 paragraphs（数组）或默认 slot。
+ * 纯静态（零 client JS）。品牌 token：serif 标题、大留白、慢节奏。
+ */
+interface Props {
+  /** 可选小标签，缺省不渲染。 */
+  eyebrow?: string | null;
+  /** 可选区块标题（serif），缺省不渲染。 */
+  heading?: string | null;
+  /** 静态回落正文段落；为空则渲染默认 slot（如 RichTextRenderer）。 */
+  paragraphs?: string[];
+}
+
+const { eyebrow = null, heading = null, paragraphs = [] } = Astro.props;
+const hasParagraphs = paragraphs.length > 0;
+---
+
+<section class="editorial">
+  {
+    (eyebrow || heading) && (
+      <header class="editorial__head">
+        {eyebrow && <p class="editorial__eyebrow">{eyebrow}</p>}
+        {heading && <h2 class="editorial__heading">{heading}</h2>}
+      </header>
+    )
+  }
+
+  {
+    hasParagraphs ? (
+      <div class="editorial__body">
+        {paragraphs.map((p) => (
+          <p>{p}</p>
+        ))}
+      </div>
+    ) : (
+      <slot />
+    )
+  }
+</section>
+
+<style>
+  .editorial {
+    padding: var(--spacing-section) 1.25rem;
+  }
+
+  .editorial__head {
+    max-width: 44rem;
+    margin: 0 auto 2rem;
+    text-align: center;
+  }
+
+  .editorial__eyebrow {
+    margin: 0 0 0.75rem;
+    font-size: 0.8rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #777;
+  }
+
+  .editorial__heading {
+    margin: 0;
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-size: clamp(1.85rem, 4vw, 2.75rem);
+    line-height: 1.1;
+    color: var(--color-ink);
+  }
+
+  .editorial__body {
+    max-width: 44rem;
+    margin-inline: auto;
+    font-family: var(--font-sans);
+    font-size: 1.0625rem;
+    line-height: 1.7;
+    color: var(--color-ink);
+  }
+
+  .editorial__body :global(p) {
+    margin: 0 0 1.25rem;
+  }
+  .editorial__body :global(p:last-child) {
+    margin-bottom: 0;
+  }
+</style>
