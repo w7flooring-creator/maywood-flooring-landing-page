@@ -1,0 +1,82 @@
+---
+/**
+ * ProductSelectionGrid —— 首页「Our Products Selection」四入口网格。
+ *
+ * 入口数据来自 PRODUCT_SELECTION（src/lib/home.ts，单一来源），渲染为 4 张
+ * ProductSelectionCard。桌面四列、平板两列、移动单列。纯静态（零 client JS）。
+ *
+ * 标题与颗粒度对照线上首页（heading「Our Products Selection」）。
+ */
+import ProductSelectionCard from "@/components/ProductSelectionCard.astro";
+import { PRODUCT_SELECTION } from "@/lib/home";
+
+interface Props {
+  /** 区块标题；缺省取线上首页文案。 */
+  heading?: string;
+}
+
+const { heading = "Our Products Selection" } = Astro.props;
+---
+
+<section class="selection" aria-labelledby="product-selection-heading">
+  <div class="selection__inner">
+    <h2 id="product-selection-heading" class="selection__heading">{heading}</h2>
+    <ul class="selection__grid" role="list">
+      {
+        PRODUCT_SELECTION.map((entry) => (
+          <li class="selection__item">
+            <ProductSelectionCard
+              label={entry.label}
+              href={entry.href}
+              imageAlt={entry.imageAlt}
+            />
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .selection {
+    padding: var(--spacing-section) 1.25rem;
+    background: var(--color-bg);
+  }
+
+  .selection__inner {
+    max-width: 72rem;
+    margin-inline: auto;
+  }
+
+  .selection__heading {
+    margin: 0 0 2.5rem;
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+    text-align: center;
+    color: var(--color-ink);
+  }
+
+  .selection__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  /* 平板：两列。 */
+  @media (min-width: 36rem) {
+    .selection__grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  /* 桌面：四列（对照线上首页一行四入口）。 */
+  @media (min-width: 60rem) {
+    .selection__grid {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+</style>
