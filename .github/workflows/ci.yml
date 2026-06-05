@@ -45,3 +45,5 @@ jobs:
           PUBLIC_SANITY_DATASET: ${{ vars.PUBLIC_SANITY_DATASET || 'production' }}
           # 只读 token（敏感）→ Secret；该 dataset 匿名读实测返回空，build 需 token（见 ADR-0003）
           SANITY_API_READ_TOKEN: ${{ secrets.SANITY_API_READ_TOKEN }}
+          # Turnstile site key（公开）→ build 时烤进表单 island（#25）；未设则表单退回 mailto
+          PUBLIC_TURNSTILE_SITE_KEY: ${{ vars.PUBLIC_TURNSTILE_SITE_KEY }}
