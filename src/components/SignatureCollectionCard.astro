@@ -11,6 +11,8 @@
  * 链接指向营销落地页 /<slug>（puregrain / bushland / manor / bellavale，
  * 见 ADR-0001：落地页是主版本）。below-the-fold → 图片 lazy load。纯静态。
  */
+import { sanityImageUrl, sanityImageSrcset } from "@/lib/sanity-image";
+
 interface Props {
   title: string;
   slug: string;
@@ -40,7 +42,11 @@ const href = `/${slug}`;
     hasImage ? (
       <img
         class="sig-card__img"
-        src={imageUrl}
+        src={sanityImageUrl(imageUrl, { width: 768 })}
+        srcset={
+          sanityImageSrcset(imageUrl, [480, 768, 1080, 1440]) || undefined
+        }
+        sizes="(min-width: 48rem) 50vw, 100vw"
         alt={imageAlt ?? title}
         loading="lazy"
         decoding="async"

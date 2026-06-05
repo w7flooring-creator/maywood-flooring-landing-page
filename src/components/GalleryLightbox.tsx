@@ -2,6 +2,7 @@ import * as React from "react";
 import Lightbox from "yet-another-react-lightbox";
 import "yet-another-react-lightbox/styles.css";
 import type { GalleryItem } from "@/lib/gallery";
+import { sanityImageUrl, sanityImageSrcset } from "@/lib/sanity-image";
 
 /**
  * GalleryLightbox —— Gallery 页（/gallery，issue #19）的图库网格 + lightbox island。
@@ -58,7 +59,12 @@ export default function GalleryLightbox({ items }: Props) {
               className="group block w-full cursor-zoom-in overflow-hidden rounded-[var(--radius-cta)] bg-[var(--color-bg-muted)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-cta)]"
             >
               <img
-                src={item.url}
+                src={sanityImageUrl(item.url, { width: 768 })}
+                srcSet={
+                  sanityImageSrcset(item.url, [320, 480, 768, 1080]) ||
+                  undefined
+                }
+                sizes="(min-width: 64rem) 33vw, (min-width: 40rem) 50vw, 100vw"
                 alt={altFor(item, i)}
                 loading={i < 3 ? "eager" : "lazy"}
                 decoding="async"
@@ -75,7 +81,7 @@ export default function GalleryLightbox({ items }: Props) {
         index={index}
         on={{ view: ({ index: i }) => setIndex(i) }}
         slides={items.map((item, i) => ({
-          src: item.url,
+          src: sanityImageUrl(item.url, { width: 1600 }),
           alt: altFor(item, i),
           title: item.title ?? undefined,
           description: item.caption ?? undefined,

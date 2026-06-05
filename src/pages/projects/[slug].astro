@@ -19,6 +19,7 @@ import BaseLayout from "@/layouts/BaseLayout.astro";
 import Breadcrumbs from "@/components/Breadcrumbs.astro";
 import StructuredData from "@/components/StructuredData.astro";
 import RichTextRenderer from "@/components/RichTextRenderer.astro";
+import { sanityImageUrl, sanityImageSrcset } from "@/lib/sanity-image";
 import {
   getCaseStudySlugs,
   getCaseStudyBySlug,
@@ -90,7 +91,12 @@ const hasProducts = caseStudy.productsUsed.length > 0;
           {caseStudy.images.map((image) => (
             <figure class="project__figure">
               <img
-                src={image.url}
+                src={sanityImageUrl(image.url, { width: 1080 })}
+                srcset={
+                  sanityImageSrcset(image.url, [480, 768, 1080, 1440]) ||
+                  undefined
+                }
+                sizes="(min-width: 60rem) 900px, 100vw"
                 alt={image.alt ?? caseStudy.title}
                 loading="lazy"
                 decoding="async"

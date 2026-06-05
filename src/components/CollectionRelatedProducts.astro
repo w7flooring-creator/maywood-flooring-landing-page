@@ -10,6 +10,7 @@
  * 无需改代码，区块即自动出现。纯静态（零 client JS）。
  */
 import type { RelatedProduct } from "@/lib/collection-landing";
+import { sanityImageUrl, sanityImageSrcset } from "@/lib/sanity-image";
 
 interface Props {
   heading?: string | null;
@@ -32,7 +33,14 @@ const hasProducts = products.length > 0;
                 {product.imageUrl ? (
                   <img
                     class="related__img"
-                    src={product.imageUrl}
+                    src={sanityImageUrl(product.imageUrl, { width: 640 })}
+                    srcset={
+                      sanityImageSrcset(
+                        product.imageUrl,
+                        [320, 480, 640, 800]
+                      ) || undefined
+                    }
+                    sizes="(min-width: 60rem) 340px, 45vw"
                     alt={product.title}
                     loading="lazy"
                     decoding="async"

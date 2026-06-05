@@ -31,6 +31,11 @@ const path = seo.path ?? Astro.url.pathname;
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    {
+      /* 图片走 Sanity 图片 CDN（见 src/lib/sanity-image.ts）：提前建连，加速 LCP 主图。 */
+    }
+    <link rel="preconnect" href="https://cdn.sanity.io" crossorigin />
+    <link rel="dns-prefetch" href="https://cdn.sanity.io" />
     <SeoHead {...seo} path={path} localBusiness={localBusiness} />
     <slot name="head" />
   </head>

@@ -10,6 +10,7 @@
  * 纯静态（零 client JS）。视觉用品牌 token（serif 大标题、muted 背景、editorial 留白）。
  */
 import type { CategoryHeroImage } from "@/lib/category-page";
+import { sanityImageUrl, sanityImageSrcset } from "@/lib/sanity-image";
 
 interface Props {
   title: string;
@@ -29,8 +30,13 @@ const altText = image?.alt ?? "";
     hasImage && (
       <img
         class="hero__bg"
-        src={image!.url}
+        src={sanityImageUrl(image!.url, { width: 1440 })}
+        srcset={
+          sanityImageSrcset(image!.url, [768, 1080, 1440, 1920]) || undefined
+        }
+        sizes="100vw"
         alt={altText}
+        fetchpriority="high"
         loading="eager"
         decoding="async"
       />

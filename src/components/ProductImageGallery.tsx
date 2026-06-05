@@ -3,6 +3,7 @@ import useEmblaCarousel from "embla-carousel-react";
 import { ChevronLeft, ChevronRight, Expand } from "lucide-react";
 import Lightbox from "yet-another-react-lightbox";
 import "yet-another-react-lightbox/styles.css";
+import { sanityImageUrl, sanityImageSrcset } from "@/lib/sanity-image";
 
 /**
  * ProductImageGallery —— 产品详情页主图廊（issue #13），全站唯一图廊 island。
@@ -89,8 +90,14 @@ export default function ProductImageGallery({ images, productTitle }: Props) {
                   className="group block w-full cursor-zoom-in focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-cta)]"
                 >
                   <img
-                    src={img.url}
+                    src={sanityImageUrl(img.url, { width: 960 })}
+                    srcSet={
+                      sanityImageSrcset(img.url, [480, 768, 1080, 1440]) ||
+                      undefined
+                    }
+                    sizes="(min-width: 60rem) 600px, 100vw"
                     alt={altFor(img, index)}
+                    fetchPriority={index === 0 ? "high" : undefined}
                     loading={index === 0 ? "eager" : "lazy"}
                     decoding="async"
                     className="aspect-[4/3] w-full bg-[var(--color-bg-muted)] object-cover"
@@ -150,7 +157,7 @@ export default function ProductImageGallery({ images, productTitle }: Props) {
                 }
               >
                 <img
-                  src={img.url}
+                  src={sanityImageUrl(img.url, { width: 160 })}
                   alt=""
                   loading="lazy"
                   decoding="async"
@@ -168,7 +175,7 @@ export default function ProductImageGallery({ images, productTitle }: Props) {
         index={selectedIndex}
         on={{ view: ({ index }) => setSelectedIndex(index) }}
         slides={images.map((img, index) => ({
-          src: img.url,
+          src: sanityImageUrl(img.url, { width: 1600 }),
           alt: altFor(img, index),
         }))}
       />

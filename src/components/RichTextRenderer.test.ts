@@ -124,7 +124,7 @@ describe("RichTextRenderer.astro", () => {
       } as unknown as PortableTextBlock,
     ]);
     expect(html).toContain("<figure");
-    expect(html).toContain('src="https://cdn.sanity.io/floor.jpg"');
+    expect(html).toContain('src="https://cdn.sanity.io/floor.jpg?');
     expect(html).toContain('alt="Engineered oak floor"');
     expect(html).toContain('loading="lazy"');
   });
