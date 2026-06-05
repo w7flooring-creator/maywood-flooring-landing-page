@@ -97,6 +97,7 @@ export default function ProductImageGallery({ images, productTitle }: Props) {
                     }
                     sizes="(min-width: 60rem) 600px, 100vw"
                     alt={altFor(img, index)}
+                    fetchPriority={index === 0 ? "high" : undefined}
                     loading={index === 0 ? "eager" : "lazy"}
                     decoding="async"
                     className="aspect-[4/3] w-full bg-[var(--color-bg-muted)] object-cover"
