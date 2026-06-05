@@ -13,6 +13,11 @@ import { redirectsIntegration } from "./scripts/redirects-integration.ts";
 export default defineConfig({
   site: "https://www.maywoodflooring.com.au",
   output: "static",
+  // 全站统一「无尾斜杠」URL 策略：canonical / 内链 / 面包屑全程已是无斜杠，
+  // 这里让 @astrojs/sitemap 也产出无斜杠 URL，三者一致；Cloudflare 侧由
+  // wrangler.jsonc 的 assets.html_handling="drop-trailing-slash" 把 /foo/ 308 到
+  // /foo（无斜杠为 200 主版本），消除内链 307 与 canonical 指向跳转 URL 的问题。
+  trailingSlash: "never",
   integrations: [
     react(),
     // build 前生成 public/_redirects（静态 booking-calendar 例外 + Sanity 编辑维护跳转），

@@ -13,6 +13,7 @@
  * 纯静态（零 client JS）。视觉用品牌 token（serif 标题、editorial 留白、hairline 描边）。
  */
 import type { CaseStudySummary } from "@/lib/case-studies";
+import { sanityImageUrl, sanityImageSrcset } from "@/lib/sanity-image";
 
 interface Props {
   caseStudy: CaseStudySummary;
@@ -32,7 +33,12 @@ const href = `/projects/${caseStudy.slug}`;
       hasImage ? (
         <img
           class="case-card__img"
-          src={caseStudy.image!.url}
+          src={sanityImageUrl(caseStudy.image!.url, { width: 640 })}
+          srcset={
+            sanityImageSrcset(caseStudy.image!.url, [320, 480, 640, 800]) ||
+            undefined
+          }
+          sizes="(min-width: 60rem) 360px, 45vw"
           alt={caseStudy.image!.alt ?? caseStudy.title}
           loading="lazy"
           decoding="async"

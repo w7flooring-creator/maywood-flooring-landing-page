@@ -14,6 +14,7 @@
  * 区块标题用 h2（首页唯一 h1 归 hero）。纯静态（零 client JS）。
  */
 import { GALLERY_FEED } from "@/lib/home-narrative";
+import { sanityImageUrl, sanityImageSrcset } from "@/lib/sanity-image";
 
 /** 图廊单图（#8 接入后由调用页投影自 Sanity galleryImage）。 */
 export interface GalleryFeedImage {
@@ -47,7 +48,11 @@ const placeholderCount = 4;
             <li class="gallery__cell">
               <img
                 class="gallery__img"
-                src={image.url}
+                src={sanityImageUrl(image.url, { width: 480 })}
+                srcset={
+                  sanityImageSrcset(image.url, [240, 320, 480]) || undefined
+                }
+                sizes="(min-width: 48rem) 25vw, 50vw"
                 alt={image.alt}
                 loading="lazy"
                 decoding="async"

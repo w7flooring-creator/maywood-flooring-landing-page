@@ -8,5 +8,11 @@
   "assets": {
     "directory": "./dist",
     "binding": "ASSETS",
+    // 未命中的路径回落到 Astro 构建出的 dist/404.html（src/pages/404.astro），
+    // 返回 404 状态码。不配此项时 Static Assets 默认返回空 body 的 404。
+    "not_found_handling": "404-page",
+    // 全站无尾斜杠策略（见 astro.config.mjs trailingSlash:"never"）：把 /foo/ 308
+    // 重定向到 /foo（无斜杠为 canonical 主版本），与 canonical / sitemap / 内链一致。
+    "html_handling": "drop-trailing-slash",
   },
 }

@@ -13,6 +13,7 @@
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import Breadcrumbs from "@/components/Breadcrumbs.astro";
 import HeroImageSection from "@/components/HeroImageSection.astro";
+import { sanityImageUrl, sanityImageSrcset } from "@/lib/sanity-image";
 import {
   getResources,
   buildContentBreadcrumbs,
@@ -57,7 +58,14 @@ const seo = buildContentSeo({
                 {r.heroImage && (
                   <div class="resource-card__media">
                     <img
-                      src={r.heroImage.url}
+                      src={sanityImageUrl(r.heroImage.url, { width: 640 })}
+                      srcset={
+                        sanityImageSrcset(
+                          r.heroImage.url,
+                          [320, 480, 640, 800]
+                        ) || undefined
+                      }
+                      sizes="(min-width: 60rem) 360px, 45vw"
                       alt={r.heroImage.alt ?? ""}
                       loading="lazy"
                       decoding="async"
