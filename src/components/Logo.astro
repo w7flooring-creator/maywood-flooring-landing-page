@@ -1,11 +1,13 @@
 ---
 /**
- * Logo —— serif 字标（wordmark），全站 header / footer 复用。
+ * Logo —— 品牌 wordmark 图片，全站 header / footer 复用。
  *
- * 用字标而非图片：保证 SEO 文本可读、清晰可缩放、零额外资源；
- * Fraunces serif 主导品牌视觉（见 AGENTS.md「视觉方向」）。
- * 包裹链接默认回首页；`as` 可切换标签（首页用 <span> 避免自指链接）。
+ * 白色 “MAYWOOD FLOORING” 字标（透明背景），用于深色 header / footer。
+ * 用 astro:assets `<Image>` 处理：自动优化、按用途输出合适尺寸。
+ * 包裹链接默认回首页；首页传 href={null} 改用 <span> 避免自指链接。
  */
+import { Image } from "astro:assets";
+import logoSrc from "@/assets/maywood-logo.avif";
 import { SITE } from "@/lib/site";
 
 type Props = {
@@ -18,40 +20,46 @@ type Props = {
 
 const { size = "sm", href = "/", class: className } = Astro.props;
 const sizeClass = size === "lg" ? "logo--lg" : "logo--sm";
+const alt = `${SITE.name} — home`;
 ---
 
 {
   href ? (
-    <a
-      class:list={["logo", sizeClass, className]}
-      href={href}
-      aria-label={`${SITE.name} — home`}
-    >
-      {SITE.name}
+    <a class:list={["logo", sizeClass, className]} href={href} aria-label={alt}>
+      <Image src={logoSrc} alt={alt} class="logo__img" loading="eager" />
     </a>
   ) : (
-    <span class:list={["logo", sizeClass, className]}>{SITE.name}</span>
+    <span class:list={["logo", sizeClass, className]}>
+      <Image src={logoSrc} alt={SITE.name} class="logo__img" loading="eager" />
+    </span>
   )
 }
 
 <style>
   .logo {
     display: inline-block;
-    font-family: var(--font-serif);
-    font-weight: 500;
-    letter-spacing: 0.01em;
-    line-height: 1;
+    line-height: 0;
     color: inherit;
     text-decoration: none;
-    white-space: nowrap;
   }
-  .logo--sm {
-    font-size: clamp(1.25rem, 2.5vw, 1.6rem);
+  .logo__img {
+    display: block;
   }
+  /* header：按高度控制，宽度自适应。 */
+  .logo--sm .logo__img {
+    width: auto;
+    height: clamp(2.25rem, 4.5vw, 3rem);
+  }
+  /* footer：按宽度铺满 brand 栏（与 tagline 的 30rem 上限一致）。 */
   .logo--lg {
-    font-size: clamp(2rem, 6vw, 3.25rem);
+    display: block;
+    width: min(80%, 24rem);
   }
-  .logo:where(a):hover {
+  .logo--lg .logo__img {
+    width: 100%;
+    height: auto;
+  }
+  .logo:where(a):hover .logo__img {
     opacity: 0.85;
   }
 </style>
