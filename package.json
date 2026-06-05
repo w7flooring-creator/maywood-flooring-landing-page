@@ -11,6 +11,8 @@
     "test": "vitest run",
     "seed:taxonomy": "node --experimental-strip-types scripts/seed-taxonomy.ts",
     "import:products": "node --experimental-strip-types scripts/import-products.ts",
+    "import:gallery": "node --experimental-strip-types scripts/import-gallery.ts",
+    "import:faqs": "node --experimental-strip-types scripts/import-faqs.ts",
     "astro": "astro",
     "prepare": "husky"
   },

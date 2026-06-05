@@ -9,9 +9,10 @@
  * 纯静态（SSG，零 client JS）。
  *
  * hero 图与产品入口图 Phase 1 尚未入库（生产禁止热链 Wix）→ 组件对空图优雅降级。
- * 招牌系列卡由 Sanity 驱动（build 时拉），本地 / 匿名读无 token 时为空 →
- * SignatureCollectionsSection 优雅降级（见 ADR-0003）。galleryImage 尚未建模
- * （#8 并行）→ GalleryFeedSection 渲染静态占位 strip，不查询 Sanity。
+ * 招牌系列卡与图库图片由 Sanity 驱动（build 时拉），本地 / 匿名读无 token 时为空 →
+ * SignatureCollectionsSection / GalleryFeedSection 优雅降级（见 ADR-0003）。
+ * 图库图片已灌入（#8，scripts/import-gallery.ts）→ GalleryFeed 取前 8 张真实照片，
+ * 无内容时回落静态占位 strip。
  */
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import HomeHero from "@/components/HomeHero.astro";
@@ -23,9 +24,16 @@ import BrandStatementSection from "@/components/BrandStatementSection.astro";
 import GalleryFeedSection from "@/components/GalleryFeedSection.astro";
 import HomeCtaSection from "@/components/HomeCtaSection.astro";
 import { getSignatureCollections } from "@/lib/taxonomy";
+import { getGalleryItems } from "@/lib/gallery";
 
 // 招牌系列 build 时拉取（无 token / 匿名读 → 空数组，区块优雅降级）。
 const signatureCollections = await getSignatureCollections();
+
+// 图库图片 build 时拉取，首页 GalleryFeed 取前 8 张（无内容 → 组件回落占位 strip）。
+const galleryFeedImages = (await getGalleryItems()).slice(0, 8).map((g) => ({
+  url: g.url,
+  alt: g.alt ?? "Maywood Flooring flooring project, Melbourne",
+}));
 ---
 
 <BaseLayout
@@ -38,6 +46,6 @@ const signatureCollections = await getSignatureCollections();
   <SilentFoundationSection />
   <SignatureCollectionsSection collections={signatureCollections} />
   <BrandStatementSection />
-  <GalleryFeedSection />
+  <GalleryFeedSection images={galleryFeedImages} />
   <HomeCtaSection />
 </BaseLayout>
