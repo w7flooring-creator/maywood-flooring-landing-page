@@ -3,6 +3,9 @@ import {
   contactFormSchema,
   contactFormDefaults,
   buildMailtoHref,
+  buildContactSubject,
+  buildContactEmailHtml,
+  escapeHtml,
   type ContactFormValues,
 } from "@/lib/contact-form";
 import { NAP } from "@/lib/site";
@@ -133,5 +136,48 @@ describe("buildMailtoHref — Phase 1 提交占位", () => {
     expect(body).toContain("Jordan Nguyen");
     expect(body).toContain("jordan@example.com");
     expect(body).toContain("engineered oak flooring");
+  });
+});
+
+describe("buildContactSubject — Worker / mailto 共用主题", () => {
+  it("含访客姓名", () => {
+    expect(buildContactSubject(validInput)).toBe(
+      "Website enquiry from Jordan Nguyen"
+    );
+  });
+});
+
+describe("buildContactEmailHtml — Worker 经 Resend 发的 HTML 正文", () => {
+  it("含姓名 / 邮箱 / 留言", () => {
+    const html = buildContactEmailHtml(validInput);
+    expect(html).toContain("Jordan Nguyen");
+    expect(html).toContain("jordan@example.com");
+    expect(html).toContain("engineered oak flooring");
+  });
+
+  it("转义访客输入，防 HTML 注入", () => {
+    const html = buildContactEmailHtml({
+      ...validInput,
+      message: "<b>bold</b> & <script>x</script> please quote me",
+    });
+    expect(html).not.toContain("<script>x</script>");
+    expect(html).toContain("&lt;script&gt;");
+    expect(html).toContain("&amp;");
+  });
+
+  it("留言换行转 <br>", () => {
+    const html = buildContactEmailHtml({
+      ...validInput,
+      message: "line one\nline two and more text",
+    });
+    expect(html).toContain("line one<br>line two");
+  });
+});
+
+describe("escapeHtml", () => {
+  it("转义 & < > \" '", () => {
+    expect(escapeHtml(`<a href="x">&'`)).toBe(
+      "&lt;a href=&quot;x&quot;&gt;&amp;&#39;"
+    );
   });
 });

@@ -1,21 +1,52 @@
 // @vitest-environment jsdom
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import * as React from "react";
 import SampleRequestIsland from "@/components/SampleRequestIsland";
 
-// jsdom 不实现真实导航；提交占位会写 window.location.href（mailto:）。
-// 用可写 stub 接住，既避免 "Not implemented: navigation" 报错，又能断言确实触发。
+/**
+ * SampleRequestIsland 测试 —— Phase 2 后端提交路径（#25）。镜像 ContactForm 测试：
+ * 用 vi.mock 替身的 Turnstile（挂载即给 token）+ vi.stubGlobal 的 fetch，
+ * 断言提交 payload、成功 / 失败态与 widget reset。
+ */
+
+const turnstileReset = vi.fn();
+let provideToken = true;
+
+vi.mock("@/components/Turnstile", () => ({
+  Turnstile: React.forwardRef(function MockTurnstile(
+    props: { onToken: (t: string) => void },
+    ref: React.Ref<{ reset: () => void }>
+  ) {
+    React.useImperativeHandle(ref, () => ({ reset: turnstileReset }), []);
+    React.useEffect(() => {
+      if (provideToken) props.onToken("test-token");
+    }, []);
+    return <div data-testid="turnstile" />;
+  }),
+}));
+
 beforeEach(() => {
-  Object.defineProperty(window, "location", {
-    configurable: true,
-    writable: true,
-    value: { href: "" } as Location,
-  });
+  turnstileReset.mockClear();
+  provideToken = true;
+});
+afterEach(() => {
+  vi.unstubAllGlobals();
 });
 
-describe("SampleRequestIsland —— a11y / 校验 / 提交", () => {
+async function typeRequired(user: ReturnType<typeof userEvent.setup>) {
+  await user.type(screen.getByLabelText("Name"), "Jordan Nguyen");
+  await user.type(screen.getByLabelText("Email"), "jordan@example.com");
+  await user.type(
+    screen.getByLabelText("Delivery address"),
+    "12 Example St, Keysborough VIC 3173"
+  );
+}
+
+describe("SampleRequestIsland —— a11y / 校验 / 提交（Phase 2）", () => {
   it("每个字段都有可点击关联的 label（a11y）", () => {
+    vi.stubGlobal("fetch", vi.fn());
     render(<SampleRequestIsland />);
     expect(screen.getByLabelText("Name")).toBeInTheDocument();
     expect(screen.getByLabelText("Email")).toBeInTheDocument();
@@ -30,15 +61,24 @@ describe("SampleRequestIsland —— a11y / 校验 / 提交", () => {
     ).toBeInTheDocument();
   });
 
-  it("提交空表单时显示校验错误、不触发提交占位", async () => {
+  it("无 Turnstile token 时提交按钮禁用", () => {
+    provideToken = false;
+    vi.stubGlobal("fetch", vi.fn());
+    render(<SampleRequestIsland />);
+    expect(
+      screen.getByRole("button", { name: "Request Sample" })
+    ).toBeDisabled();
+  });
+
+  it("提交空表单时显示校验错误、不发请求", async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
     const user = userEvent.setup();
     render(<SampleRequestIsland />);
 
     await user.click(screen.getByRole("button", { name: "Request Sample" }));
 
-    // 必填项校验信息出现，且字段标记 aria-invalid（错误信息经 aria-describedby 关联）。
     expect(await screen.findByText(/enter your name/i)).toBeInTheDocument();
-    expect(screen.getByText(/enter your email address/i)).toBeInTheDocument();
     expect(
       screen.getByText(/please enter the delivery address/i)
     ).toBeInTheDocument();
@@ -46,45 +86,47 @@ describe("SampleRequestIsland —— a11y / 校验 / 提交", () => {
       "aria-invalid",
       "true"
     );
-    // 未触发占位提交（无导航、无成功态）。
-    expect(window.location.href).toBe("");
+    expect(fetchMock).not.toHaveBeenCalled();
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
   });
 
-  it("非法 email 时报错，不通过校验", async () => {
+  it("仅填必填项 → POST /api/sample，成功时显示 role=status 并 reset widget", async () => {
+    const fetchMock = vi.fn(
+      async (_url: string, _init?: RequestInit) =>
+        new Response(JSON.stringify({ ok: true }), { status: 200 })
+    );
+    vi.stubGlobal("fetch", fetchMock);
     const user = userEvent.setup();
     render(<SampleRequestIsland />);
 
-    await user.type(screen.getByLabelText("Name"), "Jordan Nguyen");
-    await user.type(screen.getByLabelText("Email"), "not-an-email");
-    await user.type(
-      screen.getByLabelText("Delivery address"),
-      "12 Example St, Keysborough VIC 3173"
-    );
+    await typeRequired(user);
     await user.click(screen.getByRole("button", { name: "Request Sample" }));
 
-    expect(await screen.findByText(/valid email/i)).toBeInTheDocument();
-    expect(window.location.href).toBe("");
+    await waitFor(() => expect(screen.getByRole("status")).toBeInTheDocument());
+    const [url, init] = fetchMock.mock.calls[0]!;
+    expect(url).toBe("/api/sample");
+    const body = JSON.parse((init as RequestInit).body as string);
+    expect(body.name).toBe("Jordan Nguyen");
+    expect(body.turnstileToken).toBe("test-token");
+    expect(turnstileReset).toHaveBeenCalled();
   });
 
-  it("仅填必填项即可提交（可选字段留空），触发 mailto 占位并显示成功状态", async () => {
+  it("后端返回错误 → 显示 role=alert 错误文案，不显示成功态", async () => {
+    const fetchMock = vi.fn(
+      async () =>
+        new Response(JSON.stringify({ ok: false, error: "Could not send." }), {
+          status: 500,
+        })
+    );
+    vi.stubGlobal("fetch", fetchMock);
     const user = userEvent.setup();
     render(<SampleRequestIsland />);
 
-    await user.type(screen.getByLabelText("Name"), "Jordan Nguyen");
-    await user.type(screen.getByLabelText("Email"), "jordan@example.com");
-    await user.type(
-      screen.getByLabelText("Delivery address"),
-      "12 Example St, Keysborough VIC 3173"
-    );
+    await typeRequired(user);
     await user.click(screen.getByRole("button", { name: "Request Sample" }));
 
-    // 成功态（role=status）出现，且占位 mailto: 已触发（发往 sales@）。
-    await waitFor(() => expect(screen.getByRole("status")).toBeInTheDocument());
-    expect(window.location.href).toContain(
-      "mailto:sales@maywoodflooring.com.au"
-    );
-    // URLSearchParams 用 "+" 编码空格。
-    expect(window.location.href).toContain("Jordan+Nguyen");
+    await waitFor(() => expect(screen.getByRole("alert")).toBeInTheDocument());
+    expect(screen.getByRole("alert")).toHaveTextContent(/could not send/i);
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
   });
 });

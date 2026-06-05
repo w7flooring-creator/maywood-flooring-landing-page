@@ -1,9 +1,12 @@
 {
-  // Cloudflare Workers（Static Assets）部署。见 docs/adr/0002。
-  // assets-only：无 Worker 入口脚本，直接把 Astro 产物 dist/ 作为静态资源发布。
+  // Cloudflare Workers（Static Assets + 表单后端）。见 docs/adr/0002 与 #25。
+  // main：Worker 入口脚本，处理 /api/contact、/api/sample（Turnstile + Resend），
+  // 其余请求回落到静态资源（assets.binding=ASSETS，即 Astro 产物 dist/）。
   "name": "maywood-flooring-landing-page",
   "compatibility_date": "2026-06-04",
+  "main": "worker/index.ts",
   "assets": {
     "directory": "./dist",
+    "binding": "ASSETS",
   },
 }

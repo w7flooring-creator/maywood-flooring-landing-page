@@ -7,7 +7,9 @@ import { redirectsIntegration } from "./scripts/redirects-integration.ts";
 
 // Phase 1：纯静态（SSG）。Cloudflare Pages 直接托管 dist/，无需 adapter。
 // 若以后需要 SSR / on-demand 渲染，再加 @astrojs/cloudflare。
-// 表单（Phase 2）走 Cloudflare Pages Functions（/functions 目录），与此独立。
+// 表单（Phase 2，#25）走同一个 Cloudflare Worker：wrangler.jsonc 的 main=worker/index.ts
+// 处理 /api/contact、/api/sample（Turnstile + Resend），其余请求回落到静态资源 dist/。
+// 该 Worker 由 wrangler 在部署时编译，与本 Astro 静态构建独立（见 docs/adr/0002）。
 export default defineConfig({
   site: "https://www.maywoodflooring.com.au",
   output: "static",
