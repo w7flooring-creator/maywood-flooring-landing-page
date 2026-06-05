@@ -31,7 +31,7 @@ describe("CollectionHero.astro", () => {
         image: { url: "https://cdn.sanity.io/b.jpg", alt: "Bushland floor" },
       },
     });
-    expect(html).toContain('src="https://cdn.sanity.io/b.jpg"');
+    expect(html).toContain('src="https://cdn.sanity.io/b.jpg?');
     expect(html).toContain('alt="Bushland floor"');
     // hero 图首屏 → eager 加载
     expect(html).toContain('loading="eager"');

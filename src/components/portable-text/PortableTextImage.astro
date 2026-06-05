@@ -11,6 +11,7 @@
  * 以 <figure> 包裹，便于后续接图注（caption）；样式见包裹层 .rich-text figure。
  */
 import type { Props as TypeProps } from "astro-portabletext/types";
+import { sanityImageUrl, sanityImageSrcset } from "@/lib/sanity-image";
 
 const { node } = Astro.props as TypeProps<{
   _type: "image";
@@ -25,7 +26,14 @@ const alt = node.alt ?? "";
 {
   url && (
     <figure class="rich-text__figure">
-      <img src={url} alt={alt} loading="lazy" decoding="async" />
+      <img
+        src={sanityImageUrl(url, { width: 768 })}
+        srcset={sanityImageSrcset(url, [480, 768, 1080]) || undefined}
+        sizes="(min-width: 48rem) 736px, 100vw"
+        alt={alt}
+        loading="lazy"
+        decoding="async"
+      />
     </figure>
   )
 }

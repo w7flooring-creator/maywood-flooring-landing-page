@@ -8,6 +8,8 @@
  *
  * 图片均在首屏下方 → lazy load（below-the-fold，见 AGENTS.md / #15 验收）。
  */
+import { sanityImageUrl, sanityImageSrcset } from "@/lib/sanity-image";
+
 interface Props {
   label: string;
   href: string;
@@ -25,7 +27,9 @@ const hasImage = imageUrl !== null;
     hasImage ? (
       <img
         class="card__img"
-        src={imageUrl}
+        src={sanityImageUrl(imageUrl, { width: 640 })}
+        srcset={sanityImageSrcset(imageUrl, [320, 480, 640]) || undefined}
+        sizes="(min-width: 60rem) 25vw, 50vw"
         alt={imageAlt}
         loading="lazy"
         decoding="async"

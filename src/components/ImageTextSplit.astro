@@ -11,6 +11,7 @@
  * 通用件、纯静态（零 client JS）。品牌 token：serif 标题、暖中性、克制留白。
  */
 import type { ContentImage } from "@/lib/content-pages";
+import { sanityImageUrl, sanityImageSrcset } from "@/lib/sanity-image";
 
 interface Props {
   heading?: string | null;
@@ -43,7 +44,14 @@ const altText = image?.alt ?? "";
   {
     hasImage && (
       <div class="split__media">
-        <img src={image!.url} alt={altText} loading="lazy" decoding="async" />
+        <img
+          src={sanityImageUrl(image!.url, { width: 768 })}
+          srcset={sanityImageSrcset(image!.url, [480, 768, 1080]) || undefined}
+          sizes="(min-width: 48rem) 50vw, 100vw"
+          alt={altText}
+          loading="lazy"
+          decoding="async"
+        />
       </div>
     )
   }

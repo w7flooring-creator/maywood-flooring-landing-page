@@ -69,7 +69,9 @@ describe("CategoryHero.astro", () => {
         image: { url: "https://cdn.sanity.io/e.jpg", alt: "Engineered floor" },
       },
     });
-    expect(html).toContain('src="https://cdn.sanity.io/e.jpg"');
+    // src 经 sanity-image helper 追加 CDN 优化参数（?w=&q=&auto=format）
+    expect(html).toContain('src="https://cdn.sanity.io/e.jpg?');
+    expect(html).toContain("auto=format");
     expect(html).toContain('alt="Engineered floor"');
     expect(html).toContain('loading="eager"');
   });
@@ -167,7 +169,9 @@ describe("ProductCard.astro", () => {
       props: { product: mockProducts[0] },
     });
     expect(html).toContain('href="/product-page/blackbutt"');
-    expect(html).toContain('src="https://cdn.sanity.io/p1.jpg"');
+    // 卡片图经 sanity-image helper 优化（追加 ?w=&q=&auto=format + srcset）
+    expect(html).toContain('src="https://cdn.sanity.io/p1.jpg?');
+    expect(html).toContain("srcset=");
     expect(html).toContain('loading="lazy"');
     expect(html).toContain("Blackbutt");
   });

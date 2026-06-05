@@ -103,8 +103,8 @@ describe("ProductInquiryCta.astro", () => {
       props: { productTitle: "Blackbutt" },
     });
     expect(html).toContain('href="/contact"');
-    // 产品名进无障碍标签
-    expect(html).toContain("Enquire about Blackbutt");
+    // 产品名进无障碍标签；aria-label 含可见文案（WCAG 2.5.3 label-in-name）
+    expect(html).toContain("Enquire about this product: Blackbutt");
     // NAP 单一来源
     expect(html).toContain("03 8753 5522");
     expect(html).toContain('href="tel:0387535522"');

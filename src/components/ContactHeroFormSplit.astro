@@ -10,6 +10,7 @@
  * Sanity / public 后传 image 即生效。本组件本身静态，仅 ContactForm 是 island。
  */
 import ContactForm from "@/components/ContactForm.tsx";
+import { sanityImageUrl, sanityImageSrcset } from "@/lib/sanity-image";
 
 interface Props {
   /** H1 标题。 */
@@ -37,8 +38,13 @@ const hasImage = image !== null;
       hasImage && (
         <img
           class="contact-split__img"
-          src={image!.url}
+          src={sanityImageUrl(image!.url, { width: 1080 })}
+          srcset={
+            sanityImageSrcset(image!.url, [480, 768, 1080, 1440]) || undefined
+          }
+          sizes="(min-width: 48rem) 50vw, 100vw"
           alt={image!.alt}
+          fetchpriority="high"
           loading="eager"
           decoding="async"
         />

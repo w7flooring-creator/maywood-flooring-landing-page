@@ -37,7 +37,10 @@ describe("GalleryLightbox —— 网格渲染 / a11y", () => {
     expect(buttons).toHaveLength(2);
     const imgs = screen.getAllByRole("img");
     expect(imgs).toHaveLength(2);
-    expect(imgs[0]).toHaveAttribute("src", "https://cdn.sanity.io/g1.jpg");
+    // src 经 sanity-image helper 优化（追加 ?w=&q=&auto=format）
+    expect(imgs[0].getAttribute("src")).toMatch(
+      /^https:\/\/cdn\.sanity\.io\/g1\.jpg\?.*auto=format/
+    );
   });
 
   it("有 alt 时用编辑的 alt；缺 alt 时回落到有意义的描述（非空、非破图）", () => {

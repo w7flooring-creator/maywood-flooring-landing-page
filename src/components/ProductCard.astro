@@ -11,6 +11,7 @@
  * 纯静态（零 client JS）。视觉用品牌 token（serif 产品名、方形图、hairline 描边）。
  */
 import type { CategoryProduct } from "@/lib/category-page";
+import { sanityImageUrl, sanityImageSrcset } from "@/lib/sanity-image";
 
 interface Props {
   product: CategoryProduct;
@@ -27,7 +28,12 @@ const hasImage =
       hasImage ? (
         <img
           class="card__img"
-          src={product.imageUrl!}
+          src={sanityImageUrl(product.imageUrl, { width: 640 })}
+          srcset={
+            sanityImageSrcset(product.imageUrl, [320, 480, 640, 800]) ||
+            undefined
+          }
+          sizes="(min-width: 60rem) 340px, (min-width: 30rem) 45vw, 90vw"
           alt={product.title}
           loading="lazy"
           decoding="async"

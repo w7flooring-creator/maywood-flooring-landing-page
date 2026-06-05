@@ -11,6 +11,7 @@
  * 纯静态（零 client JS）。
  */
 import { HOME_HERO } from "@/lib/home";
+import { sanityImageUrl, sanityImageSrcset } from "@/lib/sanity-image";
 
 interface Props {
   /** 入库后的室内图 URL；Phase 1 恒空 → muted 背景回落。 */
@@ -31,8 +32,13 @@ const hasImage = imageUrl !== null;
     hasImage && (
       <img
         class="hero__bg"
-        src={imageUrl}
+        src={sanityImageUrl(imageUrl, { width: 1440 })}
+        srcset={
+          sanityImageSrcset(imageUrl, [768, 1080, 1440, 1920]) || undefined
+        }
+        sizes="100vw"
         alt={imageAlt}
+        fetchpriority="high"
         loading="eager"
         decoding="async"
       />
@@ -42,7 +48,12 @@ const hasImage = imageUrl !== null;
     <h1 class="hero__title">{HOME_HERO.heading}</h1>
     <p class="hero__tagline">{HOME_HERO.tagline}</p>
     <p class="hero__intro">{HOME_HERO.intro}</p>
-    <a class="hero__cta" href={HOME_HERO.cta.href}>{HOME_HERO.cta.label}</a>
+    <a
+      class="hero__cta"
+      href={HOME_HERO.cta.href}
+      aria-label={`${HOME_HERO.cta.label} about Maywood Flooring`}
+      >{HOME_HERO.cta.label}</a
+    >
   </div>
 </section>
 

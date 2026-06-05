@@ -79,7 +79,7 @@ describe("HomeHero.astro", () => {
         imageAlt: "Maywood living room",
       },
     });
-    expect(html).toContain('src="https://cdn.sanity.io/hero.jpg"');
+    expect(html).toContain('src="https://cdn.sanity.io/hero.jpg?');
     expect(html).toContain('alt="Maywood living room"');
     expect(html).toContain('loading="eager"');
   });
@@ -134,7 +134,7 @@ describe("ProductSelectionCard.astro", () => {
         imageUrl: "https://cdn.sanity.io/timber.jpg",
       },
     });
-    expect(html).toContain('src="https://cdn.sanity.io/timber.jpg"');
+    expect(html).toContain('src="https://cdn.sanity.io/timber.jpg?');
     expect(html).toContain('alt="Timber floor"');
     expect(html).toContain('loading="lazy"');
   });
@@ -190,7 +190,7 @@ describe("SignatureCollectionCard.astro", () => {
         imageUrl: "https://cdn.sanity.io/bushland.jpg",
       },
     });
-    expect(html).toContain('src="https://cdn.sanity.io/bushland.jpg"');
+    expect(html).toContain('src="https://cdn.sanity.io/bushland.jpg?');
     expect(html).toContain('alt="Bushland"');
     expect(html).toContain('loading="lazy"');
     expect(html).toContain("Australian native spotted gum.");
@@ -278,7 +278,7 @@ describe("GalleryFeedSection.astro", () => {
         ],
       },
     });
-    expect(html).toContain('src="https://cdn.sanity.io/g1.jpg"');
+    expect(html).toContain('src="https://cdn.sanity.io/g1.jpg?');
     expect(html).toContain('alt="Project floor one"');
     expect(html).toContain('loading="lazy"');
     expect(html).not.toContain("gallery__cell--empty");
