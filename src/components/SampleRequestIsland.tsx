@@ -14,12 +14,14 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Turnstile, type TurnstileHandle } from "@/components/Turnstile";
 import {
   sampleRequestSchema,
   sampleRequestDefaults,
   buildSampleMailtoHref,
   type SampleRequestValues,
 } from "@/lib/sample-request";
+import { submitForm, FORM_ENDPOINTS } from "@/lib/form-submit";
 
 /**
  * SampleRequestIsland —— /request-sample 页样品申请表单（唯一交互 island，client:visible）。
@@ -31,16 +33,28 @@ import {
  * 字段：name / email / phone（可选）/ productInterest（可选，自由文本）/
  * deliveryAddress / message（可选）。可选字段在 label 后标注 “(optional)”。
  *
+ * Phase 2（#25）：当 PUBLIC_TURNSTILE_SITE_KEY 已配置时，渲染 Turnstile widget，
+ * 提交按钮在拿到 token 前禁用；校验通过后把字段 + token POST 到 /api/sample，
+ * 由 Worker 验 token 并经 Resend 发信；据 {ok} 显示成功 / 错误（role=status），
+ * 并 reset widget。无 site key（本地 / dev）时优雅回落到 mailto:，不发请求。
+ *
  * a11y：每字段有 <label htmlFor>（shadcn FormLabel 自动连 id），错误信息经
  * aria-describedby + aria-invalid 关联，提交后把焦点移到状态提示（role=status）。
  * 键盘可操作、focus 可见（继承 globals.css :focus-visible + 控件 ring）。
- *
- * Phase 1 提交为占位：校验通过后打开 mailto:（buildSampleMailtoHref）并显示成功态，
- * 不发任何网络请求、不存数据。真正服务端处理（Resend + Turnstile）见 #25 / Phase 2。
  */
+type SubmitState = "idle" | "success" | "error";
+
+const SITE_KEY = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY;
+
 export default function SampleRequestIsland() {
-  const [submitted, setSubmitted] = React.useState(false);
+  const [state, setState] = React.useState<SubmitState>("idle");
+  const [errorMessage, setErrorMessage] = React.useState<string>("");
+  const [token, setToken] = React.useState<string>("");
   const statusRef = React.useRef<HTMLParagraphElement>(null);
+  const turnstileRef = React.useRef<TurnstileHandle>(null);
+
+  // 仅当配置了 site key 时才启用 Turnstile 后端流程；否则走 mailto 回落。
+  const useBackend = Boolean(SITE_KEY);
 
   const form = useForm<SampleRequestValues>({
     resolver: zodResolver(sampleRequestSchema),
@@ -48,19 +62,38 @@ export default function SampleRequestIsland() {
     mode: "onTouched",
   });
 
-  function onSubmit(values: SampleRequestValues) {
-    // Phase 1 占位：开访客邮件客户端预填样品申请，无后端（见 #25）。
-    if (typeof window !== "undefined") {
-      window.location.href = buildSampleMailtoHref(values);
+  async function onSubmit(values: SampleRequestValues) {
+    if (!useBackend) {
+      // 回落：开访客邮件客户端预填样品申请，无后端（本地 / 无 key 环境）。
+      if (typeof window !== "undefined") {
+        window.location.href = buildSampleMailtoHref(values);
+      }
+      setState("success");
+      form.reset();
+      return;
     }
-    setSubmitted(true);
-    form.reset();
+
+    const result = await submitForm(FORM_ENDPOINTS.sample, values, token);
+    // 无论成功失败都重置 Turnstile（token 一次性），并清空本地 token。
+    turnstileRef.current?.reset();
+    setToken("");
+
+    if (result.ok) {
+      setState("success");
+      form.reset();
+    } else {
+      setErrorMessage(result.error);
+      setState("error");
+    }
   }
 
-  // 成功态出现后把焦点移到状态提示，让键盘 / 屏幕阅读器用户得到反馈。
+  // 状态提示出现后把焦点移到它，让键盘 / 屏幕阅读器用户得到反馈。
   React.useEffect(() => {
-    if (submitted) statusRef.current?.focus();
-  }, [submitted]);
+    if (state !== "idle") statusRef.current?.focus();
+  }, [state]);
+
+  const submitDisabled =
+    form.formState.isSubmitting || (useBackend && token.length === 0);
 
   return (
     <Form {...form}>
@@ -167,16 +200,25 @@ export default function SampleRequestIsland() {
           )}
         />
 
+        {useBackend && SITE_KEY && (
+          <Turnstile
+            ref={turnstileRef}
+            siteKey={SITE_KEY}
+            onToken={setToken}
+            onExpire={() => setToken("")}
+          />
+        )}
+
         <div className="flex flex-wrap items-center gap-4">
           <Button
             type="submit"
-            disabled={form.formState.isSubmitting}
+            disabled={submitDisabled}
             className="px-8 text-xs font-medium tracking-[0.08em] uppercase"
           >
             Request Sample
           </Button>
 
-          {submitted && (
+          {state === "success" && (
             <p
               ref={statusRef}
               role="status"
@@ -185,6 +227,16 @@ export default function SampleRequestIsland() {
             >
               Thanks — your sample request is on its way. We&rsquo;ll be in
               touch shortly.
+            </p>
+          )}
+          {state === "error" && (
+            <p
+              ref={statusRef}
+              role="alert"
+              tabIndex={-1}
+              className="text-sm text-destructive outline-none"
+            >
+              {errorMessage}
             </p>
           )}
         </div>

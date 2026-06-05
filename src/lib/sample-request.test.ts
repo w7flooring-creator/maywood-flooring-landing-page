@@ -3,6 +3,8 @@ import {
   sampleRequestSchema,
   sampleRequestDefaults,
   buildSampleMailtoHref,
+  buildSampleSubject,
+  buildSampleEmailHtml,
   type SampleRequestValues,
 } from "@/lib/sample-request";
 import { NAP } from "@/lib/site";
@@ -153,5 +155,45 @@ describe("buildSampleMailtoHref — Phase 1 提交占位", () => {
     expect(body).not.toContain("Phone:");
     expect(body).not.toContain("Product / collection of interest:");
     expect(body).toContain("Delivery address: 5 Sample Rd");
+  });
+});
+
+describe("buildSampleSubject — Worker / mailto 共用主题", () => {
+  it("含访客姓名", () => {
+    expect(buildSampleSubject(validInput)).toBe(
+      "Sample request from Jordan Nguyen"
+    );
+  });
+});
+
+describe("buildSampleEmailHtml — Worker 经 Resend 发的 HTML 正文", () => {
+  it("含必填 + 已填的可选字段", () => {
+    const html = buildSampleEmailHtml(validInput);
+    expect(html).toContain("Jordan Nguyen");
+    expect(html).toContain("jordan@example.com");
+    expect(html).toContain("0412 345 678");
+    expect(html).toContain("Bushland engineered oak");
+    expect(html).toContain("12 Example St, Keysborough VIC 3173");
+    expect(html).toContain("Two samples please");
+  });
+
+  it("省略可选字段时 HTML 不含其标签", () => {
+    const html = buildSampleEmailHtml({
+      name: "Sam Taylor",
+      email: "sam@example.com",
+      deliveryAddress: "5 Sample Rd, Melbourne VIC 3000",
+    });
+    expect(html).not.toContain("Phone");
+    expect(html).not.toContain("Product / collection of interest");
+    expect(html).toContain("Delivery address");
+  });
+
+  it("转义访客输入，防 HTML 注入", () => {
+    const html = buildSampleEmailHtml({
+      ...validInput,
+      productInterest: "<script>x</script> oak",
+    });
+    expect(html).not.toContain("<script>x</script>");
+    expect(html).toContain("&lt;script&gt;");
   });
 });

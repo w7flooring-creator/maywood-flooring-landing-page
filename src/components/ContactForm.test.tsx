@@ -1,21 +1,57 @@
 // @vitest-environment jsdom
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import * as React from "react";
 import ContactForm from "@/components/ContactForm";
 
-// jsdom 不实现真实导航；ContactForm 提交占位会写 window.location.href（mailto:）。
-// 用可写 stub 接住，既避免 "Not implemented: navigation" 报错，又能断言确实触发。
+/**
+ * ContactForm 测试 —— Phase 2 后端提交路径（#25）。
+ *
+ * 测试环境下 PUBLIC_TURNSTILE_SITE_KEY 由 .env 注入（已配置），故走后端路径。
+ * 真实 Turnstile 会注入外部脚本，jsdom 无法运行 → 用 vi.mock 替身：
+ * 替身挂载时按 `provideToken` 决定是否立即回调 token，并把 reset 暴露给上层
+ * （断言被调）。fetch 用 vi.stubGlobal mock，断言提交 payload 与成功 / 失败态。
+ */
+
+const turnstileReset = vi.fn();
+// 控制替身是否提供 token（用于测试「无 token 时提交禁用」）。
+let provideToken = true;
+
+vi.mock("@/components/Turnstile", () => ({
+  Turnstile: React.forwardRef(function MockTurnstile(
+    props: { onToken: (t: string) => void },
+    ref: React.Ref<{ reset: () => void }>
+  ) {
+    React.useImperativeHandle(ref, () => ({ reset: turnstileReset }), []);
+    React.useEffect(() => {
+      if (provideToken) props.onToken("test-token");
+    }, []);
+    return <div data-testid="turnstile" />;
+  }),
+}));
+
 beforeEach(() => {
-  Object.defineProperty(window, "location", {
-    configurable: true,
-    writable: true,
-    value: { href: "" } as Location,
-  });
+  turnstileReset.mockClear();
+  provideToken = true;
+});
+afterEach(() => {
+  vi.unstubAllGlobals();
 });
 
-describe("ContactForm —— a11y / 校验 / 提交", () => {
+async function typeValid(user: ReturnType<typeof userEvent.setup>) {
+  await user.type(screen.getByLabelText("First Name"), "Jordan");
+  await user.type(screen.getByLabelText("Last Name"), "Nguyen");
+  await user.type(screen.getByLabelText("Email"), "jordan@example.com");
+  await user.type(
+    screen.getByLabelText("Message"),
+    "I would like a quote for engineered oak flooring."
+  );
+}
+
+describe("ContactForm —— a11y / 校验 / 提交（Phase 2）", () => {
   it("每个字段都有可点击关联的 label（a11y）", () => {
+    vi.stubGlobal("fetch", vi.fn());
     render(<ContactForm />);
     expect(screen.getByLabelText("First Name")).toBeInTheDocument();
     expect(screen.getByLabelText("Last Name")).toBeInTheDocument();
@@ -24,63 +60,79 @@ describe("ContactForm —— a11y / 校验 / 提交", () => {
     expect(screen.getByRole("button", { name: "Send" })).toBeInTheDocument();
   });
 
-  it("提交空表单时显示校验错误、不触发提交占位", async () => {
+  it("拿到 Turnstile token 后提交按钮启用", async () => {
+    vi.stubGlobal("fetch", vi.fn());
+    render(<ContactForm />);
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Send" })).not.toBeDisabled()
+    );
+  });
+
+  it("无 Turnstile token 时提交按钮禁用", () => {
+    provideToken = false;
+    vi.stubGlobal("fetch", vi.fn());
+    render(<ContactForm />);
+    expect(screen.getByRole("button", { name: "Send" })).toBeDisabled();
+  });
+
+  it("提交空表单时显示校验错误、不发请求", async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
     const user = userEvent.setup();
     render(<ContactForm />);
 
     await user.click(screen.getByRole("button", { name: "Send" }));
 
-    // 校验信息出现，且字段标记 aria-invalid（错误信息经 aria-describedby 关联）。
     expect(
       await screen.findByText(/enter your first name/i)
     ).toBeInTheDocument();
-    expect(screen.getByText(/enter your last name/i)).toBeInTheDocument();
-    expect(screen.getByText(/enter your email address/i)).toBeInTheDocument();
     expect(screen.getByLabelText("First Name")).toHaveAttribute(
       "aria-invalid",
       "true"
     );
-    // 未触发占位提交（无导航、无成功态）。
-    expect(window.location.href).toBe("");
+    expect(fetchMock).not.toHaveBeenCalled();
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
   });
 
-  it("非法 email 时报错，不通过校验", async () => {
+  it("合法输入 → POST /api/contact，成功时显示 role=status 并 reset widget", async () => {
+    const fetchMock = vi.fn(
+      async (_url: string, _init?: RequestInit) =>
+        new Response(JSON.stringify({ ok: true }), { status: 200 })
+    );
+    vi.stubGlobal("fetch", fetchMock);
     const user = userEvent.setup();
     render(<ContactForm />);
 
-    await user.type(screen.getByLabelText("First Name"), "Jordan");
-    await user.type(screen.getByLabelText("Last Name"), "Nguyen");
-    await user.type(screen.getByLabelText("Email"), "not-an-email");
-    await user.type(
-      screen.getByLabelText("Message"),
-      "I would like a quote please."
-    );
+    await typeValid(user);
     await user.click(screen.getByRole("button", { name: "Send" }));
 
-    expect(await screen.findByText(/valid email/i)).toBeInTheDocument();
-    expect(window.location.href).toBe("");
+    await waitFor(() => expect(screen.getByRole("status")).toBeInTheDocument());
+    const [url, init] = fetchMock.mock.calls[0]!;
+    expect(url).toBe("/api/contact");
+    const body = JSON.parse((init as RequestInit).body as string);
+    expect(body.email).toBe("jordan@example.com");
+    expect(body.turnstileToken).toBe("test-token");
+    expect(turnstileReset).toHaveBeenCalled();
   });
 
-  it("合法输入时触发 mailto 占位并显示成功状态", async () => {
+  it("后端返回错误 → 显示 role=alert 错误文案，不显示成功态", async () => {
+    const fetchMock = vi.fn(
+      async () =>
+        new Response(
+          JSON.stringify({ ok: false, error: "Verification failed." }),
+          { status: 400 }
+        )
+    );
+    vi.stubGlobal("fetch", fetchMock);
     const user = userEvent.setup();
     render(<ContactForm />);
 
-    await user.type(screen.getByLabelText("First Name"), "Jordan");
-    await user.type(screen.getByLabelText("Last Name"), "Nguyen");
-    await user.type(screen.getByLabelText("Email"), "jordan@example.com");
-    await user.type(
-      screen.getByLabelText("Message"),
-      "I would like a quote for engineered oak flooring."
-    );
+    await typeValid(user);
     await user.click(screen.getByRole("button", { name: "Send" }));
 
-    // 成功态（role=status）出现，且占位 mailto: 已触发（发往 sales@）。
-    await waitFor(() => expect(screen.getByRole("status")).toBeInTheDocument());
-    expect(window.location.href).toContain(
-      "mailto:sales@maywoodflooring.com.au"
-    );
-    // URLSearchParams 用 "+" 编码空格。
-    expect(window.location.href).toContain("Jordan+Nguyen");
+    await waitFor(() => expect(screen.getByRole("alert")).toBeInTheDocument());
+    expect(screen.getByRole("alert")).toHaveTextContent(/verification failed/i);
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+    expect(turnstileReset).toHaveBeenCalled();
   });
 });
