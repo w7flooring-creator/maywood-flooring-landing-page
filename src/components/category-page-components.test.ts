@@ -26,6 +26,7 @@ const mockCollections: Collection[] = [
     legacyPath: "/category/bushland",
     isSignature: true,
     sortOrder: 2,
+    heroImage: null,
     category: { _id: "category.engineered", title: "Engineered", slug: "e" },
   },
   {
@@ -35,6 +36,7 @@ const mockCollections: Collection[] = [
     legacyPath: "/category/manor",
     isSignature: true,
     sortOrder: 3,
+    heroImage: null,
     category: { _id: "category.engineered", title: "Engineered", slug: "e" },
   },
 ];

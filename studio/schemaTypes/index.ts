@@ -14,9 +14,10 @@ import { redirect } from "./redirect";
 import { siteSettings } from "./siteSettings";
 import { navigation } from "./navigation";
 import { seoSettings } from "./seoSettings";
+import { homePage } from "./homePage";
 
 // 目标 document types 见 AGENTS.md「Sanity CMS 模型」。
-// homePage / service 仍待后续 issue 实现（本 issue #8 范围外）。
+// service 仍待后续 issue 实现。
 export const schemaTypes: SchemaTypeDefinition[] = [
   // 可复用 object
   seo,
@@ -38,4 +39,6 @@ export const schemaTypes: SchemaTypeDefinition[] = [
   siteSettings,
   navigation,
   seoSettings,
+  // 首页配图单例（#59 Wix 对齐）
+  homePage,
 ];
