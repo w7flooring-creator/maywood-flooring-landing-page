@@ -61,11 +61,18 @@ const seo = buildCategorySeo(category);
       <Breadcrumbs items={breadcrumbs} />
     </div>
 
-    <CategoryHero
-      title={category.title}
-      eyebrow="Products"
-      image={category.heroImage}
-    />
+    {
+      /* 仅在有 heroImage 时渲染宽幅 hero（对齐 Wix：无图分类页是纯文字块，
+         不放 muted 占位带；标题统一由下方 CategoryIntro 的 H1 承担，避免重复标题。
+         #59 对齐项）。配图入库后此 hero 自动出现。 */
+      category.heroImage && (
+        <CategoryHero
+          title={category.title}
+          eyebrow="Products"
+          image={category.heroImage}
+        />
+      )
+    }
 
     <div class="category__body">
       <aside class="category__sidebar">
