@@ -57,6 +57,20 @@ export const SILENT_FOUNDATION: NarrativeBlock = {
 export const SIGNATURE_COLLECTIONS_HEADING = "Maywood Signature Collections";
 
 /**
+ * Sustainability 区块 —— 首页可持续性叙事 + Read More → /sustainability。
+ * 对照线上首页独立 Sustainability 区块（responsibly managed plantation forests）。
+ * 配图由调用页从 Sanity homePage.sustainabilityImage 传入；无图时纯文字降级。
+ */
+export const HOME_SUSTAINABILITY: NarrativeBlock & { cta: NarrativeCta } = {
+  eyebrow: "Sustainability",
+  heading: "Beauty that respects its origins",
+  paragraphs: [
+    "Our timber is sourced from responsibly managed plantation forests, where every harvest is balanced by renewal. From certified raw material to low-emission finishes, we hold each collection to strict environmental standards — so the elegance underfoot is matched by the integrity behind it.",
+  ],
+  cta: { label: "Read More", href: "/sustainability" },
+} as const;
+
+/**
  * Brand philosophy（品牌理念）—— 收尾前的简短信念陈述。
  * 核实自线上首页 “At Maywood Flooring, we believe that quality flooring …”。
  */

@@ -16,12 +16,15 @@ import HeroImageSection from "@/components/HeroImageSection.astro";
 import EditorialTextBlock from "@/components/EditorialTextBlock.astro";
 import ImageTextSplit from "@/components/ImageTextSplit.astro";
 import RichTextRenderer from "@/components/RichTextRenderer.astro";
+import SampleRequestButton from "@/components/SampleRequestButton.astro";
+import ProductCarousel from "@/components/ProductCarousel.tsx";
 import {
   getPageBySlug,
   hasBody,
   buildContentBreadcrumbs,
   buildContentSeo,
 } from "@/lib/content-pages";
+import { getFeaturedProducts } from "@/lib/category-page";
 
 const PATH = "/about-us";
 const SLUG = "about-us";
@@ -41,6 +44,10 @@ const seo = buildContentSeo({
 });
 
 const showBody = hasBody(page);
+
+// 「Explore Our Products」轮播：跨分类精选产品（仅有图的已发布产品）。
+// Phase 1 product 未灌入 → 空数组 → 区块整体不渲染（优雅降级）。
+const featuredProducts = await getFeaturedProducts(8);
 ---
 
 <BaseLayout {...seo}>
@@ -54,6 +61,7 @@ const showBody = hasBody(page);
       eyebrow="About Maywood"
       intro="See how Maywood pairs quality materials and precision craftsmanship to bring Australian homes and businesses the flooring experience they deserve."
       image={page?.heroImage ?? null}
+      sampleCta
     />
 
     {
@@ -80,7 +88,33 @@ const showBody = hasBody(page);
               "By combining direct-to-trade distribution with uncompromising quality control, Maywood delivers the foundation for Australia's most inspired architectural spaces.",
             ]}
           />
+
+          {/* Step on Quality —— 文字 + Request-a-Sample CTA（对齐 Wix About 区块）。 */}
+          <EditorialTextBlock
+            eyebrow="Step on Quality"
+            heading="Feel the Maywood difference"
+          >
+            <div class="about__cta-block">
+              <p>
+                The truest measure of a floor is underfoot. Request a sample to
+                experience our timber's grain, finish and weight in your own
+                space before you commit — no showroom visit required.
+              </p>
+              <SampleRequestButton />
+            </div>
+          </EditorialTextBlock>
         </>
+      )
+    }
+
+    {
+      featuredProducts.length > 0 && (
+        <section class="about__products" aria-labelledby="about-products-title">
+          <h2 id="about-products-title" class="about__products-title">
+            Explore Our Products
+          </h2>
+          <ProductCarousel items={featuredProducts} client:visible />
+        </section>
       )
     }
   </article>
@@ -91,5 +125,35 @@ const showBody = hasBody(page);
     max-width: 80rem;
     margin-inline: auto;
     padding: 1.25rem clamp(1rem, 4vw, 2.5rem) 0;
+  }
+
+  /* Step on Quality 区块：居中文字 + CTA 按钮（呼应 editorial 留白）。 */
+  .about__cta-block {
+    max-width: 44rem;
+    margin-inline: auto;
+    text-align: center;
+  }
+  .about__cta-block p {
+    margin: 0 0 1.75rem;
+    font-family: var(--font-sans);
+    font-size: 1.0625rem;
+    line-height: 1.7;
+    color: var(--color-ink);
+  }
+
+  /* Explore Our Products 轮播区。 */
+  .about__products {
+    max-width: 80rem;
+    margin-inline: auto;
+    padding: var(--spacing-section) clamp(1rem, 4vw, 2.5rem);
+  }
+  .about__products-title {
+    margin: 0 0 clamp(2rem, 4vw, 3rem);
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-size: clamp(1.75rem, 4vw, 2.75rem);
+    line-height: 1.1;
+    color: var(--color-ink);
+    text-align: center;
   }
 </style>

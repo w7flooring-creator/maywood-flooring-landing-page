@@ -20,6 +20,7 @@ import ProductSelectionGrid from "@/components/ProductSelectionGrid.astro";
 import PartnerNarrativeSection from "@/components/PartnerNarrativeSection.astro";
 import SilentFoundationSection from "@/components/SilentFoundationSection.astro";
 import SignatureCollectionsSection from "@/components/SignatureCollectionsSection.astro";
+import HomeSustainabilitySection from "@/components/HomeSustainabilitySection.astro";
 import BrandStatementSection from "@/components/BrandStatementSection.astro";
 import GalleryFeedSection from "@/components/GalleryFeedSection.astro";
 import HomeCtaSection from "@/components/HomeCtaSection.astro";
@@ -70,6 +71,7 @@ const galleryFeedImages = (await getGalleryItems()).slice(0, 8).map((g) => ({
   <PartnerNarrativeSection image={homeImages.partnerImage} />
   <SilentFoundationSection />
   <SignatureCollectionsSection collections={signatureCollections} />
+  <HomeSustainabilitySection image={homeImages.sustainabilityImage} />
   <BrandStatementSection />
   <GalleryFeedSection images={galleryFeedImages} />
   <HomeCtaSection />

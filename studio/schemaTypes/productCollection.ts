@@ -53,11 +53,19 @@ export const productCollection = defineType({
       initialValue: false,
     }),
     defineField({
+      name: "tagline",
+      title: "系列标语",
+      type: "string",
+      description:
+        "一句话品牌标语，显示在首页招牌系列卡与落地页 hero 标题下方，如「The Essence of the Australian Landscape」。留空则不显示。",
+    }),
+    defineField({
       name: "description",
       title: "系列描述",
       type: "text",
-      rows: 4,
-      description: "系列的介绍文案，用于系列页与分类侧栏（澳洲拼写）。",
+      rows: 6,
+      description:
+        "系列的 editorial 介绍正文（多段以空行分隔），用于落地页叙事区与分类侧栏（澳洲拼写）。",
     }),
     defineField({
       name: "heroImage",

@@ -16,8 +16,8 @@
 export const HOME_HERO = {
   /** 全页唯一 H1。 */
   heading: "Welcome to Maywood Flooring",
-  /** serif 大标题下的一行 tagline。 */
-  tagline: "Premium timber, laminate and hybrid flooring for Melbourne.",
+  /** serif 大标题下的一行 tagline（对齐 Wix 品牌标语；SEO 关键词保留在下方简介段）。 */
+  tagline: "Precision Supply, Timeless Design",
   /** hero 白色面板内的简介段（克制、品牌化，源自线上首页文案）。 */
   intro:
     "A premier timber flooring supplier trusted by the Melbourne community, Maywood delivers premium product across bespoke homes, luxury townhouses, multi-residential apartments and high-volume commercial developments. As a proud ATFA member, our work is backed by industry-certified standards, superior product quality and consultative service.",

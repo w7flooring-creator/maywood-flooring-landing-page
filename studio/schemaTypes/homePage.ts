@@ -52,6 +52,17 @@ export const homePage = defineType({
         defineField({ name: "alt", title: "替代文字 (Alt)", type: "string" }),
       ],
     }),
+    defineField({
+      name: "sustainabilityImage",
+      title: "Sustainability 区块配图",
+      type: "image",
+      description:
+        "首页 Sustainability 区块配图（responsibly managed forests / 木材原料）。",
+      options: { hotspot: true },
+      fields: [
+        defineField({ name: "alt", title: "替代文字 (Alt)", type: "string" }),
+      ],
+    }),
   ],
   preview: {
     select: { media: "heroImage" },

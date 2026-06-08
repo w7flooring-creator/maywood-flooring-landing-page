@@ -16,15 +16,21 @@
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import Breadcrumbs from "@/components/Breadcrumbs.astro";
 import GalleryGrid from "@/components/GalleryGrid.astro";
+import FaqAccordion from "@/components/FaqAccordion.astro";
 import {
   getGalleryItems,
   buildGalleryBreadcrumbs,
   buildGallerySeo,
 } from "@/lib/gallery";
+import { getFaqs } from "@/lib/faq";
 
 const items = await getGalleryItems();
 const breadcrumbs = buildGalleryBreadcrumbs();
 const seo = buildGallerySeo(items);
+
+// 页尾 FAQ 区块（对齐 Wix 画廊页底部折叠 FAQ）。复用 Sanity 现有 FAQ（地暖/安装/
+// Janka/分级/饰面），不另灌内容。FAQPage 结构化数据归 /faqs 页所有，本页关闭以免重复。
+const faqs = await getFaqs();
 ---
 
 <BaseLayout {...seo}>
@@ -45,6 +51,17 @@ const seo = buildGallerySeo(items);
     <div class="gallery-page__grid">
       <GalleryGrid items={items} />
     </div>
+
+    {
+      faqs.length > 0 && (
+        <section class="gallery-page__faq" aria-labelledby="gallery-faq-title">
+          <h2 id="gallery-faq-title" class="gallery-page__faq-title">
+            Frequently asked questions
+          </h2>
+          <FaqAccordion faqs={faqs} structuredData={false} />
+        </section>
+      )
+    }
   </div>
 </BaseLayout>
 
@@ -83,5 +100,20 @@ const seo = buildGallerySeo(items);
     font-size: 1.0625rem;
     line-height: 1.7;
     color: var(--muted-foreground);
+  }
+
+  .gallery-page__faq {
+    max-width: 48rem;
+    margin: clamp(3rem, 8vw, 5rem) auto 0;
+  }
+
+  .gallery-page__faq-title {
+    margin: 0 0 1.5rem;
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+    line-height: 1.1;
+    color: var(--color-ink);
+    text-align: center;
   }
 </style>

@@ -46,7 +46,7 @@ export default function GalleryLightbox({ items }: Props) {
   return (
     <div className="gallery-grid">
       <ul
-        className="m-0 list-none gap-4 p-0 [column-gap:1rem] sm:columns-2 lg:columns-3"
+        className="m-0 list-none gap-4 p-0 [column-gap:1rem] sm:columns-2 lg:columns-4 xl:columns-5"
         role="list"
         aria-label="Gallery images"
       >
@@ -64,7 +64,7 @@ export default function GalleryLightbox({ items }: Props) {
                   sanityImageSrcset(item.url, [320, 480, 768, 1080]) ||
                   undefined
                 }
-                sizes="(min-width: 64rem) 33vw, (min-width: 40rem) 50vw, 100vw"
+                sizes="(min-width: 80rem) 20vw, (min-width: 64rem) 25vw, (min-width: 40rem) 50vw, 100vw"
                 alt={altFor(item, i)}
                 loading={i < 3 ? "eager" : "lazy"}
                 decoding="async"
