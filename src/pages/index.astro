@@ -8,11 +8,11 @@
  * LocalBusiness JSON-LD）。全页**唯一 h1** 在 HomeHero，下半全部用 h2/h3。
  * 纯静态（SSG，零 client JS）。
  *
- * hero 图与产品入口图 Phase 1 尚未入库（生产禁止热链 Wix）→ 组件对空图优雅降级。
- * 招牌系列卡与图库图片由 Sanity 驱动（build 时拉），本地 / 匿名读无 token 时为空 →
- * SignatureCollectionsSection / GalleryFeedSection 优雅降级（见 ADR-0003）。
- * 图库图片已灌入（#8，scripts/import-gallery.ts）→ GalleryFeed 取前 8 张真实照片，
- * 无内容时回落静态占位 strip。
+ * 配图均由 Sanity 驱动（build 时拉），生产走 Sanity CDN 不热链 Wix；本地 / 匿名读
+ * 无 token 时为空 → 各组件优雅降级（见 ADR-0003）。配图来源：
+ *  - hero / partner / accessories → homePage 单例（scripts/import-home-images.ts）；
+ *  - 产品入口卡 → 各 Category heroImage；招牌系列卡 → 各 Collection heroImage；
+ *  - GalleryFeed → galleryImage（scripts/import-gallery.ts，取前 8 张）。
  */
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import HomeHero from "@/components/HomeHero.astro";
@@ -25,9 +25,31 @@ import GalleryFeedSection from "@/components/GalleryFeedSection.astro";
 import HomeCtaSection from "@/components/HomeCtaSection.astro";
 import { getSignatureCollections } from "@/lib/taxonomy";
 import { getGalleryItems } from "@/lib/gallery";
+import { getHomePageImages } from "@/lib/home-content";
+import { getCategoryLandings } from "@/lib/category-page";
 
 // 招牌系列 build 时拉取（无 token / 匿名读 → 空数组，区块优雅降级）。
 const signatureCollections = await getSignatureCollections();
+
+// 首页专属配图（hero / partner / accessories）build 时从 Sanity homePage 单例拉取。
+const homeImages = await getHomePageImages();
+
+// 产品入口卡复用各 Category 的 heroImage（按 href 索引）；Accessories→Contact 用 homePage.accessoriesImage。
+const categories = await getCategoryLandings();
+const categoryImageBySlug = new Map(
+  categories.map((c) => [c.slug, c.heroImage])
+);
+const productImagesByHref: Record<
+  string,
+  { url: string; alt: string | null } | null
+> = {
+  "/category/engineered-flooring":
+    categoryImageBySlug.get("engineered-flooring") ?? null,
+  "/category/solid-flooring": categoryImageBySlug.get("solid-flooring") ?? null,
+  "/category/sustainable-flooring":
+    categoryImageBySlug.get("sustainable-flooring") ?? null,
+  "/contact": homeImages.accessoriesImage,
+};
 
 // 图库图片 build 时拉取，首页 GalleryFeed 取前 8 张（无内容 → 组件回落占位 strip）。
 const galleryFeedImages = (await getGalleryItems()).slice(0, 8).map((g) => ({
@@ -40,9 +62,12 @@ const galleryFeedImages = (await getGalleryItems()).slice(0, 8).map((g) => ({
   title="Premium Timber, Laminate & Hybrid Flooring in Melbourne"
   description="Maywood Flooring is a premium timber, laminate and hybrid flooring supplier in Keysborough, Melbourne — serving trade, wholesale and homeowners across Victoria."
 >
-  <HomeHero />
-  <ProductSelectionGrid />
-  <PartnerNarrativeSection />
+  <HomeHero
+    imageUrl={homeImages.heroImage?.url ?? null}
+    imageAlt={homeImages.heroImage?.alt ?? undefined}
+  />
+  <ProductSelectionGrid imagesByHref={productImagesByHref} />
+  <PartnerNarrativeSection image={homeImages.partnerImage} />
   <SilentFoundationSection />
   <SignatureCollectionsSection collections={signatureCollections} />
   <BrandStatementSection />

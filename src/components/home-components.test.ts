@@ -28,6 +28,7 @@ const mockCollections: Collection[] = [
     legacyPath: null,
     isSignature: true,
     sortOrder: 1,
+    heroImage: null,
     category: null,
   },
   {
@@ -37,6 +38,7 @@ const mockCollections: Collection[] = [
     legacyPath: null,
     isSignature: true,
     sortOrder: 2,
+    heroImage: null,
     category: null,
   },
 ];

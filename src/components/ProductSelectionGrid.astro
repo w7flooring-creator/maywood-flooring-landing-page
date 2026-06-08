@@ -10,12 +10,17 @@
 import ProductSelectionCard from "@/components/ProductSelectionCard.astro";
 import { PRODUCT_SELECTION } from "@/lib/home";
 
+/** 单张入口配图（asset->url + alt）。 */
+type EntryImage = { url: string; alt: string | null } | null;
+
 interface Props {
   /** 区块标题；缺省取线上首页文案。 */
   heading?: string;
+  /** 入口配图，按入口 href 索引（如 /category/engineered-flooring → 该分类 heroImage）。 */
+  imagesByHref?: Record<string, EntryImage>;
 }
 
-const { heading = "Our Products Selection" } = Astro.props;
+const { heading = "Our Products Selection", imagesByHref = {} } = Astro.props;
 ---
 
 <section class="selection" aria-labelledby="product-selection-heading">
@@ -28,7 +33,8 @@ const { heading = "Our Products Selection" } = Astro.props;
             <ProductSelectionCard
               label={entry.label}
               href={entry.href}
-              imageAlt={entry.imageAlt}
+              imageAlt={imagesByHref[entry.href]?.alt ?? entry.imageAlt}
+              imageUrl={imagesByHref[entry.href]?.url ?? null}
             />
           </li>
         ))

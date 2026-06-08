@@ -20,7 +20,8 @@ interface Props {
 }
 
 const { title, eyebrow = null, image = null } = Astro.props;
-const hasImage = image !== null;
+// 仅当真正有可渲染 url 才算有图（heroImage 字段可能存在但 asset 为空 → url null）。
+const hasImage = image?.url != null && image.url.length > 0;
 // hero 图在首屏 → 不 lazy load（首屏 LCP 元素）；alt 缺省给空串（装饰性回落）。
 const altText = image?.alt ?? "";
 ---

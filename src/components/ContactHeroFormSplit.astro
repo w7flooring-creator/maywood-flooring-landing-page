@@ -24,7 +24,8 @@ interface Props {
 }
 
 const { title, eyebrow = null, intro = null, image = null } = Astro.props;
-const hasImage = image !== null;
+// 仅当真正有可渲染 url 才算有图（image 字段可能存在但 asset 为空 → url null）。
+const hasImage = image?.url != null && image.url.length > 0;
 ---
 
 <section class="contact-split">

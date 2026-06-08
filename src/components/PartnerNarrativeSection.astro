@@ -1,27 +1,53 @@
 ---
 /**
- * PartnerNarrativeSection —— 首页「专业供应伙伴」双栏叙事区。
+ * PartnerNarrativeSection —— 首页「专业供应伙伴」图文分栏区。
  *
- * 对照线上首页 “Your Professional Partner in Timber Supply”：左侧 serif 大标题，
- * 右侧两段正文。桌面双栏、移动单列堆叠。文案来自 PARTNER_NARRATIVE
- * （src/lib/home-narrative.ts，单一来源）。区块标题用 h2（首页唯一 h1 归 hero）。
+ * 对照线上首页 “Your Professional Partner in Timber Supply”：左侧仓库/场地实拍图，
+ * 右侧 serif 大标题 + 两段正文 + ENQUIRE NOW 按钮。文案来自 PARTNER_NARRATIVE
+ * （src/lib/home-narrative.ts，单一来源）；配图由调用页从 Sanity 传入（生产不热链 Wix）。
  *
- * 设计为「无图也好看」：本区为纯文字叙事，不依赖品牌图（生产禁止热链 Wix），
- * 故无图片插槽。纯静态（零 client JS）。
+ * 无图时优雅降级为纯文字块（不放占位图）。区块标题用 h2（首页唯一 h1 归 hero）。
+ * 纯静态（零 client JS）。
  */
 import { PARTNER_NARRATIVE } from "@/lib/home-narrative";
+import { sanityImageUrl, sanityImageSrcset } from "@/lib/sanity-image";
 
+interface Props {
+  /** 区块配图（Sanity homePage.partnerImage）；缺省 → 纯文字降级。 */
+  image?: { url: string; alt: string | null } | null;
+}
+
+const { image = null } = Astro.props;
 const { eyebrow, heading, paragraphs } = PARTNER_NARRATIVE;
+const hasImage = image !== null;
 ---
 
 <section class="partner" aria-labelledby="partner-heading">
-  <div class="partner__inner">
-    <div class="partner__lead">
+  <div class:list={["partner__inner", { "partner__inner--image": hasImage }]}>
+    {
+      hasImage && (
+        <div class="partner__media">
+          <img
+            class="partner__img"
+            src={sanityImageUrl(image!.url, { width: 960 })}
+            srcset={
+              sanityImageSrcset(image!.url, [480, 768, 1080]) || undefined
+            }
+            sizes="(min-width: 60rem) 48vw, 100vw"
+            alt={image!.alt ?? ""}
+            loading="lazy"
+            decoding="async"
+          />
+        </div>
+      )
+    }
+    <div class="partner__text">
       {eyebrow && <p class="partner__eyebrow">{eyebrow}</p>}
       <h2 id="partner-heading" class="partner__heading">{heading}</h2>
-    </div>
-    <div class="partner__body">
-      {paragraphs.map((para) => <p class="partner__para">{para}</p>)}
+      <div class="partner__body">
+        {paragraphs.map((para) => <p class="partner__para">{para}</p>)}
+      </div>
+      <a class="partner__cta" href="/contact">Enquire Now</a>
     </div>
   </div>
 </section>
@@ -38,6 +64,21 @@ const { eyebrow, heading, paragraphs } = PARTNER_NARRATIVE;
     display: grid;
     grid-template-columns: 1fr;
     gap: 2.5rem;
+    align-items: center;
+  }
+
+  .partner__media {
+    overflow: hidden;
+    border-radius: var(--radius-cta);
+    background: var(--color-bg-muted);
+  }
+
+  .partner__img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
   }
 
   .partner__eyebrow {
@@ -59,6 +100,10 @@ const { eyebrow, heading, paragraphs } = PARTNER_NARRATIVE;
     color: var(--color-ink);
   }
 
+  .partner__body {
+    margin-top: 1.5rem;
+  }
+
   .partner__para {
     margin: 0 0 1.25rem;
     font-size: 1.0625rem;
@@ -70,12 +115,33 @@ const { eyebrow, heading, paragraphs } = PARTNER_NARRATIVE;
     margin-bottom: 0;
   }
 
-  /* 桌面：左标题、右正文双栏（editorial 留白）。 */
+  /* 深色圆角小 CTA（品牌按钮语言，呼应 hero / sample 按钮）。 */
+  .partner__cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1.75rem;
+    background: var(--color-cta);
+    color: #fff;
+    font-family: var(--font-sans);
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-decoration: none;
+    padding: 0.7rem 1.5rem;
+    border-radius: var(--radius-cta);
+    transition: background-color 150ms ease;
+  }
+  .partner__cta:hover {
+    background: #2c2c2c;
+  }
+
+  /* 桌面：图左、文右双栏（editorial 留白）。无图时单列纯文字。 */
   @media (min-width: 60rem) {
-    .partner__inner {
-      grid-template-columns: 5fr 6fr;
-      gap: clamp(3rem, 6vw, 6rem);
-      align-items: start;
+    .partner__inner--image {
+      grid-template-columns: 1fr 1fr;
+      gap: clamp(3rem, 6vw, 5rem);
     }
   }
 </style>
