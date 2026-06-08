@@ -78,6 +78,15 @@ const CATEGORY_IMAGES: Record<string, { mediaId: string; alt: string }> = {
   },
 };
 
+/**
+ * 内容页 hero（page slug → Wix media id）来源记录（已入 Sanity：page.<slug>.heroImage）：
+ *  - about-us       eb4477_ce0c5acaae0c479fb8288a5314c8e616~mv2.jpg（showroom interior）
+ *  - sustainability eb4477_7fe5b26b266747c8b19b9fee0a4a0428~mv2.png（eco / sourced timber）
+ *  - contact        eb4477_591a3fffdd654779ad329a3fea1d9dca~mv2.png（contemporary interior）
+ * 这三张经 curl(rendered URL) 取回上传，page 文档已建（minimal：title+slug+heroImage，
+ * 正文仍走各页静态 fallback）。如需重灌，按上述 id + page.<slug> 写 heroImage 即可。
+ */
+
 function resolveToken(): string {
   const env =
     process.env.SANITY_AUTH_TOKEN ?? process.env.SANITY_API_WRITE_TOKEN;

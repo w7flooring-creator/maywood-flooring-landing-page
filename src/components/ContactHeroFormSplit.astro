@@ -20,7 +20,7 @@ interface Props {
   /** 表单上方引导文案（可选）。 */
   intro?: string | null;
   /** 左栏背景图（可选）；缺省降级为 muted 面板。 */
-  image?: { url: string; alt: string } | null;
+  image?: { url: string; alt: string | null } | null;
 }
 
 const { title, eyebrow = null, intro = null, image = null } = Astro.props;
