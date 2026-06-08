@@ -55,6 +55,29 @@ const COLLECTION_IMAGES: Record<string, { mediaId: string; alt: string }> = {
   },
 };
 
+/**
+ * 产品入口卡 / 分类页 hero 配图（category slug → Wix media id + alt）。
+ * 取自 Wix 首页「Our Products Selection」四卡（按几何位置映射到各卡标签）。
+ * Wix 复用了部分系列图（Timber=Bushland 图、Laminate=PureGrain 图等）——照搬以对齐 Wix。
+ * 设为 productCategory.heroImage → 同时点亮首页产品入口卡 + 分类页 hero。
+ */
+const CATEGORY_IMAGES: Record<string, { mediaId: string; alt: string }> = {
+  "engineered-flooring": {
+    mediaId: "eb4477_6b153f1d5d5743c890e20ac8bbfabe0c~mv2.png",
+    alt: "Maywood engineered timber flooring in a warm, light-filled Melbourne interior.",
+  },
+  "solid-flooring": {
+    mediaId: "eb4477_b04d5095bb7d40d283b5ba6dd884a7b4~mv2.png",
+    alt: "Maywood laminate flooring in a bright contemporary Melbourne living space.",
+  },
+  // 注：此图 node 端从 Wix 下载常被限流（abort）；已用浏览器侧 fetch 取回原图入 Sanity，
+  // 资产已在库。脚本保留此条作来源记录；重跑若下载失败为非破坏式跳过（保留已设值）。
+  "sustainable-flooring": {
+    mediaId: "eb4477_1dfc7b8c2395445ba52c4ab74a9ca50d~mv2.png",
+    alt: "Maywood hybrid flooring in a cosy, light-filled Melbourne interior.",
+  },
+};
+
 function resolveToken(): string {
   const env =
     process.env.SANITY_AUTH_TOKEN ?? process.env.SANITY_API_WRITE_TOKEN;
@@ -112,6 +135,19 @@ async function uploadImage(
   }
 }
 
+/** 复用已存在的 Sanity 资产（按 originalFilename），否则从 Wix 下载上传。 */
+async function ensureAsset(
+  client: SanityClient,
+  mediaId: string
+): Promise<string | null> {
+  const existing: string | null = await client.fetch(
+    `*[_type=="sanity.imageAsset" && originalFilename==$f]|order(_createdAt desc)[0]._id`,
+    { f: mediaId }
+  );
+  if (existing) return existing;
+  return uploadImage(client, mediaId);
+}
+
 function imageField(assetId: string, alt: string) {
   return {
     _type: "image",
@@ -167,6 +203,28 @@ async function run(): Promise<void> {
       .set({ heroImage: imageField(assetId, alt) })
       .commit();
     console.log(`  ✓ collection "${slug}".heroImage`);
+  }
+
+  // 3) 产品入口卡 / 分类页 hero —— 设 productCategory.heroImage（按 slug patch）
+  for (const [slug, { mediaId, alt }] of Object.entries(CATEGORY_IMAGES)) {
+    const id: string | null = await client.fetch(
+      `*[_type=="productCategory" && slug.current==$s][0]._id`,
+      { s: slug }
+    );
+    if (!id) {
+      console.warn(`  ✗ category "${slug}" 未找到，跳过`);
+      continue;
+    }
+    const assetId = await ensureAsset(client, mediaId);
+    if (!assetId) {
+      console.warn(`  ✗ category "${slug}" 图片失败，跳过`);
+      continue;
+    }
+    await client
+      .patch(id)
+      .set({ heroImage: imageField(assetId, alt) })
+      .commit();
+    console.log(`  ✓ category "${slug}".heroImage`);
   }
 
   console.log("完成。注：Manor 系列图暂缺，后续补。");
