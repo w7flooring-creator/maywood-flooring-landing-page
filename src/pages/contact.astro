@@ -15,11 +15,16 @@ import ContactHeroFormSplit from "@/components/ContactHeroFormSplit.astro";
 import ContactInfoColumns from "@/components/ContactInfoColumns.astro";
 import MapEmbed from "@/components/MapEmbed.astro";
 import type { BreadcrumbItem } from "@/lib/seo";
+import { getPageBySlug } from "@/lib/content-pages";
 
 const breadcrumbs: BreadcrumbItem[] = [
   { name: "Home", url: "/" },
   { name: "Contact", url: "/contact" },
 ];
+
+// 左栏媒体图来自 Sanity page("contact").heroImage（生产走 Sanity CDN，不热链 Wix）；
+// 无图时 ContactHeroFormSplit 优雅降级为 muted 面板。
+const page = await getPageBySlug("contact");
 
 const seo = {
   title: "Contact Us",
@@ -38,6 +43,7 @@ const seo = {
       title="Get in Touch"
       eyebrow="Contact"
       intro="Tell us about your project and our team will be in touch. Prefer to talk it through? Call, email or message us on WhatsApp."
+      image={page?.heroImage ?? null}
     />
 
     <ContactInfoColumns />
