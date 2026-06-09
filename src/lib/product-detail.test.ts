@@ -33,6 +33,7 @@ function mockProduct(overrides: Partial<ProductDetail> = {}): ProductDetail {
     packSize: null,
     packWeight: null,
     finish: null,
+    surfaceCoating: null,
     bevel: null,
     profile: null,
     grade: null,

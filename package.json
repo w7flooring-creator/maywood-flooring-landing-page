@@ -14,7 +14,9 @@
     "import:gallery": "node --experimental-strip-types scripts/import-gallery.ts",
     "import:faqs": "node --experimental-strip-types scripts/import-faqs.ts",
     "import:home-images": "node --experimental-strip-types scripts/import-home-images.ts",
+    "import:wix-align-images": "node --experimental-strip-types scripts/import-wix-align-images-2.ts",
     "fix:cyrillic": "node --experimental-strip-types scripts/fix-cyrillic-specs.ts",
+    "seed:wix-align": "node --experimental-strip-types scripts/seed-wix-align-content.ts",
     "astro": "astro",
     "prepare": "husky"
   },

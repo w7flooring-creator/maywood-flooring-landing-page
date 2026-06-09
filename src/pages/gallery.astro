@@ -16,18 +16,55 @@
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import Breadcrumbs from "@/components/Breadcrumbs.astro";
 import GalleryGrid from "@/components/GalleryGrid.astro";
+import FaqAccordion from "@/components/FaqAccordion.astro";
+import SampleRequestButton from "@/components/SampleRequestButton.astro";
+import { sanityImageUrl, sanityImageSrcset } from "@/lib/sanity-image";
 import {
   getGalleryItems,
   buildGalleryBreadcrumbs,
   buildGallerySeo,
 } from "@/lib/gallery";
+import { getFaqs } from "@/lib/faq";
+import { getPageBySlug } from "@/lib/content-pages";
 
 const items = await getGalleryItems();
 const breadcrumbs = buildGalleryBreadcrumbs();
 const seo = buildGallerySeo(items);
+
+// 页尾 FAQ 区块（对齐 Wix 画廊页底部折叠 FAQ）。复用 Sanity 现有 FAQ（地暖/安装/
+// Janka/分级/饰面），不另灌内容。FAQPage 结构化数据归 /faqs 页所有，本页关闭以免重复。
+const faqs = await getFaqs();
+
+// 顶部全宽 hero 横幅（对齐 Wix）：图来自 page("gallery").heroImage；
+// 无图则不渲染横幅（优雅降级，面包屑下直接进 intro）。
+const galleryPage = await getPageBySlug("gallery");
+const heroImage = galleryPage?.heroImage ?? null;
 ---
 
 <BaseLayout {...seo}>
+  {
+    heroImage && (
+      <section class="gallery-hero" aria-label="Gallery">
+        <img
+          class="gallery-hero__bg"
+          src={sanityImageUrl(heroImage.url, { width: 1920 })}
+          srcset={
+            sanityImageSrcset(heroImage.url, [768, 1280, 1600, 1920]) ||
+            undefined
+          }
+          sizes="100vw"
+          alt={heroImage.alt ?? ""}
+          fetchpriority="high"
+          loading="eager"
+          decoding="async"
+        />
+        <div class="gallery-hero__overlay">
+          <SampleRequestButton />
+        </div>
+      </section>
+    )
+  }
+
   <div class="gallery-page">
     <div class="gallery-page__crumbs">
       <Breadcrumbs items={breadcrumbs} />
@@ -45,10 +82,60 @@ const seo = buildGallerySeo(items);
     <div class="gallery-page__grid">
       <GalleryGrid items={items} />
     </div>
+
+    {
+      faqs.length > 0 && (
+        <section class="gallery-page__faq" aria-labelledby="gallery-faq-title">
+          <h2 id="gallery-faq-title" class="gallery-page__faq-title">
+            Frequently asked questions
+          </h2>
+          <FaqAccordion faqs={faqs} structuredData={false} />
+        </section>
+      )
+    }
   </div>
 </BaseLayout>
 
 <style>
+  /* 顶部全宽 hero 横幅：宽幅室内大图 + 居中 Request-a-Sample CTA（暗色 scrim 保证对比）。 */
+  .gallery-hero {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    aspect-ratio: 1520 / 443;
+    min-height: 14rem;
+    max-height: 32rem;
+    overflow: hidden;
+    background: var(--color-bg-muted);
+  }
+  .gallery-hero__bg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 0;
+  }
+  .gallery-hero__overlay {
+    position: relative;
+    z-index: 1;
+    padding: 1rem 1.5rem;
+  }
+  /* scrim：底部加深，提升 CTA 对比（不盖死整图）。 */
+  .gallery-hero::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background: linear-gradient(
+      180deg,
+      rgba(0, 0, 0, 0.05) 0%,
+      rgba(0, 0, 0, 0.35) 100%
+    );
+  }
+
   .gallery-page {
     max-width: 72rem;
     margin-inline: auto;
@@ -83,5 +170,20 @@ const seo = buildGallerySeo(items);
     font-size: 1.0625rem;
     line-height: 1.7;
     color: var(--muted-foreground);
+  }
+
+  .gallery-page__faq {
+    max-width: 48rem;
+    margin: clamp(3rem, 8vw, 5rem) auto 0;
+  }
+
+  .gallery-page__faq-title {
+    margin: 0 0 1.5rem;
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+    line-height: 1.1;
+    color: var(--color-ink);
+    text-align: center;
   }
 </style>

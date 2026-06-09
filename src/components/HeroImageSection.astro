@@ -11,6 +11,7 @@
  */
 import type { ContentImage } from "@/lib/content-pages";
 import { sanityImageUrl, sanityImageSrcset } from "@/lib/sanity-image";
+import SampleRequestButton from "@/components/SampleRequestButton.astro";
 
 interface Props {
   title: string;
@@ -19,9 +20,17 @@ interface Props {
   /** 可选 intro（标题下一句导语），缺省不渲染。 */
   intro?: string | null;
   image?: ContentImage | null;
+  /** 是否在 hero 面板内渲染 Request-a-Sample CTA（呼应 Wix About hero）。 */
+  sampleCta?: boolean;
 }
 
-const { title, eyebrow = null, intro = null, image = null } = Astro.props;
+const {
+  title,
+  eyebrow = null,
+  intro = null,
+  image = null,
+  sampleCta = false,
+} = Astro.props;
 // 仅当真正有可渲染 url 才算有图（heroImage 字段可能存在但 asset 为空 → url null）。
 const hasImage = image?.url != null && image.url.length > 0;
 // hero 图在首屏 → 不 lazy load（首屏 LCP）；alt 缺省给空串（装饰性回落）。
@@ -49,6 +58,13 @@ const altText = image?.alt ?? "";
     {eyebrow && <p class="hero__eyebrow">{eyebrow}</p>}
     <h1 class="hero__title">{title}</h1>
     {intro && <p class="hero__intro">{intro}</p>}
+    {
+      sampleCta && (
+        <p class="hero__cta">
+          <SampleRequestButton />
+        </p>
+      )
+    }
   </div>
 </section>
 
@@ -109,5 +125,9 @@ const altText = image?.alt ?? "";
     font-size: 1.0625rem;
     line-height: 1.6;
     color: var(--muted-foreground);
+  }
+
+  .hero__cta {
+    margin: clamp(1.5rem, 3vw, 2rem) 0 0;
   }
 </style>

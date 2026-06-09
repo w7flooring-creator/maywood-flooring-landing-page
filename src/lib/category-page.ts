@@ -197,3 +197,31 @@ export async function getCategoryProducts(
   );
   return result ?? [];
 }
+
+/**
+ * 构造「跨分类精选产品」GROQ（About 页「Explore Our Products」轮播用）。
+ * 只取已发布、有 slug 且**有主图**的产品，按标题升序取前 limit 个。
+ * limit 是受控整数（调用方常量，非用户输入），直接内插安全。
+ */
+export function buildFeaturedProductsQuery(limit: number): string {
+  const n = Math.max(1, Math.floor(limit));
+  return `*[_type == "product" && status == "published" && defined(slug.current) && defined(mainImage.asset)] | order(title asc) [0...${n}]{
+    _id,
+    title,
+    "slug": slug.current,
+    "imageUrl": mainImage.asset->url
+  }`;
+}
+
+/**
+ * 取一组跨分类精选产品（含解析图 url）。Phase 1 product 未灌入 → 恒返回空数组，
+ * 调用方据此优雅隐藏轮播。生产走 Sanity CDN（图片在 island 内经 sanityImageUrl 优化）。
+ */
+export async function getFeaturedProducts(
+  limit = 8
+): Promise<CategoryProduct[]> {
+  const result = await getSanityClient().fetch<CategoryProduct[]>(
+    buildFeaturedProductsQuery(limit)
+  );
+  return result ?? [];
+}

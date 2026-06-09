@@ -26,6 +26,8 @@ export interface Collection {
   legacyPath: string | null;
   isSignature: boolean;
   sortOrder: number | null;
+  /** 一句话品牌标语（招牌系列卡副标题 / 落地页 hero 副标题）；编辑留空为 null。 */
+  tagline: string | null;
   /** 系列 hero / 卡片配图（投影自 heroImage.asset->url + alt），无图为 null。 */
   heroImage: { url: string; alt: string | null } | null;
   /** 归属 Category 的摘要（解引用），无引用时为 null。 */
@@ -49,6 +51,7 @@ const COLLECTION_PROJECTION = `{
   legacyPath,
   isSignature,
   sortOrder,
+  tagline,
   "heroImage": heroImage{ "url": asset->url, alt },
   "category": category->{ _id, title, "slug": slug.current }
 }`;

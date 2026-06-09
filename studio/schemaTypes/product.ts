@@ -171,6 +171,13 @@ export const product = defineType({
       description: "规格表「Finish」，如「Matt UV Lacquer」。",
     }),
     defineField({
+      name: "surfaceCoating",
+      title: "表面涂层 (Surface Coating)",
+      type: "string",
+      fieldset: "specs",
+      description: "规格表「Surface Coating」，如「UV Lacquer」。",
+    }),
+    defineField({
       name: "bevel",
       title: "倒角 (Bevel)",
       type: "string",

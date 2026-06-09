@@ -32,6 +32,11 @@ export interface ContentPage {
   slug: string;
   /** Hero 主图（未上传时为 null —— 页面回落到无图的克制 hero）。 */
   heroImage: ContentImage | null;
+  /**
+   * 分区配图（按出现顺序）—— 供页面图文分栏（如 About「Trusted Partner」、
+   * Sustainability 支柱）取图。未上传时为空数组 —— 对应区块降级为纯文字。
+   */
+  sectionImages: ContentImage[];
   /** Portable Text 正文（编辑未填时为空数组 —— 页面用静态回落文案）。 */
   body: PortableTextBlock[];
   /** 编辑在 seo 对象里手填的 metaTitle，缺省 null（页面回落到 title）。 */
@@ -70,6 +75,7 @@ const PAGE_PROJECTION = `{
   title,
   "slug": slug.current,
   "heroImage": heroImage{ "url": asset->url, alt },
+  "sectionImages": sectionImages[]{ "url": asset->url, alt },
   ${BODY_PROJECTION},
   "seoTitle": seo.metaTitle,
   "seoDescription": seo.metaDescription
@@ -113,6 +119,17 @@ export function normaliseBody(raw: unknown): PortableTextBlock[] {
 }
 
 /**
+ * sectionImages 归一化：保序映射为 ContentImage[]，丢弃无 url 的条目
+ * （asset 未上传 → {url:null}）。非数组一律收敛为空数组。
+ */
+export function normaliseSectionImages(raw: unknown): ContentImage[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .map((item) => normaliseContentImage(item))
+    .filter((img): img is ContentImage => img !== null);
+}
+
+/**
  * 归一化一条 `page` 投影：所有「可能缺」的字段统一收敛为 null / 空数组，
  * 让页面只需判空，不必关心 GROQ 返回的是 undefined / "" / 缺键。
  */
@@ -124,6 +141,7 @@ export function normaliseContentPage(
     title: String(raw.title ?? ""),
     slug: String(raw.slug ?? ""),
     heroImage: normaliseContentImage(raw.heroImage),
+    sectionImages: normaliseSectionImages(raw.sectionImages),
     body: normaliseBody(raw.body),
     seoTitle: emptyToNull(raw.seoTitle),
     seoDescription: emptyToNull(raw.seoDescription),

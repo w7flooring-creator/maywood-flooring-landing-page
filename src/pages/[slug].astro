@@ -55,7 +55,9 @@ const seo = buildLandingSeo(collection);
     <CollectionHero
       title={collection.title}
       eyebrow="Signature Collection"
+      subtitle={collection.tagline}
       image={collection.heroImage}
+      cta={{ label: "Request a Sample", href: "/request-sample" }}
     />
 
     <CollectionNarrative description={collection.description} />

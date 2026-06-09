@@ -27,11 +27,22 @@ vi.mock("@/lib/content-pages", async (importOriginal) => {
   };
 });
 
+// About 页另调用 category-page.getFeaturedProducts（「Explore Our Products」轮播）。
+// 测试不触网：mock 返回空数组 → 轮播区块优雅不渲染（与回落路径一致）。
+vi.mock("@/lib/category-page", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/category-page")>();
+  return {
+    ...actual,
+    getFeaturedProducts: vi.fn(async () => []),
+  };
+});
+
 const richPage: ContentPage = {
   _id: "page.about",
   title: "About Maywood",
   slug: "about-us",
   heroImage: null,
+  sectionImages: [],
   body: [
     {
       _type: "block",

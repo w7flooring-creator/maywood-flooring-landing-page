@@ -55,6 +55,7 @@ export interface ProductDetail {
   packSize: string | null;
   packWeight: string | null;
   finish: string | null;
+  surfaceCoating: string | null;
   bevel: string | null;
   profile: string | null;
   grade: string | null;
@@ -87,6 +88,7 @@ const PRODUCT_DETAIL_PROJECTION = `{
   packSize,
   packWeight,
   finish,
+  surfaceCoating,
   bevel,
   profile,
   grade,
@@ -126,6 +128,7 @@ const SPEC_FIELDS: ReadonlyArray<{
     | "packSize"
     | "packWeight"
     | "finish"
+    | "surfaceCoating"
     | "bevel"
     | "profile"
     | "grade"
@@ -138,6 +141,7 @@ const SPEC_FIELDS: ReadonlyArray<{
   { key: "packSize", label: "Pack Size" },
   { key: "packWeight", label: "Pack Weight" },
   { key: "finish", label: "Finish" },
+  { key: "surfaceCoating", label: "Surface Coating" },
   { key: "bevel", label: "Bevel" },
   { key: "profile", label: "Profile" },
   { key: "grade", label: "Grade" },
@@ -222,6 +226,7 @@ export function normaliseProductDetail(
     packSize: emptyToNull(raw.packSize),
     packWeight: emptyToNull(raw.packWeight),
     finish: emptyToNull(raw.finish),
+    surfaceCoating: emptyToNull(raw.surfaceCoating),
     bevel: emptyToNull(raw.bevel),
     profile: emptyToNull(raw.profile),
     grade: emptyToNull(raw.grade),

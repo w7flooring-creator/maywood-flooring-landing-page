@@ -4,6 +4,7 @@ import {
   RESOURCES_QUERY,
   normaliseContentImage,
   normaliseBody,
+  normaliseSectionImages,
   normaliseContentPage,
   normaliseResourceSummary,
   hasBody,
@@ -22,6 +23,7 @@ const fullPage: ContentPage = {
   title: "About Us",
   slug: "about-us",
   heroImage: { url: "https://cdn.sanity.io/h.jpg", alt: "Showroom" },
+  sectionImages: [],
   body: [
     {
       _type: "block",
@@ -43,6 +45,10 @@ describe("GROQ 构造", () => {
     expect(PAGE_BY_SLUG_QUERY).toContain('"slug": slug.current');
     expect(PAGE_BY_SLUG_QUERY).toContain(
       '"heroImage": heroImage{ "url": asset->url'
+    );
+    // 分区配图按顺序解引用 asset->url（供图文分栏取图）
+    expect(PAGE_BY_SLUG_QUERY).toContain(
+      '"sectionImages": sectionImages[]{ "url": asset->url'
     );
     // body 内 image 块解引用 asset url（生产不热链 Wix）
     expect(PAGE_BY_SLUG_QUERY).toContain(
@@ -93,6 +99,27 @@ describe("normaliseBody —— 非数组收敛为空数组", () => {
   });
 });
 
+describe("normaliseSectionImages —— 保序、丢弃无 url、非数组收敛", () => {
+  it("缺省 / null / 非数组 → []", () => {
+    expect(normaliseSectionImages(undefined)).toEqual([]);
+    expect(normaliseSectionImages(null)).toEqual([]);
+    expect(normaliseSectionImages("nope")).toEqual([]);
+  });
+
+  it("保序映射，丢弃 asset 未解出（url 为空）的条目", () => {
+    expect(
+      normaliseSectionImages([
+        { url: "https://cdn/a.jpg", alt: "A" },
+        { url: null, alt: "missing asset" },
+        { url: "https://cdn/b.jpg" },
+      ])
+    ).toEqual([
+      { url: "https://cdn/a.jpg", alt: "A" },
+      { url: "https://cdn/b.jpg", alt: null },
+    ]);
+  });
+});
+
 describe("normaliseContentPage —— 缺字段收敛，绝不编造", () => {
   it("缺 heroImage / body / seo 时全部为 null / 空数组", () => {
     const result = normaliseContentPage({
@@ -101,6 +128,7 @@ describe("normaliseContentPage —— 缺字段收敛，绝不编造", () => {
       slug: "x",
     });
     expect(result.heroImage).toBeNull();
+    expect(result.sectionImages).toEqual([]);
     expect(result.body).toEqual([]);
     expect(result.seoTitle).toBeNull();
     expect(result.seoDescription).toBeNull();

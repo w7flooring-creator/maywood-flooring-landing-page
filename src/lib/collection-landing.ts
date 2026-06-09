@@ -28,6 +28,8 @@ export interface SignatureCollectionLanding {
   _id: string;
   title: string;
   slug: string;
+  /** 一句话品牌标语（落地页 hero 副标题）；编辑未填时为 null。 */
+  tagline: string | null;
   /** 系列描述（编辑未填时为 null —— 页面不渲染该区块，不编造文案）。 */
   description: string | null;
   /** Hero 主图（未上传时为 null —— 页面回落到无图的克制 hero）。 */
@@ -54,6 +56,7 @@ const SIGNATURE_LANDING_PROJECTION = `{
   _id,
   title,
   "slug": slug.current,
+  tagline,
   description,
   "heroImage": heroImage{ "url": asset->url, alt },
   "seoTitle": seo.metaTitle,
@@ -104,6 +107,7 @@ export function normaliseSignatureLanding(
     _id: String(raw._id ?? ""),
     title: String(raw.title ?? ""),
     slug: String(raw.slug ?? ""),
+    tagline: emptyToNull(raw.tagline),
     description: emptyToNull(raw.description),
     heroImage: normaliseHeroImage(raw.heroImage),
     seoTitle: emptyToNull(raw.seoTitle),

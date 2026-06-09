@@ -2,17 +2,41 @@
 /**
  * SilentFoundationSection —— 首页「The Silent Foundation」editorial 文字区。
  *
- * 对照线上首页同名区块：居中、克制行宽的品牌叙事长文（serif 标题 + 大字正文）。
- * 文案来自 SILENT_FOUNDATION（src/lib/home-narrative.ts，单一来源）。
+ * 对照线上首页同名区块：居中、克制行宽的品牌叙事长文（serif 标题 + 大字正文），
+ * 标题上方居中品牌标记图（MAYWOOD 字标 / 森林图，约 521×422，对照 Wix）。
+ * 文案来自 SILENT_FOUNDATION（src/lib/home-narrative.ts，单一来源）；
+ * 配图由 homePage.silentFoundationImage 驱动（无图优雅降级为纯文字）。
  * 区块标题用 h2（首页唯一 h1 归 hero）。纯静态（零 client JS）。
  */
 import { SILENT_FOUNDATION } from "@/lib/home-narrative";
+import { sanityImageUrl, sanityImageSrcset } from "@/lib/sanity-image";
+import type { HomeImage } from "@/lib/home-content";
 
+interface Props {
+  /** 居中品牌标记图（缺省 null → 不渲染图，纯文字降级）。 */
+  image?: HomeImage | null;
+}
+
+const { image = null } = Astro.props;
 const { heading, paragraphs } = SILENT_FOUNDATION;
+const hasImage = image?.url != null && image.url.length > 0;
 ---
 
 <section class="silent" aria-labelledby="silent-heading">
   <div class="silent__inner">
+    {
+      hasImage && (
+        <img
+          class="silent__mark"
+          src={sanityImageUrl(image!.url, { width: 640 })}
+          srcset={sanityImageSrcset(image!.url, [320, 521, 640]) || undefined}
+          sizes="(min-width: 40rem) 521px, 80vw"
+          alt={image!.alt ?? ""}
+          loading="lazy"
+          decoding="async"
+        />
+      )
+    }
     <h2 id="silent-heading" class="silent__heading">{heading}</h2>
     {paragraphs.map((para) => <p class="silent__para">{para}</p>)}
   </div>
@@ -28,6 +52,14 @@ const { heading, paragraphs } = SILENT_FOUNDATION;
     max-width: 46rem;
     margin-inline: auto;
     text-align: center;
+  }
+
+  /* 居中品牌标记图（克制尺寸，呼应 Wix 约 521×422）。 */
+  .silent__mark {
+    display: block;
+    width: clamp(15rem, 40vw, 32.5rem);
+    height: auto;
+    margin: 0 auto clamp(2rem, 4vw, 2.75rem);
   }
 
   .silent__heading {
