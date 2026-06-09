@@ -63,6 +63,17 @@ export const homePage = defineType({
         defineField({ name: "alt", title: "替代文字 (Alt)", type: "string" }),
       ],
     }),
+    defineField({
+      name: "silentFoundationImage",
+      title: "The Silent Foundation 品牌标记图",
+      type: "image",
+      description:
+        "「The Silent Foundation」区块居中品牌标记图（MAYWOOD 字标 / 森林图）。",
+      options: { hotspot: true },
+      fields: [
+        defineField({ name: "alt", title: "替代文字 (Alt)", type: "string" }),
+      ],
+    }),
   ],
   preview: {
     select: { media: "heroImage" },

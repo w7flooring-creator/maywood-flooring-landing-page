@@ -60,6 +60,27 @@ export const page = defineType({
       ],
     }),
     defineField({
+      name: "sectionImages",
+      title: "分区配图",
+      type: "array",
+      description:
+        "可选。按出现顺序为页面的图文分栏提供配图（如 About「Your Trusted Flooring Partner」、Sustainability 三大支柱）。留空则该区块降级为纯文字。",
+      of: [
+        {
+          type: "image",
+          options: { hotspot: true },
+          fields: [
+            defineField({
+              name: "alt",
+              title: "替代文字 (Alt)",
+              type: "string",
+              description: "图片的文字描述，供读屏软件与搜索引擎使用。",
+            }),
+          ],
+        },
+      ],
+    }),
+    defineField({
       name: "body",
       title: "正文",
       type: "array",

@@ -42,6 +42,9 @@ const seo = buildContentSeo({
 
 const showBody = hasBody(page);
 
+// 三大支柱的图文分栏配图（page.sectionImages 按顺序；缺图的支柱自动降级为纯文字）。
+const pillarImages = page?.sectionImages ?? [];
+
 /** 静态回落：三大可持续支柱（核对自线上 Wix，澳洲拼写）。 */
 const PILLARS = [
   {
@@ -105,6 +108,7 @@ const PILLARS = [
               eyebrow={pillar.eyebrow}
               heading={pillar.heading}
               paragraphs={pillar.paragraphs}
+              image={pillarImages[i] ?? null}
               reverse={i % 2 === 1}
             />
           ))}

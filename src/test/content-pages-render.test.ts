@@ -42,6 +42,7 @@ const richPage: ContentPage = {
   title: "About Maywood",
   slug: "about-us",
   heroImage: null,
+  sectionImages: [],
   body: [
     {
       _type: "block",

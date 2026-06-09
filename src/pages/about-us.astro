@@ -45,6 +45,10 @@ const seo = buildContentSeo({
 
 const showBody = hasBody(page);
 
+// 「Your Trusted Flooring Partner」图文分栏配图（page.sectionImages[0]，
+// 无图则 ImageTextSplit 自动降级为纯文字）。
+const trustedPartnerImage = page?.sectionImages[0] ?? null;
+
 // 「Explore Our Products」轮播：跨分类精选产品（仅有图的已发布产品）。
 // Phase 1 product 未灌入 → 空数组 → 区块整体不渲染（优雅降级）。
 const featuredProducts = await getFeaturedProducts(8);
@@ -71,9 +75,11 @@ const featuredProducts = await getFeaturedProducts(8);
         </EditorialTextBlock>
       ) : (
         <>
-          {/* 静态 editorial 回落（核对自线上 Wix About 页，澳洲拼写）。 */}
-          <EditorialTextBlock
+          {/* 静态 editorial 回落（核对自线上 Wix About 页，澳洲拼写）。
+              有 sectionImages[0] → 图文分栏（展厅样板墙）；无图则纯文字降级。 */}
+          <ImageTextSplit
             heading="Your Trusted Flooring Partner"
+            image={trustedPartnerImage}
             paragraphs={[
               "With decades of deep-rooted expertise in the Australian timber industry, Maywood Flooring harmonises traditional craftsmanship with cutting-edge technology to deliver unmatched quality and structural integrity.",
               "From rigorous density selection to moisture-controlled precision, our collections are curated to evoke the naturalistic style of Australian homes while balancing timeless beauty with local resilience. Every plank we craft upholds strict sustainability standards, so the elegance we bring into your space is built responsibly and designed to last a lifetime.",

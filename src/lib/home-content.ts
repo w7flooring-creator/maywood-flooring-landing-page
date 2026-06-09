@@ -18,6 +18,7 @@ export interface HomePageImages {
   partnerImage: HomeImage | null;
   accessoriesImage: HomeImage | null;
   sustainabilityImage: HomeImage | null;
+  silentFoundationImage: HomeImage | null;
 }
 
 /** homePage 单例投影：解引用各图 asset->url + alt。 */
@@ -25,7 +26,8 @@ export const HOME_PAGE_QUERY = `*[_type == "homePage"][0]{
   "heroImage": heroImage{ "url": asset->url, alt },
   "partnerImage": partnerImage{ "url": asset->url, alt },
   "accessoriesImage": accessoriesImage{ "url": asset->url, alt },
-  "sustainabilityImage": sustainabilityImage{ "url": asset->url, alt }
+  "sustainabilityImage": sustainabilityImage{ "url": asset->url, alt },
+  "silentFoundationImage": silentFoundationImage{ "url": asset->url, alt }
 }`;
 
 interface RawImage {
@@ -49,11 +51,13 @@ export async function getHomePageImages(): Promise<HomePageImages> {
     partnerImage?: RawImage;
     accessoriesImage?: RawImage;
     sustainabilityImage?: RawImage;
+    silentFoundationImage?: RawImage;
   } | null>(HOME_PAGE_QUERY);
   return {
     heroImage: normaliseHomeImage(raw?.heroImage),
     partnerImage: normaliseHomeImage(raw?.partnerImage),
     accessoriesImage: normaliseHomeImage(raw?.accessoriesImage),
     sustainabilityImage: normaliseHomeImage(raw?.sustainabilityImage),
+    silentFoundationImage: normaliseHomeImage(raw?.silentFoundationImage),
   };
 }
