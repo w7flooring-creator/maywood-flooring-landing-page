@@ -69,6 +69,15 @@ describe("buildCategoryProductsQuery —— 按 Category 取已发布产品（�
     const q = buildCategoryProductsQuery();
     expect(q).not.toMatch(/category->slug\.current == "[^$]/);
   });
+
+  it("归属判定为主分类 ∪ extraCategories（Wix 多分类归属，#59-#22）", () => {
+    const q = buildCategoryProductsQuery();
+    expect(q).toContain("$categorySlug in extraCategories[]->slug.current");
+    // 两个条件是「或」关系，包在同一组括号里
+    expect(q).toMatch(
+      /\(category->slug\.current == \$categorySlug \|\| \$categorySlug in extraCategories\[\]->slug\.current\)/
+    );
+  });
 });
 
 describe("normaliseCategoryLanding —— 缺字段收敛为 null，绝不编造内容", () => {
