@@ -1,0 +1,201 @@
+---
+/**
+ * /resources/[slug] —— 资料详情页（resource 文档驱动；新增 issue #67 / #59）。
+ *
+ * Resources 列表卡的「View more」链向这里。getStaticPaths 枚举全部 resource slug，
+ * build 时按 slug 拉详情（含 Portable Text 正文 + 解引用配图 / 相关产品 / FAQ）。
+ *
+ * 「内容尚未灌入是常态」（Phase 1，迁移后才有真实内容）：
+ *  - 有 body → RichTextRenderer 渲染编辑正文；
+ *  - body 为空 → 优雅回落：显示 excerpt（若有）+ 一个回 /contact 与 /resources 的 CTA，
+ *    绝不留空白页、绝不 lorem / 占位卡。
+ *
+ * SEO：唯一 title / meta description（优先编辑填的 seo，否则回落 title / excerpt）；
+ * canonical 自指（BaseLayout 取当前路径）。Breadcrumbs：Home > Resources > 标题
+ * （含 BreadcrumbList JSON-LD）。语义 <main>（BaseLayout）/<article>/单 <h1>（hero）。
+ * 纯静态（SSG），零 client JS。
+ */
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import HeroImageSection from "@/components/HeroImageSection.astro";
+import EditorialTextBlock from "@/components/EditorialTextBlock.astro";
+import RichTextRenderer from "@/components/RichTextRenderer.astro";
+import {
+  getResourceBySlug,
+  getResourceSlugs,
+  hasResourceBody,
+  buildResourceBreadcrumbs,
+  buildResourceSeo,
+  type ResourceDetail,
+} from "@/lib/content-pages";
+
+export async function getStaticPaths() {
+  const slugs = await getResourceSlugs();
+  return slugs.map((slug) => ({ params: { slug } }));
+}
+
+const { slug } = Astro.params as { slug: string };
+
+// build 时按 slug 取资料（getStaticPaths 只产出存在的 slug，故正常应非空；
+// 仍判 null 以防数据竞态，缺失则 404 —— 不渲染半成品页）。
+const resource = (await getResourceBySlug(slug)) as ResourceDetail | null;
+if (!resource) {
+  return Astro.redirect("/404");
+}
+
+const FALLBACK_DESCRIPTION =
+  "A Maywood Flooring resource — guidance and technical detail for timber, laminate and hybrid flooring. Contact our team for the full document.";
+
+const breadcrumbs = buildResourceBreadcrumbs(resource);
+const seo = buildResourceSeo({
+  resource,
+  fallbackDescription: FALLBACK_DESCRIPTION,
+});
+
+const showBody = hasResourceBody(resource);
+---
+
+<BaseLayout {...seo}>
+  <article class="resource">
+    <div class="resource__crumbs">
+      <Breadcrumbs items={breadcrumbs} />
+    </div>
+
+    {
+      /* Hero 渲染唯一 <h1>（资料标题）。category 作 eyebrow（无则不渲染）。
+         heroImage 缺省时 HeroImageSection 自动降级为无图的克制标题。 */
+    }
+    <HeroImageSection
+      title={resource.title}
+      eyebrow={resource.category}
+      image={resource.heroImage}
+    />
+
+    {
+      showBody ? (
+        <EditorialTextBlock>
+          <RichTextRenderer value={resource.body} />
+        </EditorialTextBlock>
+      ) : (
+        <EditorialTextBlock>
+          {/* 空 body 优雅回落：有 excerpt 则先展示，再给回 Contact / Resources 的 CTA。
+              绝不留空白页、不 lorem。 */}
+          <div class="resource__fallback">
+            {resource.excerpt ? (
+              <p class="resource__lead">{resource.excerpt}</p>
+            ) : (
+              <p class="resource__lead">
+                The full version of this resource is being prepared. For the
+                document, technical data or guidance you need, please get in
+                touch and our team will help.
+              </p>
+            )}
+            <div class="resource__actions">
+              <a class="resource__cta" href="/contact">
+                Contact our team
+              </a>
+              <a class="resource__back" href="/resources">
+                Back to all resources
+              </a>
+            </div>
+          </div>
+        </EditorialTextBlock>
+      )
+    }
+
+    {
+      /* 相关产品（解引用 relatedProducts）—— Phase 1 product 未灌入时为空，区块隐藏。 */
+      resource.relatedProducts.length > 0 && (
+        <section
+          class="resource__related"
+          aria-labelledby="resource-related-title"
+        >
+          <h2 id="resource-related-title" class="resource__related-title">
+            Related products
+          </h2>
+          <ul class="resource__related-list" role="list">
+            {resource.relatedProducts.map((p) => (
+              <li>
+                <a href={`/product-page/${p.slug}`}>{p.title}</a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )
+    }
+  </article>
+</BaseLayout>
+
+<style>
+  .resource__crumbs {
+    max-width: 80rem;
+    margin-inline: auto;
+    padding: 1.25rem clamp(1rem, 4vw, 2.5rem) 0;
+  }
+
+  /* 空 body 回落区：克制居中说明 + CTA（呼应列表页空状态 / 品牌 CTA token）。 */
+  .resource__fallback {
+    max-width: 44rem;
+    margin-inline: auto;
+    text-align: center;
+  }
+  .resource__lead {
+    margin: 0 0 1.75rem;
+    font-size: 1.0625rem;
+    line-height: 1.7;
+    color: var(--color-ink);
+  }
+  .resource__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: center;
+    align-items: center;
+  }
+  .resource__cta {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    background: var(--color-cta);
+    color: #fff;
+    border-radius: var(--radius-cta);
+    text-decoration: none;
+    font-size: 0.95rem;
+  }
+  .resource__cta:hover {
+    opacity: 0.9;
+  }
+  .resource__back {
+    color: var(--color-ink);
+    text-decoration: underline;
+    text-underline-offset: 0.18em;
+    font-size: 0.95rem;
+  }
+
+  /* 相关产品交叉链接区。 */
+  .resource__related {
+    max-width: 44rem;
+    margin-inline: auto;
+    padding: 0 clamp(1rem, 4vw, 2.5rem) var(--spacing-section);
+  }
+  .resource__related-title {
+    margin: 0 0 1rem;
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-size: clamp(1.4rem, 2.6vw, 1.85rem);
+    line-height: 1.15;
+    color: var(--color-ink);
+  }
+  .resource__related-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .resource__related-list a {
+    color: var(--color-ink);
+    text-decoration: underline;
+    text-underline-offset: 0.18em;
+  }
+</style>

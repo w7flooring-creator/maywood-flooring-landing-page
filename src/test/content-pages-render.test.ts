@@ -169,4 +169,37 @@ describe("/resources", () => {
     // 空状态文案不应出现
     expect(html).not.toContain("resource library is being prepared");
   });
+
+  it("每张卡渲染 per-card「View more」→ /resources/<slug>，aria-label 含标题", async () => {
+    const items: ResourceSummary[] = [
+      {
+        _id: "r1",
+        title: "Installation Instructions",
+        slug: "installation",
+        excerpt: null,
+        heroImage: null,
+        category: "Installation",
+        publishedAt: null,
+      },
+      {
+        _id: "r2",
+        title: "Care & Maintenance",
+        slug: "care",
+        excerpt: null,
+        heroImage: null,
+        category: "Care & Maintenance",
+        publishedAt: null,
+      },
+    ];
+    getResources.mockResolvedValue(items);
+    const html = await renderPage("/resources");
+
+    // 每条 resource 都生成指向详情路由的链接
+    expect(html).toContain('href="/resources/installation"');
+    expect(html).toContain('href="/resources/care"');
+    // 链接文案 + 区分性 aria-label（Astro 在属性里把 & 转义为 &#38;，非 &amp;）
+    expect(html).toContain("View more");
+    expect(html).toContain('aria-label="View more: Installation Instructions"');
+    expect(html).toContain('aria-label="View more: Care &#38; Maintenance"');
+  });
 });

@@ -113,6 +113,23 @@ describe("CategoryIntro.astro", () => {
     expect(html).toContain("Water-resistant options.");
     expect(html.match(/intro__para/g)?.length).toBe(2);
   });
+
+  it("icon=layers 时在标题旁渲染装饰 SVG（aria-hidden，零 JS）—— #59-#20", async () => {
+    const container = await AstroContainer.create();
+    const html = await container.renderToString(CategoryIntro, {
+      props: { title: "Laminate Flooring", description: null, icon: "layers" },
+    });
+    expect(html).toContain("intro__icon");
+    expect(html).toContain('aria-hidden="true"');
+  });
+
+  it("缺省不渲染图标（其余分类不受影响）", async () => {
+    const container = await AstroContainer.create();
+    const html = await container.renderToString(CategoryIntro, {
+      props: { title: "Engineered Flooring", description: null },
+    });
+    expect(html).not.toContain("intro__icon");
+  });
 });
 
 describe("CategorySidebar.astro —— Browse by 列出该 Category 的 Collection", () => {

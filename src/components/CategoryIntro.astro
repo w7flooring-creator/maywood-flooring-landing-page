@@ -15,9 +15,15 @@
 interface Props {
   title: string;
   description: string | null;
+  /**
+   * 标题旁的小装饰图标（lucide 标识，内联 SVG、零 JS，同 SocialLinks 惯例）。
+   * #59-#20：仅 Laminate 分类对齐 Wix 的标题小图标；缺省不渲染。
+   * 纯装饰 → aria-hidden，不参与可访问名称。
+   */
+  icon?: "layers" | null;
 }
 
-const { title, description } = Astro.props;
+const { title, description, icon = null } = Astro.props;
 
 // 把多行纯文本按空行切成段落，过滤空段；无内容则只渲染 H1。
 const paragraphs = (description ?? "")
@@ -28,7 +34,28 @@ const hasDescription = paragraphs.length > 0;
 ---
 
 <header class="intro">
-  <h1 class="intro__title">{title}</h1>
+  <h1 class="intro__title">
+    {
+      icon === "layers" && (
+        <svg
+          class="intro__icon"
+          aria-hidden="true"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          {/* lucide "layers" —— 层压板的分层结构语义。 */}
+          <path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z" />
+          <path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65" />
+          <path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65" />
+        </svg>
+      )
+    }
+    <span>{title}</span>
+  </h1>
   {
     hasDescription && (
       <div class="intro__body">
@@ -52,6 +79,16 @@ const hasDescription = paragraphs.length > 0;
     font-size: clamp(1.75rem, 4vw, 2.75rem);
     line-height: 1.1;
     color: var(--color-ink);
+    display: flex;
+    align-items: center;
+    gap: 0.4em;
+  }
+
+  /* 标题旁小装饰图标：随标题字号缩放（em），克制细线风格。 */
+  .intro__icon {
+    width: 0.72em;
+    height: 0.72em;
+    flex-shrink: 0;
   }
 
   .intro__body {

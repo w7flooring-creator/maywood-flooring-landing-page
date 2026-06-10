@@ -26,12 +26,18 @@ import {
 const PATH = "/sustainability";
 const SLUG = "sustainability";
 const FALLBACK_TITLE = "Sustainability";
+// Hero 显示 H1（Wix 主题性标题，#55/#60）。与 SEO `title`/Breadcrumbs 解耦：
+// `title`（=「Sustainability」）继续喂 SeoHead meta title 与面包屑；hero H1 用这条 editorial 标语。
+// page schema 无独立 hero 标题字段（只读不改 schema），故用常量。
+const HERO_HEADING = "The Foundation of a Sustainable Future";
 const FALLBACK_DESCRIPTION =
   "Maywood Flooring sources responsibly managed plantation timber, meets strict low-VOC and E1 emission standards, and builds engineered floors designed to last — sustainability through durability, for homes across Melbourne and Victoria.";
 
 const page = await getPageBySlug(SLUG);
 
 const title = page?.title ?? FALLBACK_TITLE;
+// hero H1 ≠ SEO title：常量 editorial 标语（schema 无对应字段，保留回落风格）。
+const heroHeading = HERO_HEADING;
 const breadcrumbs = buildContentBreadcrumbs(PATH, title);
 const seo = buildContentSeo({
   path: PATH,
@@ -81,9 +87,9 @@ const PILLARS = [
     </div>
 
     <HeroImageSection
-      title={title}
+      title={heroHeading}
       eyebrow="Sustainability"
-      intro="The foundation of a sustainable future — sustainably sourced timber, healthier homes, and floors built to last."
+      intro="Sustainably sourced timber, healthier homes, and floors built to last."
       image={page?.heroImage ?? null}
     />
 

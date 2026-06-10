@@ -5,10 +5,10 @@
  * 数据：build 时拉全部 `resource`（按 publishedAt 新→旧）。有条目则渲染卡片网格，
  * 否则降级为优雅空状态（一句符合事实的说明 + Contact CTA，绝不 lorem / 占位卡）。
  *
- * 卡片现阶段为信息卡（标题 + 分类 + 摘要 + 缩略图），不链向 resource 详情：
- * 详情路由（/resource/<slug>）不在本 issue 范围（见 #18 Scope），故不生成会 404 的链接；
- * 详情页接入后再把卡片升级为链接。SEO：唯一 title / meta description；canonical 自指。
- * 纯静态（SSG），零 client JS。
+ * 卡片为信息卡（标题 + 分类 + 摘要 + 缩略图），并带 per-card「View more」文字链接
+ * 指向资料详情页 /resources/<slug>（#67：详情路由 src/pages/resources/[slug].astro 已上线）。
+ * 每条 resource 都有 slug（schema 必填），故每卡都渲染链接。
+ * SEO：唯一 title / meta description；canonical 自指。纯静态（SSG），零 client JS。
  */
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import Breadcrumbs from "@/components/Breadcrumbs.astro";
@@ -80,6 +80,18 @@ const seo = buildContentSeo({
                   {r.excerpt && (
                     <p class="resource-card__excerpt">{r.excerpt}</p>
                   )}
+                  {/* per-card「View more」→ 资料详情页。aria-label 含资料标题，
+                      让重复的「View more」对读屏用户可区分。 */}
+                  <a
+                    class="resource-card__more"
+                    href={`/resources/${r.slug}`}
+                    aria-label={`View more: ${r.title}`}
+                  >
+                    <span>View more</span>
+                    <span class="resource-card__more-arrow" aria-hidden="true">
+                      &rarr;
+                    </span>
+                  </a>
                 </div>
               </li>
             ))}
@@ -130,7 +142,8 @@ const seo = buildContentSeo({
   }
   @media (min-width: 64rem) {
     .resources__grid {
-      grid-template-columns: repeat(3, 1fr);
+      /* 固定 8 张资源卡 → 桌面四列（2×4），无孤行，贴合 Wix 密集网格观感。 */
+      grid-template-columns: repeat(4, 1fr);
     }
   }
 
@@ -155,6 +168,9 @@ const seo = buildContentSeo({
   }
 
   .resource-card__text {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
     padding: clamp(1.25rem, 3vw, 1.75rem);
   }
 
@@ -180,6 +196,36 @@ const seo = buildContentSeo({
     font-size: 0.95rem;
     line-height: 1.6;
     color: var(--muted-foreground);
+  }
+
+  /* 克制的 editorial 文字链接 + 箭头（非按钮）。auto 顶到卡片底部对齐。 */
+  .resource-card__more {
+    margin-top: auto;
+    padding-top: 1rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    align-self: flex-start;
+    font-size: 0.85rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-ink);
+    text-decoration: none;
+  }
+  .resource-card__more span:first-child {
+    text-decoration: underline;
+    text-underline-offset: 0.22em;
+    text-decoration-thickness: 1px;
+  }
+  .resource-card__more-arrow {
+    transition: transform 0.2s ease;
+  }
+  .resource-card__more:hover .resource-card__more-arrow,
+  .resource-card__more:focus-visible .resource-card__more-arrow {
+    transform: translateX(0.2rem);
+  }
+  .resource-card__more:hover span:first-child {
+    text-decoration-thickness: 2px;
   }
 
   /* 优雅空状态：克制居中说明 + 深色圆角小 CTA（呼应品牌 CTA token）。 */

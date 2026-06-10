@@ -72,6 +72,19 @@ export const PRIMARY_NAV: readonly NavLink[] = [
   { label: "Contact", href: "/contact" },
 ] as const;
 
+/**
+ * 页脚导航 —— 在主导航基础上追加只在 footer 出现的入口（向 Wix「Quick Links」对齐）。
+ * 补 Sustainability + FAQ（#59-#4 决策：加到页脚而非主导航）；两页本就在 sitemap，
+ * 此处只解决可发现性。
+ * 注：Wix Quick Links 还含「Terms & Conditions」，但仓库当前无 /terms-and-conditions
+ * 页面（线上 404），加了会是死链 → 暂跳过，待该页存在后再补。
+ */
+export const FOOTER_NAV: readonly NavLink[] = [
+  ...PRIMARY_NAV,
+  { label: "Sustainability", href: "/sustainability" },
+  { label: "FAQs", href: "/faqs" },
+] as const;
+
 /** Sample Request CTA —— 全站 “Request a Sample” 指向专属样品申请页（见 #26）。 */
 export const SAMPLE_REQUEST = {
   label: "Request a Sample",
