@@ -7,7 +7,14 @@
  *  - 无产品：渲染克制的空态文案（不是空网格、不是 lorem）。Phase 1 product
  *    未灌入 → 恒走空态；产品就绪后网格自动「亮起」，无需改代码。
  *
- * 纯静态（零 client JS）。计数由独立的 ProductCount 组件负责（页面层组合）。
+ * 「Load More」分批显示（#19）——纯 CSS、零 client JS：
+ *  - 首屏只视觉显示前 `initialCount` 张（默认 12），其余卡片用 CSS 收起。
+ *  - 关键：所有卡片**始终在 HTML 里**（仅视觉隐藏，不从 DOM 移除），
+ *    爬虫看到全部产品（SEO）。展开由「隐藏 checkbox + label 按钮 +
+ *    :checked 兄弟选择器」驱动，键盘可操作、focus 可见。
+ *  - 产品数 ≤ initialCount 时不渲染 Load More 控件（无多余 chrome）。
+ *
+ * 计数由独立的 ProductCount 组件负责（页面层组合）。
  */
 import type { CategoryProduct } from "@/lib/category-page";
 import ProductCard from "@/components/ProductCard.astro";
@@ -16,24 +23,54 @@ interface Props {
   products: CategoryProduct[];
   /** 空态文案（产品尚未上线时显示）；可按分类定制。 */
   emptyMessage?: string;
+  /** 首屏显示的卡片数；超出部分收起到 Load More 之后。默认 12。 */
+  initialCount?: number;
 }
 
 const {
   products,
   emptyMessage = "Products in this range are coming soon. Contact us for current availability.",
+  initialCount = 12,
 } = Astro.props;
 const hasProducts = products.length > 0;
+const hasMore = products.length > initialCount;
+const hiddenCount = hasMore ? products.length - initialCount : 0;
+// checkbox/label 的 id 在页面内需唯一（同页可能不会有第二个 ProductGrid，
+// 但仍取随机后缀以防复用时碰撞）。
+const toggleId = `product-grid-more-${Math.random().toString(36).slice(2, 8)}`;
 ---
 
 {
   hasProducts ? (
-    <ul class="grid" role="list">
-      {products.map((product) => (
-        <li class="grid__item">
-          <ProductCard product={product} />
-        </li>
-      ))}
-    </ul>
+    <div class:list={["grid-wrap", hasMore && "grid-wrap--collapsible"]}>
+      {/* checkbox 的 accessible name 来自关联的 <label> 文案（随展开/收起切换），不写静态 aria-label 以免名称变陈旧。 */}
+      {hasMore && <input type="checkbox" id={toggleId} class="grid__toggle" />}
+      <ul class="grid" role="list">
+        {products.map((product, index) => (
+          <li
+            class:list={[
+              "grid__item",
+              hasMore && index >= initialCount && "grid__item--extra",
+            ]}
+          >
+            <ProductCard product={product} />
+          </li>
+        ))}
+      </ul>
+      {hasMore && (
+        <div class="grid__more">
+          <label class="grid__more-btn" for={toggleId}>
+            <span class="grid__more-label grid__more-label--collapsed">
+              Load more products
+              <span class="grid__more-count">({hiddenCount} more)</span>
+            </span>
+            <span class="grid__more-label grid__more-label--expanded">
+              Show fewer products
+            </span>
+          </label>
+        </div>
+      )}
+    </div>
   ) : (
     <p class="grid__empty">{emptyMessage}</p>
   )
@@ -61,5 +98,88 @@ const hasProducts = products.length > 0;
     font-size: 1rem;
     line-height: 1.7;
     color: #555;
+  }
+
+  /* ── Load More（纯 CSS 渐进展开，#19）─────────────────────────────
+     超出首屏的卡片始终在 HTML 里（SEO），默认仅视觉收起；勾选隐藏的
+     checkbox（由下方 label 按钮触发）即展开。 */
+
+  /* checkbox 视觉隐藏但**保留可聚焦**（不用 display:none，键盘可达）。 */
+  .grid__toggle {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    border: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  /* 默认收起超出首屏的卡片。 */
+  .grid-wrap--collapsible .grid__item--extra {
+    display: none;
+  }
+
+  /* 勾选后显示全部卡片。 */
+  .grid__toggle:checked ~ .grid .grid__item--extra {
+    display: block;
+  }
+
+  .grid__more {
+    margin-top: clamp(2rem, 4vw, 2.75rem);
+    display: flex;
+    justify-content: center;
+  }
+
+  /* 深色圆角小 CTA，复用品牌 token（呼应 SampleRequestButton）。 */
+  .grid__more-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    background: var(--color-cta);
+    color: #fff;
+    font-family: var(--font-sans);
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.7rem 1.4rem;
+    border-radius: var(--radius-cta);
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition:
+      background-color 150ms ease,
+      outline-color 150ms ease;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  .grid__more-btn:hover {
+    background: #2c2c2c;
+  }
+
+  /* focus 可见：checkbox 获焦时给关联 label 画 focus ring。 */
+  .grid__toggle:focus-visible ~ .grid__more .grid__more-btn {
+    outline: 2px solid var(--color-cta);
+    outline-offset: 2px;
+  }
+
+  .grid__more-count {
+    font-weight: 400;
+    opacity: 0.75;
+  }
+
+  /* 文案随展开/收起切换：默认显示「Load more」，勾选后显示「Show fewer」。 */
+  .grid__more-label--expanded {
+    display: none;
+  }
+  .grid__toggle:checked ~ .grid__more .grid__more-label--collapsed {
+    display: none;
+  }
+  .grid__toggle:checked ~ .grid__more .grid__more-label--expanded {
+    display: inline;
   }
 </style>

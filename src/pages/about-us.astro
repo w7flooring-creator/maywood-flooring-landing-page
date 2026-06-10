@@ -29,12 +29,18 @@ import { getFeaturedProducts } from "@/lib/category-page";
 const PATH = "/about-us";
 const SLUG = "about-us";
 const FALLBACK_TITLE = "About Us";
+// Hero 显示 H1（Wix 主题性标题，#55/#60）。与 SEO `title`/Breadcrumbs 解耦：
+// `title`（=「About Us」）继续喂 SeoHead meta title 与面包屑；hero H1 用这条 editorial 标语。
+// page schema 无独立 hero 标题字段（只读不改 schema），故用常量。
+const HERO_HEADING = "Inspiration in Every Step";
 const FALLBACK_DESCRIPTION =
   "Maywood Flooring is a premium timber flooring wholesaler in Keysborough, Melbourne — pairing decades of Australian timber expertise with precision craftsmanship for trade and homeowners across Victoria.";
 
 const page = await getPageBySlug(SLUG);
 
 const title = page?.title ?? FALLBACK_TITLE;
+// hero H1 ≠ SEO title：常量 editorial 标语（schema 无对应字段，保留回落风格）。
+const heroHeading = HERO_HEADING;
 const breadcrumbs = buildContentBreadcrumbs(PATH, title);
 const seo = buildContentSeo({
   path: PATH,
@@ -61,7 +67,7 @@ const featuredProducts = await getFeaturedProducts(8);
     </div>
 
     <HeroImageSection
-      title={title}
+      title={heroHeading}
       eyebrow="About Maywood"
       intro="See how Maywood pairs quality materials and precision craftsmanship to bring Australian homes and businesses the flooring experience they deserve."
       image={page?.heroImage ?? null}
