@@ -4,6 +4,7 @@ import {
   NAP,
   absoluteUrl,
   PRIMARY_NAV,
+  FOOTER_NAV,
   SAMPLE_REQUEST,
   SOCIAL_LINKS,
   isNavLinkActive,
@@ -99,6 +100,27 @@ describe("PRIMARY_NAV（SiteHeader / MobileNav 共用的单一来源）", () => 
 
   it("所有 href 都是站内相对路径", () => {
     for (const link of PRIMARY_NAV) {
+      expect(link.href.startsWith("/")).toBe(true);
+    }
+  });
+});
+
+describe("FOOTER_NAV（页脚导航）", () => {
+  it("在主导航基础上追加 FAQ 入口（#59-#68：加到页脚，不进主导航）", () => {
+    expect(FOOTER_NAV.map((l) => l.label)).toEqual([
+      ...PRIMARY_NAV.map((l) => l.label),
+      "FAQs",
+    ]);
+    const faqs = FOOTER_NAV.find((l) => l.label === "FAQs");
+    expect(faqs?.href).toBe("/faqs");
+  });
+
+  it("FAQ 只在页脚，不污染主导航", () => {
+    expect(PRIMARY_NAV.some((l) => l.href === "/faqs")).toBe(false);
+  });
+
+  it("所有 href 都是站内相对路径", () => {
+    for (const link of FOOTER_NAV) {
       expect(link.href.startsWith("/")).toBe(true);
     }
   });

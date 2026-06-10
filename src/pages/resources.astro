@@ -130,7 +130,8 @@ const seo = buildContentSeo({
   }
   @media (min-width: 64rem) {
     .resources__grid {
-      grid-template-columns: repeat(3, 1fr);
+      /* 固定 8 张资源卡 → 桌面四列（2×4），无孤行，贴合 Wix 密集网格观感。 */
+      grid-template-columns: repeat(4, 1fr);
     }
   }
 

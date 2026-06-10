@@ -72,6 +72,16 @@ export const PRIMARY_NAV: readonly NavLink[] = [
   { label: "Contact", href: "/contact" },
 ] as const;
 
+/**
+ * 页脚导航 —— 在主导航基础上追加只在 footer 出现的入口。
+ * 目前补 FAQ 入口（#59-#68 决策：加到页脚而非主导航）；/faqs 本就在 sitemap，
+ * 此处只解决可发现性。后续 #4（footer Quick Links 含 T&C / Sustainability）在此扩展。
+ */
+export const FOOTER_NAV: readonly NavLink[] = [
+  ...PRIMARY_NAV,
+  { label: "FAQs", href: "/faqs" },
+] as const;
+
 /** Sample Request CTA —— 全站 “Request a Sample” 指向专属样品申请页（见 #26）。 */
 export const SAMPLE_REQUEST = {
   label: "Request a Sample",
