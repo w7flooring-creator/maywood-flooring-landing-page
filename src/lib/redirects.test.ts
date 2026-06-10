@@ -42,6 +42,14 @@ describe("STATIC_REDIRECTS（ADR-0001 例外：booking-calendar 交易 funnel）
     }
   });
 
+  it("/terms-and-conditions 友好别名 → 平迁 T&C PDF（#59-#4）", () => {
+    const tc = STATIC_REDIRECTS.find((r) => r.from === "/terms-and-conditions");
+    expect(tc?.to).toBe(
+      "/_files/ugd/eb4477_7f94cfc8220f475686c517c138dc5940.pdf"
+    );
+    expect(tc?.status).toBe(301);
+  });
+
   it("含 booking-calendar 通配兜底 → /contact（无明确匹配时）", () => {
     const splat = STATIC_REDIRECTS.find(
       (r) => r.from === "/booking-calendar/*"
