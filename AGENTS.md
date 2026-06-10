@@ -300,7 +300,9 @@ apps/web/{src,public,astro.config.mjs}  apps/studio/{schemaTypes,sanity.config.t
 
 ## 仍待补充
 
-- （暂无——本轮 grill 的待确认项已全部敲定。）
+- **Sanity publish webhook 未配置**（2026-06-10 实测 `hooks` API 返回空）：编辑/seed 改动 Sanity
+  内容后**不会**自动 rebuild，需在 Cloudflare dashboard 手动 Retry build 或推 commit 触发。
+  待办：在 Cloudflare 建 Deploy Hook → 在 Sanity 配 publish webhook 指向它（见「构建 / 部署」）。
 
 ## Agent skills
 
