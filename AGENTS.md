@@ -300,9 +300,13 @@ apps/web/{src,public,astro.config.mjs}  apps/studio/{schemaTypes,sanity.config.t
 
 ## 仍待补充
 
-- **Sanity publish webhook 未配置**（2026-06-10 实测 `hooks` API 返回空）：编辑/seed 改动 Sanity
-  内容后**不会**自动 rebuild，需在 Cloudflare dashboard 手动 Retry build 或推 commit 触发。
-  待办：在 Cloudflare 建 Deploy Hook → 在 Sanity 配 publish webhook 指向它（见「构建 / 部署」）。
+- （暂无。）
+
+> ✅ 2026-06-10：Sanity publish webhook 已配置——Sanity webhook `cloudflare-rebuild`
+> （id `AH1KFCiyqByUoW8A`，on create/update/delete，`includeDrafts: false`）POST 到
+> Cloudflare Workers Builds Deploy Hook `sanity-publish`（branch `main`），发布内容即自动重建生产。
+> Deploy Hook URL 即凭证，**不入仓**——在 Cloudflare dashboard（Settings → Builds → Deploy Hooks）
+> 与 Sanity 管理界面可查。端到端已实测（投递 200 + 构建排队）。
 
 ## Agent skills
 
