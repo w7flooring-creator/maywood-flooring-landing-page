@@ -2,8 +2,10 @@
 /**
  * AtfaBadge —— ATFA（Australasian Timber Flooring Association）会员标识。
  *
- * Phase 1 用纯文本徽章（暂无官方图片资源；见 AGENTS.md「行业 badge」）。
- * 待拿到授权 logo 后可替换为图片。整体克制、editorial，非花哨徽章。
+ * 图形徽标（#59-#5）：站主自有授权素材，源自其 Wix 媒体库
+ * （eb4477_07f55deb…，含 ATFA Member + BSI ISO 9001 双标识，与 Wix 页脚一致）。
+ * 已压缩入仓：public/images/atfa-member-badge.jpg（720×169，约 38KB）。
+ * 徽标为白底 → 包在白色圆角小卡内置于黑色 footer，克制不花哨。
  */
 type Props = {
   class?: string;
@@ -13,32 +15,30 @@ const { class: className } = Astro.props;
 
 <span
   class:list={["atfa-badge", className]}
-  title="Australasian Timber Flooring Association member"
+  title="Australasian Timber Flooring Association member · ISO 9001 certified"
 >
-  <span class="atfa-badge__mark" aria-hidden="true">ATFA</span>
-  <span class="atfa-badge__text">Member</span>
+  <img
+    src="/images/atfa-member-badge.jpg"
+    alt="ATFA member — Australasian Timber Flooring Association; BSI ISO 9001 certified"
+    width="720"
+    height="169"
+    loading="lazy"
+    decoding="async"
+  />
 </span>
 
 <style>
+  /* 白色圆角小卡：徽标原图为白底，垫白卡在黑 footer 上呈现干净边界。 */
   .atfa-badge {
     display: inline-flex;
     align-items: center;
-    gap: 0.55rem;
-    padding: 0.45rem 0.8rem;
-    border: 1px solid rgba(255, 255, 255, 0.28);
+    background: #fff;
     border-radius: var(--radius-cta);
-    font-family: var(--font-sans);
-    line-height: 1;
+    padding: 0.4rem 0.6rem;
   }
-  .atfa-badge__mark {
-    font-weight: 600;
-    letter-spacing: 0.14em;
-    font-size: 0.85rem;
-  }
-  .atfa-badge__text {
-    font-size: 0.7rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    opacity: 0.75;
+  .atfa-badge img {
+    display: block;
+    width: auto;
+    height: 2.1rem;
   }
 </style>
