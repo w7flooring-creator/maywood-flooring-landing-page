@@ -50,6 +50,12 @@ const products = await getCategoryProducts(category.slug);
 
 const breadcrumbs = buildCategoryBreadcrumbs(category);
 const seo = buildCategorySeo(category);
+
+// #59-#20：标题旁小装饰图标（仅 Laminate 对齐 Wix；slug=solid-flooring 见 ADR-0001）。
+const CATEGORY_TITLE_ICONS: Record<string, "layers"> = {
+  "solid-flooring": "layers",
+};
+const titleIcon = CATEGORY_TITLE_ICONS[category.slug] ?? null;
 ---
 
 <BaseLayout {...seo}>
@@ -83,6 +89,7 @@ const seo = buildCategorySeo(category);
         <CategoryIntro
           title={category.title}
           description={category.description}
+          icon={titleIcon}
         />
         <div class="category__count">
           <ProductCount count={products.length} />
