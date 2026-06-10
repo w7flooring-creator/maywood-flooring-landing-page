@@ -8,9 +8,9 @@
  *  1. 三个分类的 intro 描述（productCategory.description）。
  *     - Laminate（solid-flooring）/ Hybrid（sustainable-flooring）用**修正后**文案，
  *       不照抄 Wix 的内容债（“solid timber” / “sustainable… managed forests”）。
- *  2. 招牌系列 tagline（productCollection.tagline）—— 仅灌入**已确认**的两条
- *     （PureGrain / Bushland，源自 #59 清单）。Manor / Bellavale 的确切 Wix 标语
- *     未确认 → 留空（卡片/落地页副标题优雅不渲染），待站主提供后另补。
+ *  2. 招牌系列 tagline（productCollection.tagline）—— 四条全部灌入。
+ *     PureGrain / Bushland 源自 #59 清单；Manor / Bellavale 于 2026-06 从 Wix
+ *     首页 Signature 卡 + 各自 collection 落地页 hero 双源核对取得（见 #13）。
  *  3. Bushland 系列叙事（productCollection.description）—— 基于**已核实事实**
  *     （Blackbutt / Spotted Gum / Herringbone 澳洲原生材、engineered 多层结构、matte 饰面）
  *     的克制 editorial 文案；不编造未核实规格（如确切 wear layer mm / 树种）。
@@ -39,10 +39,12 @@ const CATEGORY_DESCRIPTIONS: Record<string, string> = {
     "Maywood's hybrid flooring unites the water resistance of vinyl with the rigidity of laminate in a single rigid-core plank. Fully waterproof and built for heavy traffic, temperature change and everyday spills, it is engineered for the realities of Australian homes — including kitchens, laundries and other wet areas.",
 };
 
-/** 招牌系列 tagline（按 slug）。仅已确认的两条。 */
+/** 招牌系列 tagline（按 slug）。四条均经 Wix 双源核对（#13）。 */
 const COLLECTION_TAGLINES: Record<string, string> = {
   puregrain: "The Purest Expression of Timber",
   bushland: "The Essence of the Australian Landscape",
+  manor: "The Timeless Art of Geometry",
+  bellavale: "Architectural Precision & Perspective",
 };
 
 /** 系列叙事（按 slug）。基于已核实事实，避免未核实规格。 */

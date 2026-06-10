@@ -22,6 +22,12 @@ export interface ContentImage {
   alt: string | null;
 }
 
+/** 资料详情页交叉链接用的极简产品引用（解引用 relatedProducts->{title,slug}）。 */
+export interface ResourceRelatedProduct {
+  title: string;
+  slug: string;
+}
+
 /**
  * `page` 文档（通用内容页：About Us / Sustainability）的投影形状。
  * body 是 Portable Text 数组（含 block 与 image），交给 RichTextRenderer 渲染。
@@ -61,6 +67,37 @@ export interface ResourceSummary {
 }
 
 /**
+ * 单条资料**详情页**的投影形状 —— 在 ResourceSummary 基础上加可渲染正文与
+ * 交叉链接/SEO 字段。
+ *
+ * 与 ResourceSummary 同样遵循「内容尚未灌入是常态」：body 可能为空数组、
+ * relatedProducts/faqs 可能为空、seo 子字段可能为 null，全部由详情页优雅降级。
+ */
+export interface ResourceDetail {
+  _id: string;
+  title: string;
+  slug: string;
+  /** 卡片/详情开头摘要（编辑未填时为 null —— body 为空时作为回落正文）。 */
+  excerpt: string | null;
+  /** Hero 主图（未上传时为 null —— 详情 hero 回落到无图的克制标题）。 */
+  heroImage: ContentImage | null;
+  /** 分类标签（如 Installation / Care & Maintenance），缺省 null。 */
+  category: string | null;
+  /** 发布时间 ISO 字符串，缺省 null。 */
+  publishedAt: string | null;
+  /** Portable Text 正文（编辑未填时为空数组 —— 详情页回落到 excerpt + CTA）。 */
+  body: PortableTextBlock[];
+  /** 解引用的相关产品（title + slug），无引用时为空数组。 */
+  relatedProducts: ResourceRelatedProduct[];
+  /** 解引用的 FAQ（仅取问题文本，用于轻量交叉展示），无引用时为空数组。 */
+  faqs: string[];
+  /** 编辑在 seo 对象里手填的 metaTitle，缺省 null（页面回落到 title）。 */
+  seoTitle: string | null;
+  /** 编辑在 seo 对象里手填的 metaDescription，缺省 null（回落到 excerpt）。 */
+  seoDescription: string | null;
+}
+
+/**
  * body 内嵌图片的 asset 解引用投影：把每个 image 块的 asset->url 解出来，
  * 这样 RichTextRenderer 的 image 组件能直接拿到 url（生产不热链 Wix，资产在 Sanity CDN）。
  */
@@ -92,11 +129,37 @@ const RESOURCE_SUMMARY_PROJECTION = `{
   publishedAt
 }`;
 
+/**
+ * 资料详情投影：解平 slug、解引用 heroImage / body 内图片、解引用 relatedProducts
+ * 与 faqs（仅取标题/问题 + slug），摘出 seo 子字段。
+ * relatedProducts/faqs 解引用为最小投影（避免拉全文档），无引用时 GROQ 回空数组。
+ */
+const RESOURCE_DETAIL_PROJECTION = `{
+  _id,
+  title,
+  "slug": slug.current,
+  excerpt,
+  "heroImage": heroImage{ "url": asset->url, alt },
+  category,
+  publishedAt,
+  ${BODY_PROJECTION},
+  "relatedProducts": relatedProducts[]->{ title, "slug": slug.current },
+  "faqs": faqs[]->question,
+  "seoTitle": seo.metaTitle,
+  "seoDescription": seo.metaDescription
+}`;
+
 /** 按 slug 取单个 `page`（用 $slug 参数传入，防注入）。 */
 export const PAGE_BY_SLUG_QUERY = `*[_type == "page" && slug.current == $slug][0] ${PAGE_PROJECTION}`;
 
 /** 全部资料，按发布时间新→旧（无时间者沉底），同时间再按标题。 */
 export const RESOURCES_QUERY = `*[_type == "resource"] | order(publishedAt desc, title asc) ${RESOURCE_SUMMARY_PROJECTION}`;
+
+/** 按 slug 取单个 `resource` 详情（用 $slug 参数传入，防注入）。 */
+export const RESOURCE_BY_SLUG_QUERY = `*[_type == "resource" && slug.current == $slug][0] ${RESOURCE_DETAIL_PROJECTION}`;
+
+/** 全部资料的 slug（供 getStaticPaths 枚举详情路由）。剔除无 slug 的脏数据。 */
+export const RESOURCE_SLUGS_QUERY = `*[_type == "resource" && defined(slug.current)].slug.current`;
 
 /** image 投影可能返回 url 为空的对象——归一化成「有 url 才算有图」。 */
 export function normaliseContentImage(raw: unknown): ContentImage | null {
@@ -163,9 +226,61 @@ export function normaliseResourceSummary(
   };
 }
 
+/**
+ * relatedProducts 归一化：保序映射为 ResourceRelatedProduct[]，
+ * 丢弃缺 title 或 slug 的条目（草稿引用 / 未发布目标可能解出 null）。
+ */
+export function normaliseResourceRelatedProducts(
+  raw: unknown
+): ResourceRelatedProduct[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .map((item) => {
+      if (!item || typeof item !== "object") return null;
+      const { title, slug } = item as { title?: unknown; slug?: unknown };
+      const t = emptyToNull(title);
+      const s = emptyToNull(slug);
+      return t && s ? { title: t, slug: s } : null;
+    })
+    .filter((p): p is ResourceRelatedProduct => p !== null);
+}
+
+/** faqs 投影（question 文本数组）归一化：丢弃空/非字符串项。 */
+export function normaliseResourceFaqs(raw: unknown): string[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .map((item) => emptyToNull(item))
+    .filter((q): q is string => q !== null);
+}
+
+/** 归一化一条资料详情：缺字段统一收敛为 null / 空数组，页面只需判空降级。 */
+export function normaliseResourceDetail(
+  raw: Record<string, unknown>
+): ResourceDetail {
+  return {
+    _id: String(raw._id ?? ""),
+    title: String(raw.title ?? ""),
+    slug: String(raw.slug ?? ""),
+    excerpt: emptyToNull(raw.excerpt),
+    heroImage: normaliseContentImage(raw.heroImage),
+    category: emptyToNull(raw.category),
+    publishedAt: emptyToNull(raw.publishedAt),
+    body: normaliseBody(raw.body),
+    relatedProducts: normaliseResourceRelatedProducts(raw.relatedProducts),
+    faqs: normaliseResourceFaqs(raw.faqs),
+    seoTitle: emptyToNull(raw.seoTitle),
+    seoDescription: emptyToNull(raw.seoDescription),
+  };
+}
+
 /** 内容页是否有可渲染正文（body 至少一个块）。 */
 export function hasBody(page: ContentPage | null): boolean {
   return page !== null && page.body.length > 0;
+}
+
+/** 资料详情是否有可渲染正文（body 至少一个块）。 */
+export function hasResourceBody(resource: ResourceDetail | null): boolean {
+  return resource !== null && resource.body.length > 0;
 }
 
 /**
@@ -204,6 +319,41 @@ export function buildContentSeo(args: {
   };
 }
 
+/**
+ * 资料详情面包屑：Home > Resources > {资料标题}。
+ * 中间项指向 /resources 列表，末项指向资料自身（与 canonical 一致）。
+ */
+export function buildResourceBreadcrumbs(
+  resource: ResourceDetail
+): BreadcrumbItem[] {
+  return [
+    { name: "Home", url: "/" },
+    { name: "Resources", url: "/resources" },
+    { name: resource.title, url: `/resources/${resource.slug}` },
+  ];
+}
+
+/**
+ * 资料详情 SEO 输入。
+ * - title 优先用编辑填的 seo.metaTitle，否则用资料标题。
+ * - description 优先用编辑填的 seo.metaDescription，否则回落到 excerpt，
+ *   再否则回落到调用方传入的 fallbackDescription（符合事实的克制文案，不编造）。
+ * - canonical 缺省由 BaseLayout 取当前路径自指（资料详情非近重复）。
+ */
+export function buildResourceSeo(args: {
+  resource: ResourceDetail;
+  fallbackDescription: string;
+}): SeoInput {
+  const { resource, fallbackDescription } = args;
+  return {
+    title: resource.seoTitle ?? resource.title,
+    description:
+      resource.seoDescription ?? resource.excerpt ?? fallbackDescription,
+    path: `/resources/${resource.slug}`,
+    type: "article",
+  };
+}
+
 /** 取单个 `page`（build 时调用），已归一化；无文档时返回 null。 */
 export async function getPageBySlug(slug: string): Promise<ContentPage | null> {
   const raw = await getSanityClient().fetch<Record<string, unknown> | null>(
@@ -218,4 +368,27 @@ export async function getResources(): Promise<ResourceSummary[]> {
   const raw =
     await getSanityClient().fetch<Record<string, unknown>[]>(RESOURCES_QUERY);
   return (raw ?? []).map(normaliseResourceSummary);
+}
+
+/** 按 slug 取单条资料详情（build 时调用），已归一化；无文档时返回 null。 */
+export async function getResourceBySlug(
+  slug: string
+): Promise<ResourceDetail | null> {
+  const raw = await getSanityClient().fetch<Record<string, unknown> | null>(
+    RESOURCE_BY_SLUG_QUERY,
+    { slug }
+  );
+  return raw ? normaliseResourceDetail(raw) : null;
+}
+
+/**
+ * 取全部资料 slug（build 时供 getStaticPaths 枚举详情路由）。
+ * 过滤掉空/非字符串项（脏数据兜底），返回去重后的字符串数组。
+ */
+export async function getResourceSlugs(): Promise<string[]> {
+  const raw = await getSanityClient().fetch<unknown[]>(RESOURCE_SLUGS_QUERY);
+  const slugs = (raw ?? [])
+    .map((s) => emptyToNull(s))
+    .filter((s): s is string => s !== null);
+  return Array.from(new Set(slugs));
 }
