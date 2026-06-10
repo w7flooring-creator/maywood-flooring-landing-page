@@ -132,6 +132,15 @@ export const product = defineType({
       description:
         "本产品归属的品牌系列（如 Bushland）。系列须与上面的分类一致；可留空。",
     }),
+    defineField({
+      name: "extraCategories",
+      title: "附加分类 (Extra categories)",
+      type: "array",
+      of: [{ type: "reference", to: [{ type: "productCategory" }] }],
+      fieldset: "taxonomy",
+      description:
+        "除主分类外，本产品额外出现在哪些分类页（对齐 Wix 多分类归属，如 HydroCore 的 SPC Hybrid 同时在 Laminate 与 Hybrid 页，见 #59-#22）。面包屑与规范归属仍以主分类为准；一般留空。",
+    }),
 
     // ——————————————————————————— 规格参数 ———————————————————————————
     // 下面九个是产品详情页规格表字段（AGENTS.md「产品详情」），按表中顺序排列。
