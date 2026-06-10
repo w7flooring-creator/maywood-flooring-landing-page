@@ -80,11 +80,15 @@ export interface CategoryProduct {
 
 /**
  * 构造「按 Category slug 取其下已发布产品（含解析图 url）」的 GROQ。
- * product 文档 Phase 1 未灌入 → 现阶段恒返回空数组；此查询面向产品上线后预留。
  * 用 $categorySlug 参数传入，避免注入；只出已发布、有 slug 的产品，按标题升序。
+ *
+ * 归属判定为「主分类 ∪ 附加分类」：Wix 允许产品同时挂多个分类（实测
+ * blackbutt-2 / fertile-oak / spotted-gum-3 同时在 Laminate 与 Hybrid 页，
+ * 见 #59-#22）。Sanity 模型保持单一主分类（面包屑/规范归属），用可选的
+ * `extraCategories` 表达额外的店面视图归属。
  */
 export function buildCategoryProductsQuery(): string {
-  return `*[_type == "product" && status == "published" && defined(slug.current) && category->slug.current == $categorySlug] | order(title asc){
+  return `*[_type == "product" && status == "published" && defined(slug.current) && (category->slug.current == $categorySlug || $categorySlug in extraCategories[]->slug.current)] | order(title asc){
     _id,
     title,
     "slug": slug.current,
