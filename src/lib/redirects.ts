@@ -42,11 +42,18 @@ export interface RedirectDoc {
 }
 
 /**
- * 静态重定向规则 —— ADR-0001 的 booking-calendar 例外。
+ * 静态重定向规则 —— ADR-0001 的 booking-calendar 例外 + 友好别名。
  * 5 个 service slug 核对自线上 booking-services-sitemap.xml（2026-06-04）。
  * 通配兜底必须排在所有具体规则**之后**（Cloudflare 首条命中）。
  */
 export const STATIC_REDIRECTS: readonly RedirectRule[] = [
+  // 友好别名：/terms-and-conditions → 平迁的 T&C PDF（#59-#4）。
+  // PDF 按 Wix 原路径入仓（public/_files/ugd/…，保住任何旧外链），页脚链接走本别名。
+  {
+    from: "/terms-and-conditions",
+    to: "/_files/ugd/eb4477_7f94cfc8220f475686c517c138dc5940.pdf",
+    status: 301,
+  },
   // 具体 service slug → 对应 service 页（Phase 1 静态服务介绍页 + CTA）
   {
     from: "/booking-calendar/flooring-consultation",

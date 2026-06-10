@@ -111,7 +111,10 @@ describe("FOOTER_NAV（页脚导航 — 向 Wix「Quick Links」对齐）", () =
       ...PRIMARY_NAV.map((l) => l.label),
       "Sustainability",
       "FAQs",
+      "Terms & Conditions",
     ]);
+    const tc = FOOTER_NAV.find((l) => l.label === "Terms & Conditions");
+    expect(tc?.href).toBe("/terms-and-conditions");
     const faqs = FOOTER_NAV.find((l) => l.label === "FAQs");
     expect(faqs?.href).toBe("/faqs");
     const sustainability = FOOTER_NAV.find((l) => l.label === "Sustainability");
@@ -121,12 +124,6 @@ describe("FOOTER_NAV（页脚导航 — 向 Wix「Quick Links」对齐）", () =
   it("FAQ 与 Sustainability 只在页脚，不污染主导航", () => {
     expect(PRIMARY_NAV.some((l) => l.href === "/faqs")).toBe(false);
     expect(PRIMARY_NAV.some((l) => l.href === "/sustainability")).toBe(false);
-  });
-
-  it("未加 Terms & Conditions（仓库无对应页面，避免死链）", () => {
-    expect(FOOTER_NAV.some((l) => l.href === "/terms-and-conditions")).toBe(
-      false
-    );
   });
 
   it("所有 href 都是站内相对路径", () => {

@@ -6,6 +6,7 @@
 # 下方仅为例外：/booking-calendar/* 交易 funnel 不迁 → 301 到对应 service 页 / Contact。
 
 # --- 静态例外（booking-calendar，ADR-0001） ---
+/terms-and-conditions /_files/ugd/eb4477_7f94cfc8220f475686c517c138dc5940.pdf 301
 /booking-calendar/flooring-consultation /service-page/flooring-consultation 301
 /booking-calendar/flooring-consultation-1 /service-page/flooring-consultation-1 301
 /booking-calendar/sample-viewing /service-page/sample-viewing 301
