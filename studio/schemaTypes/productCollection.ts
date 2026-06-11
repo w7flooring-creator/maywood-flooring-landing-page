@@ -36,6 +36,13 @@ export const productCollection = defineType({
       validation: (rule) => rule.required().error("系列必须有 URL slug。"),
     }),
     defineField({
+      name: "legacyPath",
+      title: "历史路径 (Legacy Path)",
+      type: "string",
+      description:
+        "对应的旧 Wix URL 路径（如 /category/bushland），用于平迁保留链接与生成 redirect。",
+    }),
+    defineField({
       name: "category",
       title: "所属分类",
       type: "reference",
