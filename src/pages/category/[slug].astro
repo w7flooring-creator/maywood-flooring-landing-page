@@ -93,9 +93,15 @@ const titleIcon = CATEGORY_TITLE_ICONS[view.slug] ?? null;
       </aside>
 
       <section class="category__main" aria-label={view.title}>
+        {
+          /* Collection store 视图只渲染 H1 不渲染 description——系列营销叙事
+             属于 /<slug> 落地页（CollectionNarrative），店铺网格页保持干净；
+             description 仍参与 SEO meta 回落（buildStoreSeo）。
+             Category 视图照常渲染 intro（含 ADR-0001 内容债修正文案）。 */
+        }
         <CategoryIntro
           title={view.title}
-          description={view.description}
+          description={view.kind === "collection" ? null : view.description}
           icon={titleIcon}
         />
         <div class="category__count">
