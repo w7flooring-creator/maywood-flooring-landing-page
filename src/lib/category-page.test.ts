@@ -1,12 +1,20 @@
 import { describe, it, expect } from "vitest";
 import {
   CATEGORY_LANDINGS_QUERY,
+  COLLECTION_STORES_QUERY,
   buildCategoryProductsQuery,
+  buildCollectionStoreProductsQuery,
   normaliseCategoryLanding,
+  normaliseCollectionStoreView,
   toStaticPaths,
+  toStorePaths,
+  getStoreSidebarCategorySlug,
   buildCategoryBreadcrumbs,
   buildCategorySeo,
+  buildStoreBreadcrumbs,
+  buildStoreSeo,
   type CategoryLanding,
+  type CategoryStoreView,
 } from "@/lib/category-page";
 
 /**
@@ -217,5 +225,201 @@ describe("buildCategorySeo —— canonical 指向自身 /category/<slug>", () =
       description: "A hard-wearing laminate range.",
     });
     expect(seo.description).toBe("A hard-wearing laminate range.");
+  });
+});
+
+/* ─────────────── Collection store 视图（/category/<collection>） ─────────────── */
+
+/** 夹具：招牌 Collection（有 /<slug> 营销落地页 → canonical 反指那里）。 */
+const puregrain: CategoryStoreView = {
+  _id: "collection.puregrain",
+  title: "Puregrain",
+  slug: "puregrain",
+  description: "The purest expression of timber.",
+  heroImage: { url: "https://cdn.sanity.io/p.jpg", alt: "Puregrain floor" },
+  seoTitle: null,
+  seoDescription: null,
+  kind: "collection",
+  parentCategory: { title: "Engineered Flooring", slug: "engineered-flooring" },
+  isSignature: true,
+};
+
+/** 夹具：非招牌 Collection（无营销落地页 → canonical 指自身 store 视图）。 */
+const guardian: CategoryStoreView = {
+  _id: "collection.guardian",
+  title: "Guardian",
+  slug: "guardian",
+  description: null,
+  heroImage: null,
+  seoTitle: null,
+  seoDescription: null,
+  kind: "collection",
+  parentCategory: {
+    title: "Hybrid Flooring",
+    slug: "sustainable-flooring",
+  },
+  isSignature: false,
+};
+
+/** 夹具：Category 包成 store 视图（kind="category"，无父、非招牌）。 */
+const engineeredStore: CategoryStoreView = {
+  ...engineered,
+  kind: "category",
+  parentCategory: null,
+  isSignature: false,
+};
+
+describe("COLLECTION_STORES_QUERY —— 取全部 Collection 并投影 store 富字段", () => {
+  it("过滤 productCollection、按 sortOrder 升序、解平 slug", () => {
+    expect(COLLECTION_STORES_QUERY).toContain('_type == "productCollection"');
+    expect(COLLECTION_STORES_QUERY).toContain("order(sortOrder asc)");
+    expect(COLLECTION_STORES_QUERY).toContain('"slug": slug.current');
+  });
+
+  it("投影 isSignature 与解引用的父 Category 摘要（canonical/面包屑/侧栏所需）", () => {
+    expect(COLLECTION_STORES_QUERY).toContain("isSignature");
+    expect(COLLECTION_STORES_QUERY).toContain(
+      '"parentCategory": category->{ title, "slug": slug.current }'
+    );
+  });
+});
+
+describe("buildCollectionStoreProductsQuery —— 按 Collection 取已发布产品", () => {
+  it("按单一 collection 引用过滤（无 extraCollections 并集）、解出 mainImage url", () => {
+    const q = buildCollectionStoreProductsQuery();
+    expect(q).toContain('_type == "product"');
+    expect(q).toContain('status == "published"');
+    expect(q).toContain("collection->slug.current == $collectionSlug");
+    expect(q).not.toContain("extraCollections");
+    expect(q).toContain('"imageUrl": mainImage.asset->url');
+    expect(q).toContain("order(title asc)");
+  });
+
+  it("用 $collectionSlug 参数（防注入），不把具体值拼进字符串", () => {
+    const q = buildCollectionStoreProductsQuery();
+    expect(q).not.toMatch(/collection->slug\.current == "[^$]/);
+  });
+});
+
+describe("normaliseCollectionStoreView —— kind/父分类/招牌位归一化", () => {
+  it("标记 kind=collection、保留 isSignature、解出父 Category 摘要", () => {
+    const v = normaliseCollectionStoreView({
+      _id: "collection.puregrain",
+      title: "Puregrain",
+      slug: "puregrain",
+      isSignature: true,
+      parentCategory: {
+        title: "Engineered Flooring",
+        slug: "engineered-flooring",
+      },
+    });
+    expect(v.kind).toBe("collection");
+    expect(v.isSignature).toBe(true);
+    expect(v.parentCategory).toEqual({
+      title: "Engineered Flooring",
+      slug: "engineered-flooring",
+    });
+  });
+
+  it("缺 isSignature → false；缺/不完整父 Category → null", () => {
+    const v = normaliseCollectionStoreView({
+      _id: "x",
+      title: "X",
+      slug: "x",
+      parentCategory: { title: "Only title, no slug" },
+    });
+    expect(v.isSignature).toBe(false);
+    expect(v.parentCategory).toBeNull();
+  });
+
+  it("复用 normaliseCategoryLanding：缺内容字段收敛为 null", () => {
+    const v = normaliseCollectionStoreView({ _id: "x", title: "X", slug: "x" });
+    expect(v.description).toBeNull();
+    expect(v.heroImage).toBeNull();
+    expect(v.seoTitle).toBeNull();
+  });
+});
+
+describe("toStorePaths —— Category + Collection 统一映射为 { params, props.view }", () => {
+  it("每个 store 视图 → { params.slug, props.view }", () => {
+    const paths = toStorePaths([engineeredStore, puregrain]);
+    expect(paths).toHaveLength(2);
+    expect(paths[1]).toEqual({
+      params: { slug: "puregrain" },
+      props: { view: puregrain },
+    });
+  });
+
+  it("过滤掉缺 slug 的脏数据", () => {
+    const paths = toStorePaths([puregrain, { ...guardian, slug: "" }]);
+    expect(paths).toHaveLength(1);
+    expect(paths[0].params.slug).toBe("puregrain");
+  });
+});
+
+describe("getStoreSidebarCategorySlug —— 侧栏 Browse by 的归属 Category", () => {
+  it("Category kind 用自身 slug", () => {
+    expect(getStoreSidebarCategorySlug(engineeredStore)).toBe(
+      "engineered-flooring"
+    );
+  });
+
+  it("Collection kind 用父 Category slug（列兄弟系列）", () => {
+    expect(getStoreSidebarCategorySlug(puregrain)).toBe("engineered-flooring");
+    expect(getStoreSidebarCategorySlug(guardian)).toBe("sustainable-flooring");
+  });
+
+  it("Collection 无父 Category → 空串（侧栏不渲染）", () => {
+    expect(
+      getStoreSidebarCategorySlug({ ...puregrain, parentCategory: null })
+    ).toBe("");
+  });
+});
+
+describe("buildStoreBreadcrumbs —— Category 二级 / Collection 三级", () => {
+  it("Category：Home > {Category}（同 buildCategoryBreadcrumbs）", () => {
+    expect(buildStoreBreadcrumbs(engineeredStore)).toEqual(
+      buildCategoryBreadcrumbs(engineered)
+    );
+  });
+
+  it("Collection：Home > {父 Category} > {Collection}，父项链到 /category/<父 slug>", () => {
+    expect(buildStoreBreadcrumbs(puregrain)).toEqual([
+      { name: "Home", url: "/" },
+      { name: "Engineered Flooring", url: "/category/engineered-flooring" },
+      { name: "Puregrain", url: "/category/puregrain" },
+    ]);
+  });
+
+  it("Collection 无父 Category → 降级为 Home > {Collection}", () => {
+    const crumbs = buildStoreBreadcrumbs({
+      ...puregrain,
+      parentCategory: null,
+    });
+    expect(crumbs).toEqual([
+      { name: "Home", url: "/" },
+      { name: "Puregrain", url: "/category/puregrain" },
+    ]);
+  });
+});
+
+describe("buildStoreSeo —— 招牌 Collection canonical 反指 /<slug> 落地页", () => {
+  it("path 恒为 /category/<slug>", () => {
+    expect(buildStoreSeo(puregrain).path).toBe("/category/puregrain");
+    expect(buildStoreSeo(guardian).path).toBe("/category/guardian");
+  });
+
+  it("招牌 Collection：canonical 指向营销落地页 /<slug>（近重复，见 ADR-0001）", () => {
+    expect(buildStoreSeo(puregrain).canonical).toBe("/puregrain");
+  });
+
+  it("非招牌 Collection：无落地页 → canonical 指自身 /category/<slug>", () => {
+    expect(buildStoreSeo(guardian).canonical).toBe("/category/guardian");
+  });
+
+  it("Category：canonical 指自身（同 buildCategorySeo）", () => {
+    expect(buildStoreSeo(engineeredStore).canonical).toBe(
+      buildCategorySeo(engineered).canonical
+    );
   });
 });
