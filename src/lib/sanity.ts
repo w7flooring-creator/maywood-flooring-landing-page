@@ -19,6 +19,10 @@ export function getSanityClient(): SanityClient {
       token: token || undefined,
       // 有 token → 走 live API（apicdn 对 token 读取有缓存）；无 token → 回退 CDN。
       useCdn: !token,
+      // 只读已发布文档。缺省 perspective（raw）带 token 时会把 drafts.* 一并返回，
+      // 草稿会不确定地顶掉已发布内容混进静态构建（实测过：编辑存了未发布草稿，
+      // 生产与本地各拉到不同版本）。webhook 同样 includeDrafts: false，口径一致。
+      perspective: "published",
     });
   }
   return client;
