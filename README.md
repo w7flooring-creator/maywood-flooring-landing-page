@@ -4,10 +4,11 @@
 组件颗粒度，用 **Astro + React islands + Sanity + Cloudflare Workers（Static Assets）** 重建。这是一个
 **内容驱动的澳洲本地 SEO 获客站**（高端 timber / flooring supplier），不是 Web App。
 
-> 状态：**全部页面架构已上线**（截至 2026-06-04）。23 个 issue 已合并，CI + 自动部署运行中，生产站：
-> `https://maywood-flooring-landing-page.w7flooring.workers.dev`。首页 / 分类 / 产品 / 系列 / Contact /
-> Request-Sample / 内容页 / Gallery / Service / Projects / FAQ / sitemap / redirects 均已实现。
-> **仍待办（HITL）**：Wix 产品+图片迁移（#10/#11，分类/产品页目前空网格）、表单后端（#25）、上线 QA + DNS（#27）。
+> 状态：**内容与功能基本就绪**（截至 2026-06-10）。CI + 自动部署运行中，生产站：
+> `https://maywood-flooring-landing-page.w7flooring.workers.dev`。全部页面上线；**73 产品 + 图片已迁入
+> Sanity**（#10/#11）；**Wix 视觉对齐清单 69/69 完成**（#59）；**表单后端已上线**（#25：Worker +
+> Turnstile + Resend，过渡态收件 gmail，见 #73）；Sanity 发布自动重建（webhook → Deploy Hook）。
+> **仍待办（HITL）**：DNS 迁 Cloudflare + Resend 域名验证（#73，#27 前置）→ 上线 QA + Lighthouse + DNS 切换（#27）。
 
 ## 技术栈
 
@@ -18,8 +19,8 @@
 | CMS | [Sanity](https://www.sanity.io/)（非技术人员维护内容，public dataset 优先） |
 | 组件 | **一套开源库优先：shadcn/ui + Radix**；专项用 Embla / react-hook-form；自己写是最后手段 |
 | 样式 | 设计 token（CSS variables）单一来源 + Tailwind（随 shadcn）+ Astro scoped styles |
-| 部署 | Cloudflare Pages（prod branch `main`，preview 开启） |
-| 表单 | Cloudflare Pages Functions + Turnstile + Resend（Phase 2） |
+| 部署 | Cloudflare Workers（Static Assets，`wrangler.jsonc` 发布 `dist/`；prod branch `main`，preview 开启，见 ADR-0002） |
+| 表单 | ✅ 同 Worker 加 routes（`worker/index.ts`）+ Turnstile + Resend（#25 已上线；域名验证待 #73） |
 
 ## 文档地图
 
