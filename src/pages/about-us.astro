@@ -55,6 +55,10 @@ const showBody = hasBody(page);
 // 无图则 ImageTextSplit 自动降级为纯文字）。
 const trustedPartnerImage = page?.sectionImages[0] ?? null;
 
+// 「Pure Oak. Pure Design.」图文分栏配图（page.sectionImages[1]，仓库内景，对齐 Wix）。
+// 无图则 ImageTextSplit 自动降级为纯文字。
+const wholesaleImage = page?.sectionImages[1] ?? null;
+
 // 「Explore Our Products」轮播：跨分类精选产品（仅有图的已发布产品）。
 // Phase 1 product 未灌入 → 空数组 → 区块整体不渲染（优雅降级）。
 const featuredProducts = await getFeaturedProducts(8);
@@ -95,6 +99,8 @@ const featuredProducts = await getFeaturedProducts(8);
           <ImageTextSplit
             eyebrow="Pure Oak. Pure Design."
             heading="A wholesaler dedicated to the trade"
+            image={wholesaleImage}
+            reverse
             paragraphs={[
               "Maywood is a premier timber flooring wholesaler dedicated to supplying the finest European Oak, American Oak and Ash to the professional trade. We specialise in large-format engineered planks and bespoke parquetry that balance aesthetic elegance with structural integrity.",
               "By combining direct-to-trade distribution with uncompromising quality control, Maywood delivers the foundation for Australia's most inspired architectural spaces.",
