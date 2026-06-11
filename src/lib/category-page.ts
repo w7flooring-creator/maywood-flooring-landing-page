@@ -229,3 +229,193 @@ export async function getFeaturedProducts(
   );
   return result ?? [];
 }
+
+/* ─────────────── Collection store 视图（/category/<collection>） ───────────────
+ *
+ * Wix 把 9 个 Collection 也作为 store 分类暴露在 /category/<collection-slug>
+ * （实测线上 sitemap + CategorySidebar 的 "Browse by" 链接都指向这里）。ADR-0001
+ * 把 /category/ 列为 1:1 保留前缀，故这些 URL 必须**渲染**（不 301）。本段把
+ * Category(3) 与 Collection(9) 统一成 CategoryStoreView，让 /category/[slug] 一条
+ * 路由产出 12 页（缺这段时 Collection store 视图 404，且分类页侧栏链接全断）。
+ *
+ * 两类差异（kind 区分）：
+ *  - 面包屑：Category → Home > {Category}；Collection → Home > {父 Category} > {Collection}。
+ *  - 侧栏 "Browse by"：Category 列其下 Collection；Collection 列**同父 Category 的兄弟 Collection**。
+ *  - canonical：招牌 Collection 另有 /<slug> 营销落地页且为主版本 → canonical 指 /<slug>
+ *    （AGENTS.md：两者都留，store 视图 rel=canonical 指 /<collection>）；其余（Category、
+ *    非招牌 Collection）canonical 指自身 /category/<slug>。
+ */
+
+/** store 视图种类：材质族 Category 或品牌系列 Collection。 */
+export type StoreViewKind = "category" | "collection";
+
+/** 父 Category 摘要（Collection store 视图的面包屑 + 侧栏归属用）。 */
+export interface StoreParentCategory {
+  title: string;
+  slug: string;
+}
+
+/**
+ * /category/[slug] 统一消费的「store 视图」形状：Category 与 Collection 同构，用 kind
+ * 区分。复用 CategoryLanding 全部字段（title/description/heroImage/seo），另加 Collection
+ * 专属的 parentCategory（面包屑/侧栏）与 isSignature（canonical 决策）。
+ */
+export interface CategoryStoreView extends CategoryLanding {
+  kind: StoreViewKind;
+  /** Collection 的父 Category；Category kind 恒为 null。 */
+  parentCategory: StoreParentCategory | null;
+  /** Collection 是否招牌系列（有 /<slug> 营销落地页 → canonical 指那里）；Category kind 恒 false。 */
+  isSignature: boolean;
+}
+
+/** Collection store 投影：复用 Category 富字段 + isSignature + 解引用父 Category 摘要。 */
+const COLLECTION_STORE_PROJECTION = `{
+  _id,
+  title,
+  "slug": slug.current,
+  description,
+  "heroImage": heroImage{ "url": asset->url, alt },
+  "seoTitle": seo.metaTitle,
+  "seoDescription": seo.metaDescription,
+  isSignature,
+  "parentCategory": category->{ title, "slug": slug.current }
+}`;
+
+/** 全部 Collection（store 视图 getStaticPaths 用），按 sortOrder 升序。 */
+export const COLLECTION_STORES_QUERY = `*[_type == "productCollection"] | order(sortOrder asc) ${COLLECTION_STORE_PROJECTION}`;
+
+/**
+ * 构造「按 Collection slug 取其下已发布产品（含解析图 url）」的 GROQ。
+ * 与 buildCategoryProductsQuery 同构，但归属为单一 collection 引用——product 无
+ * extraCollections 字段（schema 仅 extraCategories），故不做并集。
+ */
+export function buildCollectionStoreProductsQuery(): string {
+  return `*[_type == "product" && status == "published" && defined(slug.current) && collection->slug.current == $collectionSlug] | order(title asc){
+    _id,
+    title,
+    "slug": slug.current,
+    "imageUrl": mainImage.asset->url
+  }`;
+}
+
+/** 父 Category 投影归一化：缺 title/slug 任一即视为无父（null）。 */
+function normaliseParentCategory(raw: unknown): StoreParentCategory | null {
+  if (!raw || typeof raw !== "object") return null;
+  const { title, slug } = raw as { title?: unknown; slug?: unknown };
+  if (typeof title !== "string" || title.length === 0) return null;
+  if (typeof slug !== "string" || slug.length === 0) return null;
+  return { title, slug };
+}
+
+/** 归一化一条 Collection store 投影为 CategoryStoreView（kind="collection"）。 */
+export function normaliseCollectionStoreView(
+  raw: Record<string, unknown>
+): CategoryStoreView {
+  return {
+    ...normaliseCategoryLanding(raw),
+    kind: "collection",
+    parentCategory: normaliseParentCategory(raw.parentCategory),
+    isSignature: raw.isSignature === true,
+  };
+}
+
+/** 把一条 Category 归一化结果包成 CategoryStoreView（kind="category"）。 */
+function categoryToStoreView(category: CategoryLanding): CategoryStoreView {
+  return {
+    ...category,
+    kind: "category",
+    parentCategory: null,
+    isSignature: false,
+  };
+}
+
+/**
+ * 取 /category/[slug] 的全部 store 视图：Category(3) + Collection(9) = 12。
+ * 两查询并发拉取再合并归一化。Category 与 Collection 的 slug 在数据上互不冲突
+ * （3 个材质 slug vs 9 个系列 slug），故可在同一动态路由共存。
+ */
+export async function getCategoryStoreViews(): Promise<CategoryStoreView[]> {
+  const client = getSanityClient();
+  const [cats, cols] = await Promise.all([
+    client.fetch<Record<string, unknown>[]>(CATEGORY_LANDINGS_QUERY),
+    client.fetch<Record<string, unknown>[]>(COLLECTION_STORES_QUERY),
+  ]);
+  return [
+    ...(cats ?? []).map(normaliseCategoryLanding).map(categoryToStoreView),
+    ...(cols ?? []).map(normaliseCollectionStoreView),
+  ];
+}
+
+/**
+ * 由 store 视图列表生成 getStaticPaths 数组。纯映射（不触网），便于单测：
+ * 每个 → { params: { slug }, props: { view } }；过滤缺 slug 的脏数据。
+ */
+export function toStorePaths(views: CategoryStoreView[]): Array<{
+  params: { slug: string };
+  props: { view: CategoryStoreView };
+}> {
+  return views
+    .filter((v) => v.slug.length > 0)
+    .map((view) => ({ params: { slug: view.slug }, props: { view } }));
+}
+
+/**
+ * 侧栏 "Browse by" 取哪个 Category 的 Collection 列表：
+ * Category kind 用自身 slug；Collection kind 用父 Category slug（列兄弟系列）。
+ * 无父时返回 ""（getCollectionsByCategory("") 取不到 → 侧栏整块不渲染）。
+ */
+export function getStoreSidebarCategorySlug(view: CategoryStoreView): string {
+  if (view.kind === "collection") return view.parentCategory?.slug ?? "";
+  return view.slug;
+}
+
+/** 取某 store 视图的产品（含解析图 url）：按 kind 选 Category / Collection 查询。 */
+export async function getStoreProducts(
+  view: CategoryStoreView
+): Promise<CategoryProduct[]> {
+  if (view.kind === "collection") {
+    const result = await getSanityClient().fetch<CategoryProduct[]>(
+      buildCollectionStoreProductsQuery(),
+      { collectionSlug: view.slug }
+    );
+    return result ?? [];
+  }
+  return getCategoryProducts(view.slug);
+}
+
+/**
+ * store 视图面包屑：
+ *  - Category：Home > {Category}（复用 buildCategoryBreadcrumbs）。
+ *  - Collection：Home > {父 Category} > {Collection}（父项链到 /category/<父 slug>）；
+ *    无父 Category 时降级为 Home > {Collection}。
+ */
+export function buildStoreBreadcrumbs(
+  view: CategoryStoreView
+): BreadcrumbItem[] {
+  if (view.kind === "collection" && view.parentCategory) {
+    return [
+      { name: "Home", url: "/" },
+      {
+        name: view.parentCategory.title,
+        url: `/category/${view.parentCategory.slug}`,
+      },
+      { name: view.title, url: `/category/${view.slug}` },
+    ];
+  }
+  return buildCategoryBreadcrumbs(view);
+}
+
+/**
+ * store 视图 SEO：
+ *  - path 恒为 /category/<slug>。
+ *  - canonical：招牌 Collection → /<slug>（营销落地页为主版本，见 ADR-0001 / AGENTS.md）；
+ *    Category 与非招牌 Collection → 自身 /category/<slug>。
+ *  - title/description 复用 buildCategorySeo 的回落逻辑。
+ */
+export function buildStoreSeo(view: CategoryStoreView): SeoInput {
+  const base = buildCategorySeo(view);
+  if (view.kind === "collection" && view.isSignature) {
+    return { ...base, canonical: `/${view.slug}` };
+  }
+  return base;
+}

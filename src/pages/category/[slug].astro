@@ -1,19 +1,23 @@
 ---
 /**
- * /category/[slug] —— Category store 视图（3 个分类：engineered / Laminate / Hybrid）。
+ * /category/[slug] —— store 视图：Category(3) + Collection(9) = 12 页。
  *
- * getStaticPaths 从 getCategoryLandings() 取全部 Category，生成 3 条路由。其中两个
- * slug 与展示名不符（solid-flooring=Laminate、sustainable-flooring=Hybrid）——故意
- * 保留 Wix 历史值（ADR-0001），展示名取 Sanity category.title，不在代码里硬编码。
+ * getStaticPaths 从 getCategoryStoreViews() 取「3 个材质 Category + 9 个品牌 Collection」
+ * 统一成 CategoryStoreView，一条路由产出 12 条。Wix 把 Collection 也暴露在
+ * /category/<collection-slug>（如 /category/puregrain），ADR-0001 把 /category/ 列为
+ * 1:1 保留前缀 → 必须渲染、不 301。漏掉 Collection 时这些 URL 404、且分类页侧栏
+ * "Browse by" 链接全断。
+ *
+ * 两个 Category slug 与展示名不符（solid-flooring=Laminate、sustainable-flooring=Hybrid）
+ * ——故意保留 Wix 历史值（ADR-0001），展示名取 Sanity title，不在代码里硬编码。
  *
  * 本地匿名读 dataset 返回空 → getStaticPaths 产 0 页，build 0 页，属预期
- * （CI/prod 有 SANITY_API_READ_TOKEN → 拉到 3 个分类生成 3 页，见 ADR-0003）。
- * 因此正确性由单测 + Astro Container 渲染测试（mock 数据）保证，而非本地页数。
+ * （CI/prod 有 SANITY_API_READ_TOKEN → 拉到 12 个 store 视图生成 12 页，见 ADR-0003）。
+ * 正确性由单测（纯逻辑：路径/面包屑/canonical）+ mock 渲染保证，而非本地页数。
  *
- * 内容债修复：intro 文案来自 Sanity category.description（编辑可改成与实际材质相符），
- * 不在代码里硬编码材质措辞。product 文档 Phase 1 未灌入 → 计数 0、网格走空态。
- *
- * canonical 指向自身 /category/<slug>（分类是 store 视图，无独立营销落地页）。纯静态。
+ * intro 文案来自 Sanity description（编辑可改成与实际材质/系列相符），不硬编码措辞。
+ * canonical：Category 与非招牌 Collection 指自身 /category/<slug>；招牌 Collection 指
+ * 其营销落地页 /<slug>（两者近重复，见 buildStoreSeo / ADR-0001）。纯静态。
  */
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import Breadcrumbs from "@/components/Breadcrumbs.astro";
@@ -23,39 +27,42 @@ import CategorySidebar from "@/components/CategorySidebar.astro";
 import ProductCount from "@/components/ProductCount.astro";
 import ProductGrid from "@/components/ProductGrid.astro";
 import {
-  getCategoryLandings,
-  getCategoryProducts,
-  toStaticPaths,
-  buildCategoryBreadcrumbs,
-  buildCategorySeo,
-  type CategoryLanding,
+  getCategoryStoreViews,
+  toStorePaths,
+  getStoreProducts,
+  getStoreSidebarCategorySlug,
+  buildStoreBreadcrumbs,
+  buildStoreSeo,
+  type CategoryStoreView,
 } from "@/lib/category-page";
 import { getCollectionsByCategory } from "@/lib/taxonomy";
 
 export async function getStaticPaths() {
-  const categories = await getCategoryLandings();
-  return toStaticPaths(categories);
+  const views = await getCategoryStoreViews();
+  return toStorePaths(views);
 }
 
 interface Props {
-  category: CategoryLanding;
+  view: CategoryStoreView;
 }
 
-const { category } = Astro.props as Props;
+const { view } = Astro.props as Props;
 
-// 侧栏 Collection 与产品网格 build 时拉取。
-// product 未灌入 → products 恒空（计数 0 + 网格空态）。
-const collections = await getCollectionsByCategory(category.slug);
-const products = await getCategoryProducts(category.slug);
+// 侧栏 "Browse by"：Category 列其下 Collection；Collection 列同父 Category 的兄弟系列。
+// 产品网格按 kind 取数（Category 含 extraCategories 并集；Collection 按单一 collection 引用）。
+const collections = await getCollectionsByCategory(
+  getStoreSidebarCategorySlug(view)
+);
+const products = await getStoreProducts(view);
 
-const breadcrumbs = buildCategoryBreadcrumbs(category);
-const seo = buildCategorySeo(category);
+const breadcrumbs = buildStoreBreadcrumbs(view);
+const seo = buildStoreSeo(view);
 
 // #59-#20：标题旁小装饰图标（仅 Laminate 对齐 Wix；slug=solid-flooring 见 ADR-0001）。
 const CATEGORY_TITLE_ICONS: Record<string, "layers"> = {
   "solid-flooring": "layers",
 };
-const titleIcon = CATEGORY_TITLE_ICONS[category.slug] ?? null;
+const titleIcon = CATEGORY_TITLE_ICONS[view.slug] ?? null;
 ---
 
 <BaseLayout {...seo}>
@@ -71,11 +78,11 @@ const titleIcon = CATEGORY_TITLE_ICONS[category.slug] ?? null;
       /* 仅在有 heroImage 时渲染宽幅 hero（对齐 Wix：无图分类页是纯文字块，
          不放 muted 占位带；标题统一由下方 CategoryIntro 的 H1 承担，避免重复标题。
          #59 对齐项）。配图入库后此 hero 自动出现。 */
-      category.heroImage?.url && (
+      view.heroImage?.url && (
         <CategoryHero
-          title={category.title}
+          title={view.title}
           eyebrow="Products"
-          image={category.heroImage}
+          image={view.heroImage}
         />
       )
     }
@@ -85,10 +92,10 @@ const titleIcon = CATEGORY_TITLE_ICONS[category.slug] ?? null;
         <CategorySidebar collections={collections} />
       </aside>
 
-      <section class="category__main" aria-label={category.title}>
+      <section class="category__main" aria-label={view.title}>
         <CategoryIntro
-          title={category.title}
-          description={category.description}
+          title={view.title}
+          description={view.description}
           icon={titleIcon}
         />
         <div class="category__count">
