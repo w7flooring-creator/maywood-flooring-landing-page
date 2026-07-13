@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { experimental_AstroContainer as AstroContainer } from "astro/container";
 import { loadRenderers } from "astro:container";
-import { getContainerRenderer } from "@astrojs/react";
+import { getContainerRenderer } from "@astrojs/react/container-renderer";
 import type { ContentPage, ResourceSummary } from "@/lib/content-pages";
 
 /**
@@ -197,9 +197,9 @@ describe("/resources", () => {
     // 每条 resource 都生成指向详情路由的链接
     expect(html).toContain('href="/resources/installation"');
     expect(html).toContain('href="/resources/care"');
-    // 链接文案 + 区分性 aria-label（Astro 在属性里把 & 转义为 &#38;，非 &amp;）
+    // 链接文案 + 区分性 aria-label（Astro 7 在属性里把 & 转义为 &amp;）
     expect(html).toContain("View more");
     expect(html).toContain('aria-label="View more: Installation Instructions"');
-    expect(html).toContain('aria-label="View more: Care &#38; Maintenance"');
+    expect(html).toContain('aria-label="View more: Care &amp; Maintenance"');
   });
 });
