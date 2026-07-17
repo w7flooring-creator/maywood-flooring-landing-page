@@ -237,6 +237,17 @@ describe("buildCategorySeo —— canonical 指向自身 /category/<slug>", () =
       "Water-resistant laminate flooring for Melbourne homes."
     );
   });
+
+  it("seoDescription 与 description 都是过短占位时，改用完整回落文案", () => {
+    const seo = buildCategorySeo({
+      ...laminate,
+      description: "Maywood",
+      seoDescription: "Maywood",
+    });
+    expect(seo.description).not.toBe("Maywood");
+    expect(seo.description).toContain("Laminate Flooring");
+    expect(seo.description).toContain("Maywood Flooring");
+  });
 });
 
 /* ─────────────── Collection store 视图（/category/<collection>） ─────────────── */

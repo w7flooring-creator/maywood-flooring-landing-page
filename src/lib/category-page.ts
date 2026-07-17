@@ -173,9 +173,13 @@ export function buildCategorySeo(category: CategoryLanding): SeoInput {
     category.seoDescription && category.seoDescription.length >= 20
       ? category.seoDescription
       : null;
+  const usefulDescription =
+    category.description && category.description.length >= 20
+      ? category.description
+      : null;
   const description =
     usefulSeoDescription ??
-    category.description ??
+    usefulDescription ??
     `${category.title} from Maywood Flooring — browse our range, supplied to trade, wholesale and homeowners across Melbourne and Victoria.`;
   return {
     title,
