@@ -39,6 +39,8 @@ export interface Env {
 }
 
 const DEFAULT_FROM = "Maywood Flooring <onboarding@resend.dev>";
+const APEX_HOSTNAME = "maywoodflooring.com.au";
+const CANONICAL_HOSTNAME = "www.maywoodflooring.com.au";
 const TURNSTILE_VERIFY_URL =
   "https://challenges.cloudflare.com/turnstile/v0/siteverify";
 const RESEND_API_URL = "https://api.resend.com/emails";
@@ -190,6 +192,13 @@ async function handleSubmission(
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
+
+    // 正式根域只保留为 canonical 跳转入口；308 保留 method/body/query，避免
+    // 误从根域提交表单时把 POST 降成 GET。workers.dev / preview host 不受影响。
+    if (url.hostname === APEX_HOSTNAME) {
+      url.hostname = CANONICAL_HOSTNAME;
+      return Response.redirect(url, 308);
+    }
 
     if (request.method === "POST" && url.pathname === "/api/contact") {
       return handleSubmission(request, env, "contact");
