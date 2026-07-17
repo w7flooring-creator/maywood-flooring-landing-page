@@ -34,7 +34,8 @@ const hasImage = imageUrl !== null;
         class="hero__bg"
         src={sanityImageUrl(imageUrl, { width: 1440 })}
         srcset={
-          sanityImageSrcset(imageUrl, [768, 1080, 1440, 1920]) || undefined
+          sanityImageSrcset(imageUrl, [480, 640, 768, 1080, 1440, 1920]) ||
+          undefined
         }
         sizes="100vw"
         alt={imageAlt}
@@ -52,7 +53,9 @@ const hasImage = imageUrl !== null;
       class="hero__cta"
       href={HOME_HERO.cta.href}
       aria-label={`${HOME_HERO.cta.label} about Maywood Flooring`}
-      >{HOME_HERO.cta.label}</a
+      >{HOME_HERO.cta.label}<span class="sr-only">
+        about Maywood Flooring</span
+      ></a
     >
   </div>
 </section>

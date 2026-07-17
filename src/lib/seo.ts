@@ -57,12 +57,28 @@ function composeTitle(title: string | undefined): string {
 }
 
 /**
+ * CMS 正文可能带换行或整段长文；meta description 统一为单行并收敛到
+ * 搜索摘要常用长度，避免把数百字符内容直接塞进 `<meta>`。
+ */
+function normaliseMetaDescription(description: string): string {
+  const singleLine = description.replace(/\s+/g, " ").trim();
+  if (singleLine.length <= 160) return singleLine;
+
+  const shortened = singleLine.slice(0, 157);
+  const lastSpace = shortened.lastIndexOf(" ");
+  const boundary = lastSpace >= 120 ? lastSpace : shortened.length;
+  return `${shortened.slice(0, boundary).replace(/[\s,;:.-]+$/, "")}…`;
+}
+
+/**
  * 从 props + 站点默认值解析出每页唯一的 meta/OG。
  * 设计为「缺字段不报错」：除 `path` 外全部可省，未提供即回落到站点级默认。
  */
 export function resolveSeoMeta(input: SeoInput): ResolvedSeoMeta {
   const title = composeTitle(input.title);
-  const description = input.description?.trim() || SITE.defaultDescription;
+  const description = normaliseMetaDescription(
+    input.description?.trim() || SITE.defaultDescription
+  );
   const canonical = input.canonical
     ? absoluteUrl(input.canonical)
     : absoluteUrl(input.path);

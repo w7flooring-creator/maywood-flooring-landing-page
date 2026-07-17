@@ -168,9 +168,18 @@ export function buildCategoryBreadcrumbs(
 export function buildCategorySeo(category: CategoryLanding): SeoInput {
   const path = `/category/${category.slug}`;
   const title = category.seoTitle ?? category.title;
+  // 既存数据中曾出现仅 "Maywood" 的占位描述；过短值不应压过完整回落文案。
+  const usefulSeoDescription =
+    category.seoDescription && category.seoDescription.length >= 20
+      ? category.seoDescription
+      : null;
+  const usefulDescription =
+    category.description && category.description.length >= 20
+      ? category.description
+      : null;
   const description =
-    category.seoDescription ??
-    category.description ??
+    usefulSeoDescription ??
+    usefulDescription ??
     `${category.title} from Maywood Flooring — browse our range, supplied to trade, wholesale and homeowners across Melbourne and Victoria.`;
   return {
     title,
@@ -410,12 +419,18 @@ export function buildStoreBreadcrumbs(
  *  - path 恒为 /category/<slug>。
  *  - canonical：招牌 Collection → /<slug>（营销落地页为主版本，见 ADR-0001 / AGENTS.md）；
  *    Category 与非招牌 Collection → 自身 /category/<slug>。
- *  - title/description 复用 buildCategorySeo 的回落逻辑。
+ *  - Collection store 使用独立的产品浏览 title/description，避免和营销落地页重复。
+ *  - Category 复用 buildCategorySeo 的回落逻辑。
  */
 export function buildStoreSeo(view: CategoryStoreView): SeoInput {
   const base = buildCategorySeo(view);
-  if (view.kind === "collection" && view.isSignature) {
-    return { ...base, canonical: `/${view.slug}` };
+  if (view.kind === "collection") {
+    return {
+      ...base,
+      title: `${view.seoTitle ?? view.title} Flooring Products`,
+      description: `Browse ${view.title} flooring products from Maywood Flooring, supplied to trade, wholesale and homeowners across Melbourne and Victoria.`,
+      canonical: view.isSignature ? `/${view.slug}` : base.canonical,
+    };
   }
   return base;
 }

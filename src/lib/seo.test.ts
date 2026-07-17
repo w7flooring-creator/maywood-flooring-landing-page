@@ -70,6 +70,17 @@ describe("resolveSeoMeta — 从 props + 默认值解析每页 meta/OG", () => {
     const meta = resolveSeoMeta({ path: "/" });
     expect(meta.title).toBe("Maywood Flooring");
   });
+
+  it("长 description 收敛为单行且不超过 160 字符", () => {
+    const meta = resolveSeoMeta({
+      path: "/long",
+      description: `${"A detailed timber flooring description ".repeat(8)}\nSecond paragraph.`,
+    });
+    expect(meta.description).not.toContain("\n");
+    expect(meta.description.length).toBeLessThanOrEqual(160);
+    expect(meta.description.endsWith("…")).toBe(true);
+    expect(meta.ogDescription).toBe(meta.description);
+  });
 });
 
 describe("buildLocalBusinessJsonLd — 站点级 NAP 结构化数据", () => {

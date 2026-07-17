@@ -67,6 +67,7 @@ describe("HomeHero.astro", () => {
     // CTA 锚点指向配置 href
     expect(html).toContain(`href="${HOME_HERO.cta.href}"`);
     expect(html).toContain(HOME_HERO.cta.label);
+    expect(html).toContain("about Maywood Flooring");
   });
 
   it("无图时不输出 <img>（优雅降级到 muted 背景）", async () => {
@@ -168,6 +169,17 @@ describe("SilentFoundationSection.astro", () => {
     expect(html).toContain(SILENT_FOUNDATION.paragraphs[0]);
     expect(html).toContain("<h2");
     expect(html).not.toContain("<h1");
+  });
+
+  it("品牌标记图输出固有尺寸，避免布局偏移", async () => {
+    const container = await AstroContainer.create();
+    const html = await container.renderToString(SilentFoundationSection, {
+      props: {
+        image: { url: "https://cdn.sanity.io/silent.jpg", alt: "Forest" },
+      },
+    });
+    expect(html).toContain('width="521"');
+    expect(html).toContain('height="422"');
   });
 });
 

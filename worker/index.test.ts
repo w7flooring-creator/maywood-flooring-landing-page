@@ -40,7 +40,7 @@ function makeEnv(overrides: Partial<Env> = {}): Env {
 }
 
 function postRequest(path: string, body: unknown): Request {
-  return new Request(`https://maywoodflooring.com.au${path}`, {
+  return new Request(`https://www.maywoodflooring.com.au${path}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -223,7 +223,7 @@ describe("worker —— /api/sample", () => {
 describe("worker —— 静态资源透传", () => {
   it("非 API 请求交给 env.ASSETS.fetch", async () => {
     const env = makeEnv();
-    const req = new Request("https://maywoodflooring.com.au/contact");
+    const req = new Request("https://www.maywoodflooring.com.au/contact");
     const res = await worker.fetch(req, env);
     expect(env.ASSETS.fetch).toHaveBeenCalledWith(req);
     expect(await res.text()).toBe("STATIC");
@@ -231,19 +231,46 @@ describe("worker —— 静态资源透传", () => {
 
   it("GET /api/contact（非 POST）也透传 ASSETS（不当作提交）", async () => {
     const env = makeEnv();
-    const req = new Request("https://maywoodflooring.com.au/api/contact");
+    const req = new Request("https://www.maywoodflooring.com.au/api/contact");
     await worker.fetch(req, env);
     expect(env.ASSETS.fetch).toHaveBeenCalledWith(req);
   });
 
   it("无效 JSON body → 400", async () => {
     stubFetch({});
-    const req = new Request("https://maywoodflooring.com.au/api/contact", {
+    const req = new Request("https://www.maywoodflooring.com.au/api/contact", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: "{not json",
     });
     const res = await worker.fetch(req, makeEnv());
     expect(res.status).toBe(400);
+  });
+});
+
+describe("worker —— canonical host", () => {
+  it("根域以 308 跳到 www，并保留 path 与 query", async () => {
+    const env = makeEnv();
+    const req = new Request(
+      "https://maywoodflooring.com.au/product-page/spotted-gum?source=legacy"
+    );
+    const res = await worker.fetch(req, env);
+
+    expect(res.status).toBe(308);
+    expect(res.headers.get("location")).toBe(
+      "https://www.maywoodflooring.com.au/product-page/spotted-gum?source=legacy"
+    );
+    expect(env.ASSETS.fetch).not.toHaveBeenCalled();
+  });
+
+  it("workers.dev / preview hostname 不重定向", async () => {
+    const env = makeEnv();
+    const req = new Request(
+      "https://codex-launch-qa-maywood-flooring-landing-page.w7flooring.workers.dev/contact"
+    );
+    const res = await worker.fetch(req, env);
+
+    expect(res.status).toBe(200);
+    expect(env.ASSETS.fetch).toHaveBeenCalledWith(req);
   });
 });

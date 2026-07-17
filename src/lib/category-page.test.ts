@@ -226,6 +226,28 @@ describe("buildCategorySeo —— canonical 指向自身 /category/<slug>", () =
     });
     expect(seo.description).toBe("A hard-wearing laminate range.");
   });
+
+  it("忽略过短的占位 seoDescription，改用完整分类描述", () => {
+    const seo = buildCategorySeo({
+      ...laminate,
+      description: "Water-resistant laminate flooring for Melbourne homes.",
+      seoDescription: "Maywood",
+    });
+    expect(seo.description).toBe(
+      "Water-resistant laminate flooring for Melbourne homes."
+    );
+  });
+
+  it("seoDescription 与 description 都是过短占位时，改用完整回落文案", () => {
+    const seo = buildCategorySeo({
+      ...laminate,
+      description: "Maywood",
+      seoDescription: "Maywood",
+    });
+    expect(seo.description).not.toBe("Maywood");
+    expect(seo.description).toContain("Laminate Flooring");
+    expect(seo.description).toContain("Maywood Flooring");
+  });
 });
 
 /* ─────────────── Collection store 视图（/category/<collection>） ─────────────── */
@@ -421,5 +443,11 @@ describe("buildStoreSeo —— 招牌 Collection canonical 反指 /<slug> 落地
     expect(buildStoreSeo(engineeredStore).canonical).toBe(
       buildCategorySeo(engineered).canonical
     );
+  });
+
+  it("Collection store 使用与营销落地页不同的 title / description", () => {
+    const seo = buildStoreSeo(puregrain);
+    expect(seo.title).toContain("Flooring Products");
+    expect(seo.description).toContain("Browse Puregrain flooring products");
   });
 });

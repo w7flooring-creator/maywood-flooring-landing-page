@@ -260,17 +260,36 @@ export function buildProductBreadcrumbs(
 /**
  * 详情页 SEO 输入。
  * - canonical 指向自身 /product-page/<slug>（产品页是唯一主版本）。
- * - title/description 优先用编辑填的 seo 字段，否则回落到产品名 / shortDescription，
- *   再不行给一句符合事实的克制描述（不编造营销长文）。
+ * - title/description 优先用编辑填的 seo 字段，否则用产品名 + Collection + Type
+ *   组成可区分同名产品的克制回落文案（不编造营销长文）。
  * - type=product，供 og:type。
  */
 export function buildProductSeo(product: ProductDetail): SeoInput {
   const path = productPath(product.slug);
-  const title = product.seoTitle ?? product.title;
+  const taxonomyTitle = [product.title, product.collection?.title, product.type]
+    .filter((part): part is string => Boolean(part))
+    .join(" — ");
+  const title = product.seoTitle ?? taxonomyTitle;
+  const fallbackContext = [
+    `Explore ${product.title}`,
+    product.collection
+      ? `from the ${product.collection.title} collection`
+      : null,
+    product.type
+      ? `— ${product.type}`
+      : product.category
+        ? `— ${product.category.title}`
+        : null,
+  ]
+    .filter((part): part is string => Boolean(part))
+    .join(" ");
+  const extraDescription =
+    product.shortDescription && product.shortDescription !== product.type
+      ? ` ${product.shortDescription.replace(/[.!?]+$/, "")}.`
+      : "";
   const description =
     product.seoDescription ??
-    product.shortDescription ??
-    `${product.title} — ${product.category?.title ?? "premium"} flooring from Maywood Flooring, Melbourne.`;
+    `${fallbackContext.replace(/[.!?]+$/, "")}.${extraDescription} Available from Maywood Flooring in Melbourne.`;
   return {
     title,
     description,
