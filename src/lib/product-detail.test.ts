@@ -181,14 +181,16 @@ describe("buildProductBreadcrumbs", () => {
 });
 
 describe("buildProductSeo", () => {
-  it("canonical 指向自身，type=product，回落到 shortDescription", () => {
+  it("canonical 指向自身，type=product，回落描述包含产品上下文", () => {
     const seo = buildProductSeo(
       mockProduct({ shortDescription: "Warm Australian hardwood." })
     );
     expect(seo.path).toBe("/product-page/blackbutt");
     expect(seo.canonical).toBe("/product-page/blackbutt");
     expect(seo.type).toBe("product");
-    expect(seo.description).toBe("Warm Australian hardwood.");
+    expect(seo.description).toContain("Blackbutt");
+    expect(seo.description).toContain("Bushland");
+    expect(seo.description).toContain("Warm Australian hardwood.");
   });
 
   it("优先用编辑填的 seo 字段；无图无描述时给克制回落", () => {
@@ -201,6 +203,21 @@ describe("buildProductSeo", () => {
     const fallback = buildProductSeo(mockProduct());
     expect(fallback.description).toContain("Engineered Flooring");
     expect(fallback.description).toContain("Maywood Flooring");
+  });
+
+  it("同名产品的回落 title / description 带 Collection 与 Type，避免 SEO 重复", () => {
+    const seo = buildProductSeo(
+      mockProduct({
+        title: "Spotted Gum",
+        collection: { title: "HydroCore", slug: "hydrocore" },
+        type: "SPC Hybrid Flooring",
+        shortDescription: "SPC Hybrid Flooring",
+      })
+    );
+    expect(seo.title).toBe("Spotted Gum — HydroCore — SPC Hybrid Flooring");
+    expect(seo.description).toContain("Spotted Gum");
+    expect(seo.description).toContain("HydroCore");
+    expect(seo.description).toContain("SPC Hybrid Flooring");
   });
 });
 

@@ -32,6 +32,8 @@ const hasImage = image?.url != null && image.url.length > 0;
           srcset={sanityImageSrcset(image!.url, [320, 521, 640]) || undefined}
           sizes="(min-width: 40rem) 521px, 80vw"
           alt={image!.alt ?? ""}
+          width="521"
+          height="422"
           loading="lazy"
           decoding="async"
         />

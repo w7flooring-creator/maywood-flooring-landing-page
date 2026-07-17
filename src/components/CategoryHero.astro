@@ -33,7 +33,8 @@ const altText = image?.alt ?? "";
         class="hero__bg"
         src={sanityImageUrl(image!.url, { width: 1440 })}
         srcset={
-          sanityImageSrcset(image!.url, [768, 1080, 1440, 1920]) || undefined
+          sanityImageSrcset(image!.url, [480, 640, 768, 1080, 1440, 1920]) ||
+          undefined
         }
         sizes="100vw"
         alt={altText}
@@ -92,6 +93,6 @@ const altText = image?.alt ?? "";
     font-size: 0.8rem;
     letter-spacing: 0.18em;
     text-transform: uppercase;
-    color: #777;
+    color: var(--muted-foreground);
   }
 </style>

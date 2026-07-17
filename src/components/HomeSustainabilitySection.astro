@@ -31,7 +31,11 @@ const hasImage = image !== null;
       <div class="sustain__body">
         {paragraphs.map((para) => <p class="sustain__para">{para}</p>)}
       </div>
-      <a class="sustain__cta" href={cta.href}>{cta.label}</a>
+      <a class="sustain__cta" href={cta.href}
+        >{cta.label}<span class="sr-only">
+          about Maywood sustainability</span
+        ></a
+      >
     </div>
     {
       hasImage && (

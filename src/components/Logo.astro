@@ -21,16 +21,37 @@ type Props = {
 const { size = "sm", href = "/", class: className } = Astro.props;
 const sizeClass = size === "lg" ? "logo--lg" : "logo--sm";
 const alt = `${SITE.name} — home`;
+const widths = size === "lg" ? [320, 480, 602] : [106, 160, 212];
+const sizes =
+  size === "lg"
+    ? "(min-width: 60rem) 384px, 80vw"
+    : "(min-width: 60rem) 120px, 106px";
 ---
 
 {
   href ? (
     <a class:list={["logo", sizeClass, className]} href={href} aria-label={alt}>
-      <Image src={logoSrc} alt={alt} class="logo__img" loading="eager" />
+      <Image
+        src={logoSrc}
+        alt={alt}
+        class="logo__img"
+        widths={widths}
+        sizes={sizes}
+        quality={70}
+        loading="eager"
+      />
     </a>
   ) : (
     <span class:list={["logo", sizeClass, className]}>
-      <Image src={logoSrc} alt={SITE.name} class="logo__img" loading="eager" />
+      <Image
+        src={logoSrc}
+        alt={SITE.name}
+        class="logo__img"
+        widths={widths}
+        sizes={sizes}
+        quality={70}
+        loading="eager"
+      />
     </span>
   )
 }
