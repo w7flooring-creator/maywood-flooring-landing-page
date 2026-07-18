@@ -304,12 +304,13 @@ export function buildProductSeo(product: ProductDetail): SeoInput {
 export interface ProductJsonLd {
   "@context": "https://schema.org";
   "@type": "Product";
+  "@id": string;
   name: string;
   url: string;
   description?: string;
   image?: string[];
   category?: string;
-  brand: { "@type": "Brand"; name: string };
+  brand: { "@type": "Organization"; "@id": string; name: string };
 }
 
 /**
@@ -325,9 +326,14 @@ export function buildProductJsonLd(product: ProductDetail): ProductJsonLd {
   const jsonLd: ProductJsonLd = {
     "@context": "https://schema.org",
     "@type": "Product",
+    "@id": `${url}#product`,
     name: product.title,
     url,
-    brand: { "@type": "Brand", name: SITE.name },
+    brand: {
+      "@type": "Organization",
+      "@id": SITE.businessId,
+      name: SITE.name,
+    },
   };
   if (description) jsonLd.description = description;
   if (images.length > 0) jsonLd.image = images;

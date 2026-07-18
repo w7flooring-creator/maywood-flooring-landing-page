@@ -237,7 +237,14 @@ describe("buildProductJsonLd", () => {
     expect(ld.url).toBe(
       "https://www.maywoodflooring.com.au/product-page/blackbutt"
     );
-    expect(ld.brand).toEqual({ "@type": "Brand", name: "Maywood Flooring" });
+    expect(ld["@id"]).toBe(
+      "https://www.maywoodflooring.com.au/product-page/blackbutt#product"
+    );
+    expect(ld.brand).toEqual({
+      "@type": "Organization",
+      "@id": "https://www.maywoodflooring.com.au/#business",
+      name: "Maywood Flooring",
+    });
     expect(ld.category).toBe("Engineered Flooring");
     expect(ld.image).toEqual(["https://cdn/a.jpg", "https://cdn/b.jpg"]);
     expect(ld.description).toBe("Warm hardwood.");
@@ -250,6 +257,9 @@ describe("buildProductJsonLd", () => {
     // 仍含必备字段
     expect(ld.name).toBe("Blackbutt");
     expect(ld.brand.name).toBe("Maywood Flooring");
+    expect("offers" in ld).toBe(false);
+    expect("aggregateRating" in ld).toBe(false);
+    expect("review" in ld).toBe(false);
   });
 });
 

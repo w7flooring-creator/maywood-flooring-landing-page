@@ -9,7 +9,13 @@
  * `.astro` 组件（SeoHead / Breadcrumbs）只做薄包装，消费这里的输出。
  * 见 AGENTS.md「SEO（核心目标）」与「结构化数据」。
  */
-import { SITE, NAP, absoluteUrl } from "@/lib/site";
+import {
+  SITE,
+  NAP,
+  OPENING_HOURS,
+  SOCIAL_LINKS,
+  absoluteUrl,
+} from "@/lib/site";
 
 /** Open Graph 类型，按需扩展（Phase 1 多为 website / article）。 */
 export type OgType = "website" | "article" | "product";
@@ -113,24 +119,61 @@ export interface PostalAddressJsonLd {
 export interface LocalBusinessJsonLd {
   "@context": "https://schema.org";
   "@type": "LocalBusiness";
+  "@id": string;
   name: string;
   url: string;
+  description: string;
+  image: string;
   telephone: string;
   email: string;
   address: PostalAddressJsonLd;
   areaServed: string[];
+  sameAs: string[];
+  contactPoint: {
+    "@type": "ContactPoint";
+    telephone: string;
+    email: string;
+    contactType: "sales";
+    areaServed: "AU";
+    availableLanguage: "en-AU";
+  };
+  openingHoursSpecification: Array<{
+    "@type": "OpeningHoursSpecification";
+    dayOfWeek: string[];
+    opens: string;
+    closes: string;
+  }>;
 }
+
+const OPENING_HOURS_JSON_LD: LocalBusinessJsonLd["openingHoursSpecification"] =
+  OPENING_HOURS.flatMap((row) =>
+    row.schemaDays && row.opens && row.closes
+      ? [
+          {
+            "@type": "OpeningHoursSpecification" as const,
+            dayOfWeek: [...row.schemaDays],
+            opens: row.opens,
+            closes: row.closes,
+          },
+        ]
+      : []
+  );
 
 /**
  * 构造站点级 LocalBusiness 结构化数据，NAP 取自 site.ts 单一来源。
  * 全站每页注入（见 AGENTS.md「结构化数据：全站 LocalBusiness」）。
  */
 export function buildLocalBusinessJsonLd(): LocalBusinessJsonLd {
+  // Sunday is appointment-only, not a guaranteed open interval, so it remains
+  // visible on Contact but is intentionally omitted from machine opening hours.
   return {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
+    "@id": SITE.businessId,
     name: SITE.name,
     url: SITE.url,
+    description: SITE.defaultDescription,
+    image: absoluteUrl(SITE.defaultOgImage),
     telephone: NAP.phone,
     email: NAP.email,
     address: {
@@ -142,6 +185,16 @@ export function buildLocalBusinessJsonLd(): LocalBusinessJsonLd {
       addressCountry: NAP.address.country,
     },
     areaServed: [...NAP.areaServed],
+    sameAs: SOCIAL_LINKS.map((social) => social.href),
+    contactPoint: {
+      "@type": "ContactPoint",
+      telephone: NAP.phone,
+      email: NAP.email,
+      contactType: "sales",
+      areaServed: "AU",
+      availableLanguage: "en-AU",
+    },
+    openingHoursSpecification: OPENING_HOURS_JSON_LD,
   };
 }
 
