@@ -23,13 +23,21 @@ const hasProducts = products.length > 0;
 
 {
   hasProducts && (
-    <section class="related" aria-labelledby="related-heading">
-      <h2 id="related-heading" class="related__heading">
+    <section
+      class="related"
+      aria-labelledby="related-heading"
+      data-motion-scene="grid"
+    >
+      <h2
+        id="related-heading"
+        class="related__heading"
+        data-motion-layer="heading"
+      >
         {heading}
       </h2>
       <ul class="related__list" role="list">
         {products.map((product) => (
-          <li class="related__item">
+          <li class="related__item" data-motion-layer="card">
             <a class="related__link" href={`/product-page/${product.slug}`}>
               {product.title}
             </a>

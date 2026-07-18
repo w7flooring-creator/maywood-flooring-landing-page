@@ -16,12 +16,22 @@ const { street, locality, region, postalCode } = NAP.address;
 const telHref = `tel:${NAP.phone.replace(/\s+/g, "")}`;
 ---
 
-<section class="contact-info" aria-labelledby="contact-info-heading">
+<section
+  class="contact-info"
+  aria-labelledby="contact-info-heading"
+  data-motion-scene="grid"
+>
   <div class="contact-info__inner">
-    <h2 id="contact-info-heading" class="contact-info__title">Contact Us</h2>
+    <h2
+      id="contact-info-heading"
+      class="contact-info__title"
+      data-motion-layer="heading"
+    >
+      Contact Us
+    </h2>
 
     <div class="contact-info__cols">
-      <div class="contact-info__col">
+      <div class="contact-info__col" data-motion-layer="card">
         <h3 class="contact-info__heading">Address</h3>
         <address class="contact-info__address">
           {street}<br />
@@ -31,7 +41,7 @@ const telHref = `tel:${NAP.phone.replace(/\s+/g, "")}`;
         </address>
       </div>
 
-      <div class="contact-info__col">
+      <div class="contact-info__col" data-motion-layer="card">
         <h3 class="contact-info__heading">Contact</h3>
         <ul class="contact-info__list">
           <li>
@@ -46,7 +56,7 @@ const telHref = `tel:${NAP.phone.replace(/\s+/g, "")}`;
         <WhatsAppCta class="contact-info__whatsapp" />
       </div>
 
-      <div class="contact-info__col">
+      <div class="contact-info__col" data-motion-layer="card">
         <h3 class="contact-info__heading">Opening Hours</h3>
         <OpeningHours />
       </div>

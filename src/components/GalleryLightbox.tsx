@@ -56,9 +56,11 @@ export default function GalleryLightbox({ items }: Props) {
               type="button"
               onClick={() => openAt(i)}
               aria-label={`View ${altFor(item, i)} full screen`}
+              data-motion-layer="interactive"
               className="group block w-full cursor-zoom-in overflow-hidden rounded-[var(--radius-cta)] bg-[var(--color-bg-muted)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-cta)]"
             >
               <img
+                data-motion-layer="media"
                 src={sanityImageUrl(item.url, { width: 768 })}
                 srcSet={
                   sanityImageSrcset(item.url, [320, 480, 768, 1080]) ||

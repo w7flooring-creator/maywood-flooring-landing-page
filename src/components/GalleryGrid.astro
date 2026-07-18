@@ -23,28 +23,32 @@ const { items } = Astro.props;
 const hasImages = items.length > 0;
 ---
 
-{
-  hasImages ? (
-    <GalleryLightbox client:visible items={items} />
-  ) : (
-    <div class="gallery-empty">
-      <p class="gallery-empty__lead">Our project gallery is coming soon.</p>
-      <p class="gallery-empty__body">
-        We’re putting together a collection of finished timber, laminate and
-        hybrid flooring projects from across Melbourne and Victoria. In the
-        meantime, explore our range or get in touch about your project.
-      </p>
-      <div class="gallery-empty__actions">
-        <a class="gallery-empty__cta" href="/category/engineered-flooring">
-          Browse Products
-        </a>
-        <a class="gallery-empty__link" href="/contact">
-          Contact us
-        </a>
+<div data-motion-scene="gallery">
+  {
+    hasImages ? (
+      <div data-motion-layer="interactive">
+        <GalleryLightbox client:visible items={items} />
       </div>
-    </div>
-  )
-}
+    ) : (
+      <div class="gallery-empty" data-motion-layer="copy">
+        <p class="gallery-empty__lead">Our project gallery is coming soon.</p>
+        <p class="gallery-empty__body">
+          We’re putting together a collection of finished timber, laminate and
+          hybrid flooring projects from across Melbourne and Victoria. In the
+          meantime, explore our range or get in touch about your project.
+        </p>
+        <div class="gallery-empty__actions">
+          <a class="gallery-empty__cta" href="/category/engineered-flooring">
+            Browse Products
+          </a>
+          <a class="gallery-empty__link" href="/contact">
+            Contact us
+          </a>
+        </div>
+      </div>
+    )
+  }
+</div>
 
 <style>
   .gallery-empty {

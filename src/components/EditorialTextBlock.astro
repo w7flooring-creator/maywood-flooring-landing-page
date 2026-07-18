@@ -23,10 +23,10 @@ const { eyebrow = null, heading = null, paragraphs = [] } = Astro.props;
 const hasParagraphs = paragraphs.length > 0;
 ---
 
-<section class="editorial">
+<section class="editorial" data-motion-scene="text">
   {
     (eyebrow || heading) && (
-      <header class="editorial__head">
+      <header class="editorial__head" data-motion-layer="heading">
         {eyebrow && <p class="editorial__eyebrow">{eyebrow}</p>}
         {heading && <h2 class="editorial__heading">{heading}</h2>}
       </header>
@@ -35,13 +35,15 @@ const hasParagraphs = paragraphs.length > 0;
 
   {
     hasParagraphs ? (
-      <div class="editorial__body">
+      <div class="editorial__body" data-motion-layer="copy">
         {paragraphs.map((p) => (
           <p>{p}</p>
         ))}
       </div>
     ) : (
-      <slot />
+      <div data-motion-layer="copy">
+        <slot />
+      </div>
     )
   }
 </section>

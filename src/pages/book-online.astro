@@ -26,17 +26,19 @@ const breadcrumbs: BreadcrumbItem[] = [
 const seo = buildBookOnlineSeo();
 ---
 
-<BaseLayout {...seo}>
+<BaseLayout {...seo} motionProfile="conversion">
   <section class="book-online">
     <div class="book-online__crumbs">
       <Breadcrumbs items={breadcrumbs} />
     </div>
 
     <div class="book-online__inner">
-      <header class="book-online__header">
+      <header class="book-online__header" data-motion-scene="text">
         <p class="book-online__eyebrow">Our Services</p>
-        <h1 class="book-online__title">Talk to a flooring specialist</h1>
-        <p class="book-online__intro">
+        <h1 class="book-online__title" data-motion-layer="heading">
+          Talk to a flooring specialist
+        </h1>
+        <p class="book-online__intro" data-motion-layer="copy">
           Whether you're choosing your first floor or fitting one out, our team
           is here to help. Explore a consultation, workshop or sample viewing
           below — then get in touch to arrange a time at our Keysborough
@@ -44,10 +46,10 @@ const seo = buildBookOnlineSeo();
         </p>
       </header>
 
-      <ul class="book-online__grid" role="list">
+      <ul class="book-online__grid" role="list" data-motion-scene="grid">
         {
           SERVICES.map((service) => (
-            <li>
+            <li data-motion-layer="card">
               <ServiceCard service={service} />
             </li>
           ))

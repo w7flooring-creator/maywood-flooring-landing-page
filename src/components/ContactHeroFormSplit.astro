@@ -28,7 +28,7 @@ const { title, eyebrow = null, intro = null, image = null } = Astro.props;
 const hasImage = image?.url != null && image.url.length > 0;
 ---
 
-<section class="contact-split">
+<section class="contact-split" data-motion-scene="form">
   <div
     class:list={[
       "contact-split__media",
@@ -39,6 +39,7 @@ const hasImage = image?.url != null && image.url.length > 0;
       hasImage && (
         <img
           class="contact-split__img"
+          data-motion-layer="media"
           src={sanityImageUrl(image!.url, { width: 1080 })}
           srcset={
             sanityImageSrcset(image!.url, [480, 768, 1080, 1440]) || undefined
@@ -51,13 +52,13 @@ const hasImage = image?.url != null && image.url.length > 0;
         />
       )
     }
-    <div class="contact-split__overlay">
+    <div class="contact-split__overlay" data-motion-layer="heading">
       {eyebrow && <p class="contact-split__eyebrow">{eyebrow}</p>}
       <h1 class="contact-split__title">{title}</h1>
     </div>
   </div>
 
-  <div class="contact-split__form">
+  <div class="contact-split__form" data-motion-layer="interactive">
     <div class="contact-split__form-inner">
       {intro && <p class="contact-split__intro">{intro}</p>}
       {/* 唯一交互 island：表单校验 / 提交需浏览器状态，故 client:visible。 */}

@@ -37,7 +37,7 @@ const seo = buildContentSeo({
 });
 ---
 
-<BaseLayout {...seo}>
+<BaseLayout {...seo} motionProfile="editorial">
   <section class="resources">
     <div class="resources__crumbs">
       <Breadcrumbs items={breadcrumbs} />
@@ -52,11 +52,11 @@ const seo = buildContentSeo({
     <div class="resources__body">
       {
         hasResources ? (
-          <ul class="resources__grid" role="list">
+          <ul class="resources__grid" role="list" data-motion-scene="grid">
             {resources.map((r) => (
-              <li class="resource-card">
+              <li class="resource-card" data-motion-layer="card">
                 {r.heroImage && (
-                  <div class="resource-card__media">
+                  <div class="resource-card__media" data-motion-layer="media">
                     <img
                       src={sanityImageUrl(r.heroImage.url, { width: 640 })}
                       srcset={
@@ -97,7 +97,11 @@ const seo = buildContentSeo({
             ))}
           </ul>
         ) : (
-          <div class="resources__empty">
+          <div
+            class="resources__empty"
+            data-motion-scene="cta"
+            data-motion-layer="copy"
+          >
             <p>
               Our resource library is being prepared. For brochures, technical
               data sheets, installation and care guides, or compliance reports,

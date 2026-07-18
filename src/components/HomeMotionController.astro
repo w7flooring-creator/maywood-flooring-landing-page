@@ -10,15 +10,14 @@
 <script>
   import { animate, inView, scroll } from "motion";
   import {
-    captureScrollPosition,
+    createBrowserScrollRestoration,
     createHomeMotionLifecycle,
     observeMediaChanges,
+    observePageTransitions,
     resolveActiveScrollMode,
     resolveRevealMotion,
     resolveRequestedScrollMode,
-    resolveRestoredScrollY,
     type HomeMotionLifecycle,
-    type ScrollPositionSnapshot,
   } from "@/lib/home-motion";
 
   declare global {
@@ -30,28 +29,7 @@
 
   type Cleanup = () => void;
 
-  let restoreFrame = 0;
-  const readScrollPosition = () =>
-    captureScrollPosition(
-      window.scrollY,
-      document.documentElement.scrollHeight,
-      window.innerHeight
-    );
-  const restoreScrollPosition = (snapshot: ScrollPositionSnapshot) => {
-    cancelAnimationFrame(restoreFrame);
-    restoreFrame = requestAnimationFrame(() => {
-      restoreFrame = requestAnimationFrame(() => {
-        window.scrollTo(
-          0,
-          resolveRestoredScrollY(
-            snapshot,
-            document.documentElement.scrollHeight,
-            window.innerHeight
-          )
-        );
-      });
-    });
-  };
+  const scrollRestoration = createBrowserScrollRestoration();
 
   const clamp = (value: number) => Math.min(1, Math.max(0, value));
   const phase = (progress: number, start: number, end: number) =>
@@ -114,10 +92,10 @@
       queueMicrotask(() => {
         reconfigureQueued = false;
         if (disposed) return;
-        const snapshot = readScrollPosition();
+        const snapshot = scrollRestoration.read();
         window.__maywoodHomeMotion?.destroy();
         window.__maywoodHomeMotion?.start();
-        restoreScrollPosition(snapshot);
+        scrollRestoration.restore(snapshot);
       });
     };
 
@@ -533,21 +511,8 @@
   window.__maywoodHomeMotion = lifecycle;
   lifecycle.start();
 
-  let historySnapshot: ScrollPositionSnapshot | null = null;
-  const destroyOnPageHide = () => {
-    historySnapshot = readScrollPosition();
-    lifecycle.destroy();
-  };
-  const restartOnPageShow = (event: PageTransitionEvent) => {
-    if (!event.persisted) return;
-    lifecycle.start();
-    if (historySnapshot) restoreScrollPosition(historySnapshot);
-  };
-  window.addEventListener("pagehide", destroyOnPageHide);
-  window.addEventListener("pageshow", restartOnPageShow);
-  window.__maywoodHomeMotionEventsCleanup = () => {
-    cancelAnimationFrame(restoreFrame);
-    window.removeEventListener("pagehide", destroyOnPageHide);
-    window.removeEventListener("pageshow", restartOnPageShow);
-  };
+  window.__maywoodHomeMotionEventsCleanup = observePageTransitions(
+    lifecycle,
+    scrollRestoration
+  );
 </script>

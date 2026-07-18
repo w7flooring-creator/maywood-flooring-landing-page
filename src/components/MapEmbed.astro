@@ -13,7 +13,7 @@ const query = `${street}, ${locality}, ${region} ${postalCode}, Australia`;
 const src = `https://www.google.com/maps?q=${encodeURIComponent(query)}&output=embed`;
 ---
 
-<div class="map-embed">
+<div class="map-embed" data-motion-scene="text" data-motion-layer="copy">
   <iframe
     class="map-embed__frame"
     title="Map showing Maywood Flooring showroom location"

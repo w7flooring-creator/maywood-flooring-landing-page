@@ -24,7 +24,11 @@ const hasItems = items.length > 0;
 {
   hasItems && (
     <section class="spec-list" aria-labelledby="spec-list-heading">
-      <h2 id="spec-list-heading" class="spec-list__heading">
+      <h2
+        id="spec-list-heading"
+        class="spec-list__heading"
+        data-motion-layer="heading"
+      >
         {heading}
       </h2>
       <dl class="spec-list__dl">

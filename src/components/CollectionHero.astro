@@ -36,39 +36,57 @@ const altText = image?.alt ?? "";
 const hasSubtitle = typeof subtitle === "string" && subtitle.trim().length > 0;
 ---
 
-<section class:list={["hero", { "hero--image": hasImage }]}>
-  {
-    hasImage && (
-      <img
-        class="hero__bg"
-        src={sanityImageUrl(image!.url, { width: 1440 })}
-        srcset={
-          sanityImageSrcset(image!.url, [768, 1080, 1440, 1920]) || undefined
-        }
-        sizes="100vw"
-        alt={altText}
-        fetchpriority="high"
-        loading="eager"
-        decoding="async"
-      />
-    )
-  }
-  <div class="hero__panel">
-    {eyebrow && <p class="hero__eyebrow">{eyebrow}</p>}
-    <h1 class="hero__title">{title}</h1>
-    {hasSubtitle && <p class="hero__subtitle">{subtitle}</p>}
+<section
+  class:list={["hero", { "hero--image": hasImage }]}
+  data-motion-scene="hero"
+>
+  <div class="hero__stage" data-motion-stage>
     {
-      cta && (
-        <a class="hero__cta" href={cta.href}>
-          {cta.label}
-        </a>
+      hasImage && (
+        <img
+          class="hero__bg"
+          data-motion-layer="media"
+          src={sanityImageUrl(image!.url, { width: 1440 })}
+          srcset={
+            sanityImageSrcset(image!.url, [768, 1080, 1440, 1920]) || undefined
+          }
+          sizes="100vw"
+          alt={altText}
+          fetchpriority="high"
+          loading="eager"
+          decoding="async"
+        />
       )
     }
+    <div class="hero__panel">
+      {
+        eyebrow && (
+          <p class="hero__eyebrow" data-motion-layer="copy">
+            {eyebrow}
+          </p>
+        )
+      }
+      <h1 class="hero__title" data-motion-layer="heading">{title}</h1>
+      {
+        hasSubtitle && (
+          <p class="hero__subtitle" data-motion-layer="copy">
+            {subtitle}
+          </p>
+        )
+      }
+      {
+        cta && (
+          <a class="hero__cta" href={cta.href} data-motion-layer="interactive">
+            {cta.label}
+          </a>
+        )
+      }
+    </div>
   </div>
 </section>
 
 <style>
-  .hero {
+  .hero__stage {
     position: relative;
     display: flex;
     align-items: center;

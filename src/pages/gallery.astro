@@ -41,25 +41,32 @@ const galleryPage = await getPageBySlug("gallery");
 const heroImage = galleryPage?.heroImage ?? null;
 ---
 
-<BaseLayout {...seo}>
+<BaseLayout {...seo} motionProfile="editorial">
   {
     heroImage && (
-      <section class="gallery-hero" aria-label="Gallery">
-        <img
-          class="gallery-hero__bg"
-          src={sanityImageUrl(heroImage.url, { width: 1920 })}
-          srcset={
-            sanityImageSrcset(heroImage.url, [768, 1280, 1600, 1920]) ||
-            undefined
-          }
-          sizes="100vw"
-          alt={heroImage.alt ?? ""}
-          fetchpriority="high"
-          loading="eager"
-          decoding="async"
-        />
-        <div class="gallery-hero__overlay">
-          <SampleRequestButton />
+      <section
+        class="gallery-hero-scene"
+        aria-label="Gallery"
+        data-motion-scene="hero"
+      >
+        <div class="gallery-hero" data-motion-stage>
+          <img
+            class="gallery-hero__bg"
+            data-motion-layer="media"
+            src={sanityImageUrl(heroImage.url, { width: 1920 })}
+            srcset={
+              sanityImageSrcset(heroImage.url, [768, 1280, 1600, 1920]) ||
+              undefined
+            }
+            sizes="100vw"
+            alt={heroImage.alt ?? ""}
+            fetchpriority="high"
+            loading="eager"
+            decoding="async"
+          />
+          <div class="gallery-hero__overlay" data-motion-layer="interactive">
+            <SampleRequestButton />
+          </div>
         </div>
       </section>
     )
@@ -70,10 +77,10 @@ const heroImage = galleryPage?.heroImage ?? null;
       <Breadcrumbs items={breadcrumbs} />
     </div>
 
-    <header class="gallery-page__intro">
+    <header class="gallery-page__intro" data-motion-scene="text">
       <p class="gallery-page__eyebrow">Gallery</p>
-      <h1 class="gallery-page__title">Our Work</h1>
-      <p class="gallery-page__lead">
+      <h1 class="gallery-page__title" data-motion-layer="heading">Our Work</h1>
+      <p class="gallery-page__lead" data-motion-layer="copy">
         A look at finished timber, laminate and hybrid flooring projects,
         showroom displays and installations across Melbourne and Victoria.
       </p>
@@ -85,8 +92,16 @@ const heroImage = galleryPage?.heroImage ?? null;
 
     {
       faqs.length > 0 && (
-        <section class="gallery-page__faq" aria-labelledby="gallery-faq-title">
-          <h2 id="gallery-faq-title" class="gallery-page__faq-title">
+        <section
+          class="gallery-page__faq"
+          aria-labelledby="gallery-faq-title"
+          data-motion-scene="faq"
+        >
+          <h2
+            id="gallery-faq-title"
+            class="gallery-page__faq-title"
+            data-motion-layer="heading"
+          >
             Frequently asked questions
           </h2>
           <FaqAccordion faqs={faqs} structuredData={false} />

@@ -78,6 +78,8 @@ describe("CategoryHero.astro", () => {
     expect(html).toContain("auto=format");
     expect(html).toContain('alt="Engineered floor"');
     expect(html).toContain('loading="eager"');
+    expect(html).toContain('data-motion-scene="hero"');
+    expect(html).toContain('data-motion-layer="media"');
   });
 
   it("hero 标题不是 <h1>（H1 让给 CategoryIntro，避免双 H1）", async () => {
@@ -229,5 +231,7 @@ describe("ProductGrid.astro", () => {
     expect(html).toContain('href="/product-page/spotted-gum"');
     // 两个产品 → 两张卡
     expect(html.match(/grid__item/g)?.length).toBe(2);
+    expect(html).toContain('data-motion-scene="grid"');
+    expect(html.match(/data-motion-layer="card"/g)?.length).toBe(2);
   });
 });

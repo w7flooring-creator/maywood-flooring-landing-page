@@ -56,7 +56,7 @@ const hasImages = caseStudy.images.length > 0;
 const hasProducts = caseStudy.productsUsed.length > 0;
 ---
 
-<BaseLayout {...seo}>
+<BaseLayout {...seo} motionProfile="editorial">
   {
     /* 案例页专属结构化数据：Article（站点级 LocalBusiness 由 SeoHead 注入）。 */
   }
@@ -67,19 +67,31 @@ const hasProducts = caseStudy.productsUsed.length > 0;
       <Breadcrumbs items={breadcrumbs} />
     </div>
 
-    <header class="project__header">
+    <header class="project__header" data-motion-scene="text">
       {
         metaParts.length > 0 && (
           <p class="project__eyebrow">{metaParts.join(" · ")}</p>
         )
       }
-      <h1 class="project__title">{caseStudy.title}</h1>
-      {caseStudy.summary && <p class="project__summary">{caseStudy.summary}</p>}
+      <h1 class="project__title" data-motion-layer="heading">
+        {caseStudy.title}
+      </h1>
+      {
+        caseStudy.summary && (
+          <p class="project__summary" data-motion-layer="copy">
+            {caseStudy.summary}
+          </p>
+        )
+      }
     </header>
 
     {
       showBody && (
-        <div class="project__body">
+        <div
+          class="project__body"
+          data-motion-scene="text"
+          data-motion-layer="copy"
+        >
           <RichTextRenderer value={caseStudy.body} />
         </div>
       )
@@ -87,10 +99,15 @@ const hasProducts = caseStudy.productsUsed.length > 0;
 
     {
       hasImages && (
-        <section class="project__gallery" aria-label="Project gallery">
+        <section
+          class="project__gallery"
+          aria-label="Project gallery"
+          data-motion-scene="gallery"
+        >
           {caseStudy.images.map((image) => (
-            <figure class="project__figure">
+            <figure class="project__figure" data-motion-layer="card">
               <img
+                data-motion-layer="media"
                 src={sanityImageUrl(image.url, { width: 1080 })}
                 srcset={
                   sanityImageSrcset(image.url, [480, 768, 1080, 1440]) ||
@@ -109,13 +126,21 @@ const hasProducts = caseStudy.productsUsed.length > 0;
 
     {
       hasProducts && (
-        <section class="project__products" aria-labelledby="products-heading">
-          <h2 id="products-heading" class="project__products-heading">
+        <section
+          class="project__products"
+          aria-labelledby="products-heading"
+          data-motion-scene="grid"
+        >
+          <h2
+            id="products-heading"
+            class="project__products-heading"
+            data-motion-layer="heading"
+          >
             Products used
           </h2>
           <ul class="project__products-list" role="list">
             {caseStudy.productsUsed.map((product) => (
-              <li class="project__products-item">
+              <li class="project__products-item" data-motion-layer="card">
                 <a
                   class="project__products-link"
                   href={`/product-page/${product.slug}`}

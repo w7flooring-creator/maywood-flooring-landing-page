@@ -42,8 +42,10 @@ const hasJsonLd = structuredData && jsonLd.mainEntity.length > 0;
 
 {
   items.length > 0 && (
-    <div class="faq">
-      <FaqAccordionIsland items={items} client:visible />
+    <div class="faq" data-motion-scene="faq">
+      <div data-motion-layer="interactive">
+        <FaqAccordionIsland items={items} client:visible />
+      </div>
       {hasJsonLd && <StructuredData data={jsonLd} />}
     </div>
   )

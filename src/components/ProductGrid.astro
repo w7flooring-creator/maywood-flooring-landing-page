@@ -42,7 +42,10 @@ const toggleId = `product-grid-more-${Math.random().toString(36).slice(2, 8)}`;
 
 {
   hasProducts ? (
-    <div class:list={["grid-wrap", hasMore && "grid-wrap--collapsible"]}>
+    <div
+      class:list={["grid-wrap", hasMore && "grid-wrap--collapsible"]}
+      data-motion-scene="grid"
+    >
       {/* checkbox 的 accessible name 来自关联的 <label> 文案（随展开/收起切换），不写静态 aria-label 以免名称变陈旧。 */}
       {hasMore && <input type="checkbox" id={toggleId} class="grid__toggle" />}
       <ul class="grid" role="list">
@@ -52,6 +55,7 @@ const toggleId = `product-grid-more-${Math.random().toString(36).slice(2, 8)}`;
               "grid__item",
               hasMore && index >= initialCount && "grid__item--extra",
             ]}
+            data-motion-layer="card"
           >
             <ProductCard product={product} />
           </li>
@@ -59,7 +63,11 @@ const toggleId = `product-grid-more-${Math.random().toString(36).slice(2, 8)}`;
       </ul>
       {hasMore && (
         <div class="grid__more">
-          <label class="grid__more-btn" for={toggleId}>
+          <label
+            class="grid__more-btn"
+            for={toggleId}
+            data-motion-layer="interactive"
+          >
             <span class="grid__more-label grid__more-label--collapsed">
               Load more products
               <span class="grid__more-count">({hiddenCount} more)</span>

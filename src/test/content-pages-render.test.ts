@@ -84,6 +84,8 @@ describe("/about-us", () => {
     getPageBySlug.mockResolvedValue(null);
     const html = await renderPage("/about-us");
 
+    expect(html).toContain('data-motion-profile="editorial"');
+    expect(html).toContain("data-page-motion");
     expect(html).toContain("<title>About Us | Maywood Flooring</title>");
     // 面包屑 + BreadcrumbList JSON-LD
     expect(html).toContain('aria-label="Breadcrumb"');
@@ -130,6 +132,7 @@ describe("/resources", () => {
     getResources.mockResolvedValue([]);
     const html = await renderPage("/resources");
 
+    expect(html).toContain('data-motion-profile="editorial"');
     expect(html).toContain("<title>Resources | Maywood Flooring</title>");
     expect(html).toContain('href="/contact"');
     expect(html).toContain("resource library is being prepared");

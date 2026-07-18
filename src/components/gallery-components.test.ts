@@ -41,6 +41,8 @@ describe("GalleryGrid.astro —— 有图态", () => {
     // island 以 astro-island 形式注入，且按需 hydrate（client:visible）。
     expect(html).toContain("astro-island");
     expect(html).toContain('client="visible"');
+    expect(html).toContain('data-motion-scene="gallery"');
+    expect(html).toContain('data-motion-layer="interactive"');
     // 不渲染空态文案 / 占位。
     expect(html).not.toContain("coming soon");
   });

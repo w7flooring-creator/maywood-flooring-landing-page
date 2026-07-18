@@ -6,7 +6,9 @@ import "../styles/globals.css";
 import SeoHead from "@/components/SeoHead.astro";
 import SiteHeader from "@/components/SiteHeader.astro";
 import SiteFooter from "@/components/SiteFooter.astro";
+import PageMotionController from "@/components/PageMotionController.astro";
 import type { SeoInput } from "@/lib/seo";
+import type { MotionProfile } from "@/lib/motion";
 
 /**
  * 全站基础布局。SEO 元信息交给 SeoHead 统一处理（唯一 title/desc、canonical、
@@ -18,9 +20,11 @@ import type { SeoInput } from "@/lib/seo";
 type Props = Partial<SeoInput> & {
   /** 是否输出站点级 LocalBusiness（默认 true，详情页可叠加自己的 schema）。 */
   localBusiness?: boolean;
+  /** 内页渐进式动效强度；首页使用独立控制器，内部页可传 none。 */
+  motionProfile?: MotionProfile;
 };
 
-const { localBusiness = true, ...seo } = Astro.props;
+const { localBusiness = true, motionProfile = "none", ...seo } = Astro.props;
 // path 缺省取当前请求路径，页面无需手动传。
 const path = seo.path ?? Astro.url.pathname;
 ---
@@ -41,9 +45,13 @@ const path = seo.path ?? Astro.url.pathname;
   </head>
   <body>
     <SiteHeader />
-    <main>
+    <main
+      data-page-motion={motionProfile !== "none" ? "" : undefined}
+      data-motion-profile={motionProfile !== "none" ? motionProfile : undefined}
+    >
       <slot />
     </main>
+    {motionProfile !== "none" && <PageMotionController />}
     <SiteFooter />
   </body>
 </html>

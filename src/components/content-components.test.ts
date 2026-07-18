@@ -37,6 +37,9 @@ describe("HeroImageSection.astro", () => {
     expect(html).toContain('src="https://cdn/hero.jpg"');
     expect(html).toContain('alt="Showroom"');
     expect(html).toContain('loading="eager"');
+    expect(html).toContain('data-motion-scene="hero"');
+    expect(html).toContain('data-motion-layer="media"');
+    expect(html).toContain('data-motion-layer="heading"');
   });
 });
 
@@ -49,6 +52,9 @@ describe("EditorialTextBlock.astro", () => {
     expect(html).toContain("Our Story");
     expect(html).toContain("Para one.");
     expect(html).toContain("Para two.");
+    expect(html).toContain('data-motion-scene="text"');
+    expect(html).toContain('data-motion-layer="heading"');
+    expect(html).toContain('data-motion-layer="copy"');
   });
 
   it("无 paragraphs → 渲染默认 slot 占位（无静态 <p>）", async () => {
@@ -70,6 +76,10 @@ describe("ImageTextSplit.astro", () => {
     expect(html).toContain('loading="lazy"');
     expect(html).toContain("Forest stewardship");
     expect(html).toContain("We source responsibly.");
+    expect(html).toContain('data-motion-scene="split"');
+    expect(html).toContain('data-motion-layer="media"');
+    expect(html).toContain('data-motion-layer="heading"');
+    expect(html).toContain('data-motion-layer="copy"');
   });
 
   it("无图 → 降级为纯文字块（no-image 类，无 <img>）", async () => {

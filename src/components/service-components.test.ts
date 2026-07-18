@@ -27,6 +27,9 @@ describe("ServiceDetail.astro", () => {
     expect(html).toContain("Sit down with our team for a focused, one-hour");
     // 模板里的静态文本不转义撇号（仅 {} 插值表达式会转义）。
     expect(html).toContain("What's involved");
+    expect(html).toContain('data-motion-scene="text"');
+    expect(html).toContain('data-motion-layer="heading"');
+    expect(html).toContain('data-motion-layer="copy"');
     // 每个要点都渲染为列表项
     for (const item of consultation.whatsInvolved) {
       expect(html).toContain(item);

@@ -64,7 +64,7 @@ const wholesaleImage = page?.sectionImages[1] ?? null;
 const featuredProducts = await getFeaturedProducts(8);
 ---
 
-<BaseLayout {...seo}>
+<BaseLayout {...seo} motionProfile="editorial">
   <article class="about">
     <div class="about__crumbs">
       <Breadcrumbs items={breadcrumbs} />

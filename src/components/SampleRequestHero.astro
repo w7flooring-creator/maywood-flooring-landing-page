@@ -28,13 +28,25 @@ const telHref = `tel:${NAP.phone.replace(/\s+/g, "")}`;
 const mailHref = `mailto:${NAP.email}`;
 ---
 
-<section class="sample-split">
+<section class="sample-split" data-motion-scene="form">
   <div class="sample-split__media">
     <div class="sample-split__overlay">
-      {eyebrow && <p class="sample-split__eyebrow">{eyebrow}</p>}
-      <h1 class="sample-split__title">{title}</h1>
-      {intro && <p class="sample-split__intro">{intro}</p>}
-      <ul class="sample-split__channels">
+      {
+        eyebrow && (
+          <p class="sample-split__eyebrow" data-motion-layer="copy">
+            {eyebrow}
+          </p>
+        )
+      }
+      <h1 class="sample-split__title" data-motion-layer="heading">{title}</h1>
+      {
+        intro && (
+          <p class="sample-split__intro" data-motion-layer="copy">
+            {intro}
+          </p>
+        )
+      }
+      <ul class="sample-split__channels" data-motion-layer="copy">
         <li>
           <span class="sample-split__channel-label">Call</span>
           <a href={telHref}>{NAP.phone}</a>
@@ -44,13 +56,13 @@ const mailHref = `mailto:${NAP.email}`;
           <a href={mailHref}>{NAP.email}</a>
         </li>
       </ul>
-      <div class="sample-split__whatsapp">
+      <div class="sample-split__whatsapp" data-motion-layer="interactive">
         <WhatsAppCta />
       </div>
     </div>
   </div>
 
-  <div class="sample-split__form">
+  <div class="sample-split__form" data-motion-layer="interactive">
     <div class="sample-split__form-inner">
       {/* 唯一交互 island：表单校验 / 提交需浏览器状态，故 client:visible。 */}
       <SampleRequestIsland client:visible />
