@@ -8,6 +8,9 @@
   "assets": {
     "directory": "./dist",
     "binding": "ASSETS",
+    // 根域 canonical 308 与表单 API 都由 worker/index.ts 处理；必须先运行
+    // Worker，再由其把普通页面交回 ASSETS，否则匹配到的静态页会绕过根域跳转。
+    "run_worker_first": true,
     // 未命中的路径回落到 Astro 构建出的 dist/404.html（src/pages/404.astro），
     // 返回 404 状态码。不配此项时 Static Assets 默认返回空 body 的 404。
     "not_found_handling": "404-page",
