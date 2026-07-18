@@ -5,6 +5,7 @@
 <script>
   import { animate, inView, scroll } from "motion";
   import {
+    canAnimatePageLayer,
     createBrowserScrollRestoration,
     createMotionLifecycle,
     observeMediaChanges,
@@ -92,6 +93,14 @@
       };
     }
 
+    elements(root, "astro-island[ssr]").forEach((island) => {
+      const handleHydrate = () => reconfigure();
+      island.addEventListener("astro:hydrate", handleHydrate, { once: true });
+      register(() =>
+        island.removeEventListener("astro:hydrate", handleHydrate)
+      );
+    });
+
     root.classList.add("page-motion--active");
 
     const animateIn = (
@@ -161,9 +170,13 @@
         ...elements(scene, "[data-motion-layer]"),
       ].filter(
         (layer) =>
-          layer.dataset.motionLayer !== "interactive" &&
-          !layer.querySelector('[data-motion-layer="interactive"]') &&
-          layer.closest<HTMLElement>("[data-motion-scene]") === scene
+          canAnimatePageLayer({
+            layer: layer.dataset.motionLayer,
+            ownsInteractiveDescendant: Boolean(
+              layer.querySelector('[data-motion-layer="interactive"]')
+            ),
+            insideUnhydratedIsland: Boolean(layer.closest("astro-island[ssr]")),
+          }) && layer.closest<HTMLElement>("[data-motion-scene]") === scene
       );
 
     const revealScene = (scene: HTMLElement) => {

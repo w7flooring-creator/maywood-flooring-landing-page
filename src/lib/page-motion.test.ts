@@ -1,11 +1,34 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  canAnimatePageLayer,
   createMotionLifecycle,
   resolvePageMotionExperience,
   resolvePageScrollMode,
   resolveRevealMotion,
 } from "./motion";
+
+describe("page layer hydration safety", () => {
+  it("never mutates a layer inside an unhydrated Astro island", () => {
+    expect(
+      canAnimatePageLayer({
+        layer: "media",
+        ownsInteractiveDescendant: false,
+        insideUnhydratedIsland: true,
+      })
+    ).toBe(false);
+  });
+
+  it("still allows a stable visual media layer after hydration", () => {
+    expect(
+      canAnimatePageLayer({
+        layer: "media",
+        ownsInteractiveDescendant: false,
+        insideUnhydratedIsland: false,
+      })
+    ).toBe(true);
+  });
+});
 
 describe("inner-page scroll mode", () => {
   it.each(["", "?scroll=native", "?scroll=lenis", "?scroll=unknown"])(

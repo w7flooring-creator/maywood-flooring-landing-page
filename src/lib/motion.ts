@@ -45,6 +45,25 @@ export interface RevealMotionPolicy {
   margin: "0px 0px -8% 0px" | "0px 0px 160px 0px";
 }
 
+export interface PageLayerEligibility {
+  layer: string | null | undefined;
+  ownsInteractiveDescendant: boolean;
+  insideUnhydratedIsland: boolean;
+}
+
+/** Do not mutate server-rendered island markup before React has hydrated it. */
+export function canAnimatePageLayer({
+  layer,
+  ownsInteractiveDescendant,
+  insideUnhydratedIsland,
+}: PageLayerEligibility): boolean {
+  return (
+    layer !== "interactive" &&
+    !ownsInteractiveDescendant &&
+    !insideUnhydratedIsland
+  );
+}
+
 export function resolveRevealMotion(
   compactExperience: boolean,
   layer: string | null | undefined,
