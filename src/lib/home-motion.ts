@@ -18,6 +18,37 @@ export interface ScrollPositionSnapshot {
   progress: number;
 }
 
+export interface RevealMotionPolicy {
+  fade: boolean;
+  distance: number;
+  duration: number;
+  amount: number;
+  margin: "0px 0px -8% 0px" | "0px 0px 160px 0px";
+}
+
+export function resolveRevealMotion(
+  compactExperience: boolean,
+  layer: string | null | undefined
+): RevealMotionPolicy {
+  if (!compactExperience) {
+    return {
+      fade: true,
+      distance: 32,
+      duration: 0.9,
+      amount: 0.16,
+      margin: "0px 0px -8% 0px",
+    };
+  }
+
+  return {
+    fade: layer !== "media" && layer !== "card",
+    distance: 18,
+    duration: 0.72,
+    amount: 0.01,
+    margin: "0px 0px 160px 0px",
+  };
+}
+
 export function captureScrollPosition(
   scrollY: number,
   scrollHeight: number,

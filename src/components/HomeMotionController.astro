@@ -14,6 +14,7 @@
     createHomeMotionLifecycle,
     observeMediaChanges,
     resolveActiveScrollMode,
+    resolveRevealMotion,
     resolveRequestedScrollMode,
     resolveRestoredScrollY,
     type HomeMotionLifecycle,
@@ -134,6 +135,7 @@
         distance?: number;
         duration?: number;
         clip?: boolean;
+        fade?: boolean;
       } = {}
     ) => {
       const {
@@ -141,15 +143,18 @@
         distance = 32,
         duration = 0.9,
         clip = false,
+        fade = true,
       } = options;
       touched.add(element);
-      element.style.willChange = clip
-        ? "transform, opacity, clip-path"
-        : "transform, opacity";
+      element.style.willChange = [
+        "transform",
+        ...(fade ? ["opacity"] : []),
+        ...(clip ? ["clip-path"] : []),
+      ].join(", ");
       const controls = animate(
         element,
         {
-          opacity: [0, 1],
+          ...(fade ? { opacity: [0, 1] } : {}),
           transform: [
             `translate3d(0, ${distance}px, 0)`,
             "translate3d(0, 0, 0)",
@@ -182,14 +187,24 @@
         inView(
           target,
           () => {
-            elements.forEach((element, index) =>
+            elements.forEach((element, index) => {
+              const policy = resolveRevealMotion(
+                compactExperience,
+                element.dataset.motionLayer
+              );
               animateIn(element, {
                 delay: index * (options.stagger ?? 0.08),
-                clip: options.clip,
-              })
-            );
+                clip: options.clip && !compactExperience,
+                fade: policy.fade,
+                distance: policy.distance,
+                duration: policy.duration,
+              });
+            });
           },
-          { amount: 0.16, margin: "0px 0px -8% 0px" }
+          {
+            amount: resolveRevealMotion(compactExperience, null).amount,
+            margin: resolveRevealMotion(compactExperience, null).margin,
+          }
         )
       );
     };
@@ -259,6 +274,7 @@
             delay: 0.12 + index * 0.1,
             distance: 26,
             duration: 1.05,
+            fade: !compactExperience,
           })
         );
       });

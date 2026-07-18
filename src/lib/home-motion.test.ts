@@ -5,6 +5,7 @@ import {
   createHomeMotionLifecycle,
   observeMediaChanges,
   resolveActiveScrollMode,
+  resolveRevealMotion,
   resolveRequestedScrollMode,
   resolveRestoredScrollY,
 } from "./home-motion";
@@ -118,5 +119,26 @@ describe("observeMediaChanges", () => {
     cleanup();
     cleanup();
     expect(listeners.every((registered) => registered.size === 0)).toBe(true);
+  });
+});
+
+describe("resolveRevealMotion", () => {
+  it.each(["media", "card"] as const)(
+    "keeps compact %s layers opaque while they enter",
+    (layer) => {
+      expect(resolveRevealMotion(true, layer)).toMatchObject({
+        fade: false,
+        amount: 0.01,
+        margin: "0px 0px 160px 0px",
+      });
+    }
+  );
+
+  it("preserves layered fades for desktop scenes", () => {
+    expect(resolveRevealMotion(false, "media")).toMatchObject({
+      fade: true,
+      amount: 0.16,
+      margin: "0px 0px -8% 0px",
+    });
   });
 });
