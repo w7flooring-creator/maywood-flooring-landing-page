@@ -114,6 +114,29 @@ body {
   font-family: var(--font-sans);
 }
 
+/* 首页 cinematic 场景会把图廊轨道移出普通视口；只裁掉横向绘制，纵向仍由页面原生滚动。 */
+[data-home-motion] {
+  overflow-x: clip;
+}
+
+/* Lenis 官方推荐的根状态。库只在 ?scroll=lenis 且桌面允许动效时动态加载。 */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: clip;
+}
+
 /* 全站统一 focus 可见性（键盘可达 / a11y）。 */
 :focus-visible {
   outline: 2px solid var(--ring);

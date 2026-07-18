@@ -24,6 +24,7 @@ import HomeSustainabilitySection from "@/components/HomeSustainabilitySection.as
 import BrandStatementSection from "@/components/BrandStatementSection.astro";
 import GalleryFeedSection from "@/components/GalleryFeedSection.astro";
 import HomeCtaSection from "@/components/HomeCtaSection.astro";
+import HomeMotionController from "@/components/HomeMotionController.astro";
 import { getSignatureCollections } from "@/lib/taxonomy";
 import { getGalleryItems } from "@/lib/gallery";
 import { getHomePageImages } from "@/lib/home-content";
@@ -63,16 +64,19 @@ const galleryFeedImages = (await getGalleryItems()).slice(0, 8).map((g) => ({
   title="Premium Timber, Laminate & Hybrid Flooring in Melbourne"
   description="Maywood Flooring is a premium timber, laminate and hybrid flooring supplier in Keysborough, Melbourne — serving trade, wholesale and homeowners across Victoria."
 >
-  <HomeHero
-    imageUrl={homeImages.heroImage?.url ?? null}
-    imageAlt={homeImages.heroImage?.alt ?? undefined}
-  />
-  <ProductSelectionGrid imagesByHref={productImagesByHref} />
-  <PartnerNarrativeSection image={homeImages.partnerImage} />
-  <SilentFoundationSection image={homeImages.silentFoundationImage} />
-  <SignatureCollectionsSection collections={signatureCollections} />
-  <HomeSustainabilitySection image={homeImages.sustainabilityImage} />
-  <BrandStatementSection />
-  <GalleryFeedSection images={galleryFeedImages} />
-  <HomeCtaSection />
+  <div data-home-motion>
+    <HomeHero
+      imageUrl={homeImages.heroImage?.url ?? null}
+      imageAlt={homeImages.heroImage?.alt ?? undefined}
+    />
+    <ProductSelectionGrid imagesByHref={productImagesByHref} />
+    <PartnerNarrativeSection image={homeImages.partnerImage} />
+    <SilentFoundationSection image={homeImages.silentFoundationImage} />
+    <SignatureCollectionsSection collections={signatureCollections} />
+    <HomeSustainabilitySection image={homeImages.sustainabilityImage} />
+    <BrandStatementSection />
+    <GalleryFeedSection images={galleryFeedImages} />
+    <HomeCtaSection />
+  </div>
+  <HomeMotionController />
 </BaseLayout>

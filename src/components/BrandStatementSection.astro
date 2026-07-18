@@ -14,24 +14,56 @@ import { BRAND_STATEMENT } from "@/lib/home-narrative";
 const { eyebrow, heading, paragraphs } = BRAND_STATEMENT;
 ---
 
-<section class="brand" aria-labelledby="brand-heading">
+<section
+  class="brand"
+  aria-labelledby="brand-heading"
+  data-motion-scene="brand"
+>
   <div class="brand__inner">
-    {eyebrow && <p class="brand__eyebrow">{eyebrow}</p>}
-    <h2 id="brand-heading" class="brand__heading">{heading}</h2>
-    {paragraphs.map((para) => <p class="brand__para">{para}</p>)}
+    {
+      eyebrow && (
+        <p class="brand__eyebrow" data-motion-layer="copy">
+          {eyebrow}
+        </p>
+      )
+    }
+    <h2 id="brand-heading" class="brand__heading" data-motion-layer="heading">
+      {heading}
+    </h2>
+    {
+      paragraphs.map((para) => (
+        <p class="brand__para" data-motion-layer="copy">
+          {para}
+        </p>
+      ))
+    }
   </div>
 </section>
 
 <style>
   .brand {
+    --brand-wash: 1;
+    position: relative;
     padding: var(--spacing-section) 1.25rem;
     background: var(--color-ink);
     color: #fff;
+    overflow: clip;
+  }
+
+  .brand::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: #5a534a;
+    opacity: calc(1 - var(--brand-wash));
+    pointer-events: none;
   }
 
   .brand__inner {
     max-width: 50rem;
     margin-inline: auto;
+    position: relative;
+    z-index: 1;
     text-align: center;
   }
 
@@ -59,5 +91,23 @@ const { eyebrow, heading, paragraphs } = BRAND_STATEMENT;
     font-size: 1.0625rem;
     line-height: 1.7;
     color: rgba(255, 255, 255, 0.82);
+  }
+
+  @media (min-width: 60rem) {
+    :global(.home-motion--active[data-motion-experience="cinematic"]) .brand {
+      height: 120svh;
+      padding-block: 0;
+    }
+
+    :global(.home-motion--active[data-motion-experience="cinematic"])
+      .brand__inner {
+      position: sticky;
+      top: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-height: 100svh;
+      padding-block: var(--spacing-section);
+    }
   }
 </style>

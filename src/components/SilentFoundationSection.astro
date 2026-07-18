@@ -22,12 +22,17 @@ const { heading, paragraphs } = SILENT_FOUNDATION;
 const hasImage = image?.url != null && image.url.length > 0;
 ---
 
-<section class="silent" aria-labelledby="silent-heading">
+<section
+  class="silent"
+  aria-labelledby="silent-heading"
+  data-motion-scene="silent"
+>
   <div class="silent__inner">
     {
       hasImage && (
         <img
           class="silent__mark"
+          data-motion-layer="media"
           src={sanityImageUrl(image!.url, { width: 640 })}
           srcset={sanityImageSrcset(image!.url, [320, 521, 640]) || undefined}
           sizes="(min-width: 40rem) 521px, 80vw"
@@ -39,8 +44,16 @@ const hasImage = image?.url != null && image.url.length > 0;
         />
       )
     }
-    <h2 id="silent-heading" class="silent__heading">{heading}</h2>
-    {paragraphs.map((para) => <p class="silent__para">{para}</p>)}
+    <h2 id="silent-heading" class="silent__heading" data-motion-layer="heading">
+      {heading}
+    </h2>
+    {
+      paragraphs.map((para) => (
+        <p class="silent__para" data-motion-layer="copy">
+          {para}
+        </p>
+      ))
+    }
   </div>
 </section>
 
@@ -82,5 +95,23 @@ const hasImage = image?.url != null && image.url.length > 0;
 
   .silent__para:last-child {
     margin-bottom: 0;
+  }
+
+  @media (min-width: 60rem) {
+    :global(.home-motion--active[data-motion-experience="cinematic"]) .silent {
+      height: 150svh;
+      padding-block: 0;
+    }
+
+    :global(.home-motion--active[data-motion-experience="cinematic"])
+      .silent__inner {
+      position: sticky;
+      top: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-height: 100svh;
+      padding-block: var(--spacing-section);
+    }
   }
 </style>

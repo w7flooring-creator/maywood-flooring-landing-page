@@ -22,13 +22,18 @@ const { eyebrow, heading, paragraphs } = PARTNER_NARRATIVE;
 const hasImage = image !== null;
 ---
 
-<section class="partner" aria-labelledby="partner-heading">
+<section
+  class="partner"
+  aria-labelledby="partner-heading"
+  data-motion-scene="partner"
+>
   <div class:list={["partner__inner", { "partner__inner--image": hasImage }]}>
     {
       hasImage && (
         <div class="partner__media">
           <img
             class="partner__img"
+            data-motion-layer="media"
             src={sanityImageUrl(image!.url, { width: 960 })}
             srcset={
               sanityImageSrcset(image!.url, [480, 768, 1080]) || undefined
@@ -42,12 +47,26 @@ const hasImage = image !== null;
       )
     }
     <div class="partner__text">
-      {eyebrow && <p class="partner__eyebrow">{eyebrow}</p>}
-      <h2 id="partner-heading" class="partner__heading">{heading}</h2>
-      <div class="partner__body">
+      {
+        eyebrow && (
+          <p class="partner__eyebrow" data-motion-layer="copy">
+            {eyebrow}
+          </p>
+        )
+      }
+      <h2
+        id="partner-heading"
+        class="partner__heading"
+        data-motion-layer="copy"
+      >
+        {heading}
+      </h2>
+      <div class="partner__body" data-motion-layer="copy">
         {paragraphs.map((para) => <p class="partner__para">{para}</p>)}
       </div>
-      <a class="partner__cta" href="/contact">Enquire Now</a>
+      <a class="partner__cta" data-motion-layer="copy" href="/contact"
+        >Enquire Now</a
+      >
     </div>
   </div>
 </section>
@@ -139,6 +158,19 @@ const hasImage = image !== null;
 
   /* 桌面：图左、文右双栏（editorial 留白）。无图时单列纯文字。 */
   @media (min-width: 60rem) {
+    :global(.home-motion--active[data-motion-experience="cinematic"]) .partner {
+      height: 165svh;
+      padding-block: 0;
+    }
+
+    :global(.home-motion--active[data-motion-experience="cinematic"])
+      .partner__inner {
+      position: sticky;
+      top: 0;
+      min-height: 100svh;
+      padding-block: var(--spacing-section);
+    }
+
     .partner__inner--image {
       grid-template-columns: 1fr 1fr;
       gap: clamp(3rem, 6vw, 5rem);

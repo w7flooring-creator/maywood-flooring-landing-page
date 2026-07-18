@@ -23,15 +23,31 @@ const { eyebrow, heading, paragraphs, cta } = HOME_SUSTAINABILITY;
 const hasImage = image !== null;
 ---
 
-<section class="sustain" aria-labelledby="sustain-heading">
+<section
+  class="sustain"
+  aria-labelledby="sustain-heading"
+  data-motion-scene="sustainability"
+>
   <div class:list={["sustain__inner", { "sustain__inner--image": hasImage }]}>
     <div class="sustain__text">
-      {eyebrow && <p class="sustain__eyebrow">{eyebrow}</p>}
-      <h2 id="sustain-heading" class="sustain__heading">{heading}</h2>
-      <div class="sustain__body">
+      {
+        eyebrow && (
+          <p class="sustain__eyebrow" data-motion-layer="copy">
+            {eyebrow}
+          </p>
+        )
+      }
+      <h2
+        id="sustain-heading"
+        class="sustain__heading"
+        data-motion-layer="copy"
+      >
+        {heading}
+      </h2>
+      <div class="sustain__body" data-motion-layer="copy">
         {paragraphs.map((para) => <p class="sustain__para">{para}</p>)}
       </div>
-      <a class="sustain__cta" href={cta.href}
+      <a class="sustain__cta" data-motion-layer="copy" href={cta.href}
         >{cta.label}<span class="sr-only">
           about Maywood sustainability</span
         ></a
@@ -42,6 +58,7 @@ const hasImage = image !== null;
         <div class="sustain__media">
           <img
             class="sustain__img"
+            data-motion-layer="media"
             src={sanityImageUrl(image!.url, { width: 960 })}
             srcset={
               sanityImageSrcset(image!.url, [480, 768, 1080]) || undefined
@@ -144,6 +161,19 @@ const hasImage = image !== null;
 
   /* 桌面：文左、图右双栏（与 Partner 图左形成节奏对比）。无图时单列纯文字。 */
   @media (min-width: 60rem) {
+    :global(.home-motion--active[data-motion-experience="cinematic"]) .sustain {
+      height: 155svh;
+      padding-block: 0;
+    }
+
+    :global(.home-motion--active[data-motion-experience="cinematic"])
+      .sustain__inner {
+      position: sticky;
+      top: 0;
+      min-height: 100svh;
+      padding-block: var(--spacing-section);
+    }
+
     .sustain__inner--image {
       grid-template-columns: 1fr 1fr;
       gap: clamp(3rem, 6vw, 5rem);
