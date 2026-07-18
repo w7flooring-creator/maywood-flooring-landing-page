@@ -38,7 +38,7 @@ describe("resolveSeoMeta — 从 props + 默认值解析每页 meta/OG", () => {
 
     expect(meta.title).toBe("About Us | Maywood Flooring");
     expect(meta.description.length).toBeGreaterThan(0);
-    expect(meta.ogImage).toMatch(/^https:\/\/www\.maywoodflooring\.com\.au\//);
+    expect(meta.ogImage).toMatch(/^https:\/\/cdn\.sanity\.io\/images\//);
     expect(meta.ogType).toBe("website");
   });
 
@@ -99,6 +99,7 @@ describe("buildLocalBusinessJsonLd — 站点级 NAP 结构化数据", () => {
 
   it("url 为站点绝对 URL", () => {
     expect(ld.url).toBe("https://www.maywoodflooring.com.au");
+    expect(ld["@id"]).toBe("https://www.maywoodflooring.com.au/#business");
   });
 
   it("address 是 schema.org PostalAddress，字段齐全", () => {
@@ -114,6 +115,31 @@ describe("buildLocalBusinessJsonLd — 站点级 NAP 结构化数据", () => {
 
   it("areaServed 含 Melbourne / Victoria / Australia", () => {
     expect(ld.areaServed).toEqual(["Melbourne", "Victoria", "Australia"]);
+  });
+
+  it("连接已核实社媒、销售渠道与页面可见营业时间", () => {
+    expect(ld.sameAs).toEqual([
+      "https://www.instagram.com/maywood_au/",
+      "https://www.facebook.com/profile.php?id=61588526080799",
+      "https://www.youtube.com/@maywood_au",
+    ]);
+    expect(ld.contactPoint).toMatchObject({
+      "@type": "ContactPoint",
+      contactType: "sales",
+      areaServed: "AU",
+      availableLanguage: "en-AU",
+    });
+    expect(ld.openingHoursSpecification).toHaveLength(2);
+    expect(ld.openingHoursSpecification[0]).toMatchObject({
+      dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+      opens: "10:00",
+      closes: "16:00",
+    });
+  });
+
+  it("默认实体图片指向现有 Sanity 资产，而不是已失效的本地占位", () => {
+    expect(ld.image).toMatch(/^https:\/\/cdn\.sanity\.io\/images\//);
+    expect(ld.image).not.toContain("/og-default.jpg");
   });
 
   it("可序列化为合法 JSON（供 <script type=application/ld+json> 注入）", () => {

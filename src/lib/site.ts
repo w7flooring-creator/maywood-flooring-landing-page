@@ -27,16 +27,44 @@ export const NAP = {
   whatsappUrl: "https://wa.me/61422709709",
 } as const;
 
+/** Contact 页可见的营业时间，也是 LocalBusiness schema 的唯一来源。 */
+export const OPENING_HOURS = [
+  {
+    days: "Monday – Friday",
+    hours: "10:00 am – 4:00 pm",
+    schemaDays: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+    opens: "10:00",
+    closes: "16:00",
+  },
+  {
+    days: "Saturday",
+    hours: "11:00 am – 4:00 pm",
+    schemaDays: ["Saturday"],
+    opens: "11:00",
+    closes: "16:00",
+  },
+  {
+    days: "Sunday",
+    hours: "By appointment only",
+    schemaDays: null,
+    opens: null,
+    closes: null,
+  },
+] as const;
+
 /** 站点级元信息与 SEO 默认值。 */
 export const SITE = {
   name: "Maywood Flooring",
   /** 生产域名，无尾斜杠（astro.config.mjs 的 `site` 同值）。 */
   url: "https://www.maywoodflooring.com.au",
+  /** 跨页面 JSON-LD 复用的稳定实体 ID。 */
+  businessId: "https://www.maywoodflooring.com.au/#business",
   /** 缺 meta description 时的站点级回落文案（澳洲拼写）。 */
   defaultDescription:
     "Maywood Flooring is a premium timber, laminate and hybrid flooring supplier in Keysborough, Melbourne — serving trade, wholesale and homeowners across Victoria.",
   /** 缺 OG 图时的站点级回落（相对路径，由 absoluteUrl 解析为绝对）。 */
-  defaultOgImage: "/og-default.jpg",
+  defaultOgImage:
+    "https://cdn.sanity.io/images/1soy4f28/production/46f466b43ab4eb0cb8974f7240f4d8135244c0db-1520x800.png?w=1200&q=80&auto=format",
 } as const;
 
 /**

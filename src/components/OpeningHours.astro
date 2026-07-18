@@ -6,23 +6,12 @@
  * Phase 1 硬编码；将来若入 Sanity siteSettings 再切数据源（同 NAP 思路）。
  * 用 <dl> 语义表达「日 → 时段」键值对，屏幕阅读器可正确朗读。
  */
-interface OpeningHoursRow {
-  /** 星期或星期区间，如 "Monday – Friday"。 */
-  days: string;
-  /** 时段文案，如 "10:00 am – 4:00 pm" 或 "By appointment only"。 */
-  hours: string;
-}
-
-const rows: readonly OpeningHoursRow[] = [
-  { days: "Monday – Friday", hours: "10:00 am – 4:00 pm" },
-  { days: "Saturday", hours: "11:00 am – 4:00 pm" },
-  { days: "Sunday", hours: "By appointment only" },
-];
+import { OPENING_HOURS } from "@/lib/site";
 ---
 
 <dl class="hours">
   {
-    rows.map((row) => (
+    OPENING_HOURS.map((row) => (
       <div class="hours__row">
         <dt class="hours__days">{row.days}</dt>
         <dd class="hours__time">{row.hours}</dd>

@@ -7,6 +7,7 @@ import {
   FOOTER_NAV,
   SAMPLE_REQUEST,
   SOCIAL_LINKS,
+  OPENING_HOURS,
   isNavLinkActive,
 } from "@/lib/site";
 
@@ -20,8 +21,25 @@ describe("SITE constants", () => {
   });
 
   it("提供站点级默认 OG 图与默认描述", () => {
-    expect(SITE.defaultOgImage.length).toBeGreaterThan(0);
+    expect(SITE.defaultOgImage).toMatch(/^https:\/\/cdn\.sanity\.io\/images\//);
     expect(SITE.defaultDescription.length).toBeGreaterThan(0);
+  });
+
+  it("提供稳定 business ID", () => {
+    expect(SITE.businessId).toBe(
+      "https://www.maywoodflooring.com.au/#business"
+    );
+  });
+});
+
+describe("OPENING_HOURS", () => {
+  it("Contact 可见文案与结构化数据共用同一来源", () => {
+    expect(OPENING_HOURS.map((row) => [row.days, row.hours])).toEqual([
+      ["Monday – Friday", "10:00 am – 4:00 pm"],
+      ["Saturday", "11:00 am – 4:00 pm"],
+      ["Sunday", "By appointment only"],
+    ]);
+    expect(OPENING_HOURS[2].schemaDays).toBeNull();
   });
 });
 
