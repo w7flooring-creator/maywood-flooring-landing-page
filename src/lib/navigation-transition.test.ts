@@ -36,6 +36,21 @@ describe("navigation transition runtime", () => {
     expect(incoming.documentElement.dataset.transitionFrom).toBe("editorial");
     expect(incoming.documentElement.dataset.transitionTo).toBe("catalog");
     expect(incoming.documentElement.dataset.transitionDirection).toBe("back");
+    expect(
+      incoming.documentElement.style.getPropertyValue(
+        "--maywood-page-exit-duration"
+      )
+    ).toBe("420ms");
+    expect(
+      incoming.documentElement.style.getPropertyValue(
+        "--maywood-page-enter-delay"
+      )
+    ).toBe("500ms");
+    expect(
+      incoming.documentElement.style.getPropertyValue(
+        "--maywood-page-enter-duration"
+      )
+    ).toBe("760ms");
 
     cleanup();
   });

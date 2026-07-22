@@ -1,5 +1,14 @@
 export type NavigationDirection = "forward" | "back";
 
+interface NavigationTransitionTiming {
+  pageExitMs: number;
+  pageEnterDelayMs: number;
+  pageEnterMs: number;
+  headerExitMs: number;
+  headerEnterDelayMs: number;
+  headerEnterMs: number;
+}
+
 interface NavigationTransitionRuntimeOptions {
   document?: Document;
   loadingDelay?: number;
@@ -11,6 +20,28 @@ interface AstroPreparationEvent extends Event {
 
 interface AstroBeforeSwapEvent extends Event {
   newDocument?: Document;
+}
+
+const pageEnterDuration: Record<string, number> = {
+  home: 900,
+  editorial: 820,
+  catalog: 760,
+  conversion: 700,
+  minimal: 650,
+};
+
+/** One serial timeline: outgoing snapshot, a short breath, then incoming. */
+export function resolveNavigationTransitionTiming(
+  profile: string
+): NavigationTransitionTiming {
+  return {
+    pageExitMs: 420,
+    pageEnterDelayMs: 500,
+    pageEnterMs: pageEnterDuration[profile] ?? pageEnterDuration.minimal,
+    headerExitMs: 360,
+    headerEnterDelayMs: 500,
+    headerEnterMs: 600,
+  };
 }
 
 /** Install the single global adapter for Astro's client-navigation lifecycle. */
@@ -51,6 +82,34 @@ export function installNavigationTransitionRuntime({
     incoming.documentElement.dataset.transitionTo =
       incoming.body.dataset.transitionProfile ?? "minimal";
     incoming.documentElement.dataset.transitionDirection = direction;
+    const timing = resolveNavigationTransitionTiming(
+      incoming.documentElement.dataset.transitionTo
+    );
+    const style = incoming.documentElement.style;
+    style.setProperty(
+      "--maywood-page-exit-duration",
+      `${timing.pageExitMs}ms`
+    );
+    style.setProperty(
+      "--maywood-page-enter-delay",
+      `${timing.pageEnterDelayMs}ms`
+    );
+    style.setProperty(
+      "--maywood-page-enter-duration",
+      `${timing.pageEnterMs}ms`
+    );
+    style.setProperty(
+      "--maywood-header-exit-duration",
+      `${timing.headerExitMs}ms`
+    );
+    style.setProperty(
+      "--maywood-header-enter-delay",
+      `${timing.headerEnterDelayMs}ms`
+    );
+    style.setProperty(
+      "--maywood-header-enter-duration",
+      `${timing.headerEnterMs}ms`
+    );
   };
 
   currentDocument.addEventListener(

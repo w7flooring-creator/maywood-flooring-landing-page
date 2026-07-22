@@ -130,42 +130,50 @@ body {
 
 @keyframes maywood-page-out {
   to {
-    opacity: 0.58;
+    opacity: 0;
     transform: translate3d(0, -8px, 0) scale(0.998);
   }
 }
 
 @keyframes maywood-page-out-back {
   to {
-    opacity: 0.62;
+    opacity: 0;
     transform: translate3d(0, 7px, 0) scale(0.998);
   }
 }
 
 @keyframes maywood-page-in {
   from {
-    opacity: 0.08;
+    opacity: 0;
     transform: translate3d(0, 14px, 0) scale(0.999);
   }
 }
 
 @keyframes maywood-page-in-back {
   from {
-    opacity: 0.08;
+    opacity: 0;
     transform: translate3d(0, -10px, 0) scale(0.999);
+  }
+}
+
+@keyframes maywood-header-out {
+  to {
+    opacity: 0;
   }
 }
 
 @keyframes maywood-header-in {
   from {
-    opacity: 0.86;
+    opacity: 0;
   }
 }
 
 html:not([data-navigation-entry]) body[data-transition-profile] > main {
-  animation: maywood-cold-enter 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: maywood-cold-enter 650ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+::view-transition-old(root),
+::view-transition-new(root),
 ::view-transition-old(page-main),
 ::view-transition-new(page-main),
 ::view-transition-old(site-header),
@@ -173,41 +181,41 @@ html:not([data-navigation-entry]) body[data-transition-profile] > main {
   mix-blend-mode: normal;
 }
 
+::view-transition-old(root),
 ::view-transition-old(page-main) {
-  animation: maywood-page-out 300ms cubic-bezier(0.4, 0, 1, 1) both;
+  animation: maywood-page-out
+    var(--maywood-page-exit-duration, 420ms)
+    cubic-bezier(0.4, 0, 1, 1) both;
 }
 
+::view-transition-new(root),
 ::view-transition-new(page-main) {
-  animation: maywood-page-in 620ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: maywood-page-in
+    var(--maywood-page-enter-duration, 820ms)
+    cubic-bezier(0.22, 1, 0.36, 1)
+    var(--maywood-page-enter-delay, 500ms) both;
 }
 
+html[data-transition-direction="back"]::view-transition-old(root),
 html[data-transition-direction="back"]::view-transition-old(page-main) {
   animation-name: maywood-page-out-back;
 }
 
+html[data-transition-direction="back"]::view-transition-new(root),
 html[data-transition-direction="back"]::view-transition-new(page-main) {
   animation-name: maywood-page-in-back;
 }
 
-html[data-transition-to="home"]::view-transition-new(page-main) {
-  animation-duration: 760ms;
-}
-
-html[data-transition-to="catalog"]::view-transition-new(page-main) {
-  animation-duration: 560ms;
-}
-
-html[data-transition-to="conversion"]::view-transition-new(page-main),
-html[data-transition-to="minimal"]::view-transition-new(page-main) {
-  animation-duration: 500ms;
-}
-
 ::view-transition-old(site-header) {
-  animation: none;
+  animation: maywood-header-out
+    var(--maywood-header-exit-duration, 360ms) ease-in both;
 }
 
 ::view-transition-new(site-header) {
-  animation: maywood-header-in 440ms ease-out both;
+  animation: maywood-header-in
+    var(--maywood-header-enter-duration, 600ms)
+    cubic-bezier(0.22, 1, 0.36, 1)
+    var(--maywood-header-enter-delay, 500ms) both;
 }
 
 .site-navigation-indicator {
@@ -246,26 +254,30 @@ html.is-navigation-loading .site-navigation-indicator > span {
 }
 
 @media (max-width: 59.99rem), (pointer: coarse) {
+  html {
+    --maywood-page-exit-duration: 300ms !important;
+    --maywood-page-enter-delay: 360ms !important;
+    --maywood-page-enter-duration: 620ms !important;
+    --maywood-header-exit-duration: 280ms !important;
+    --maywood-header-enter-delay: 360ms !important;
+    --maywood-header-enter-duration: 480ms !important;
+  }
+
   html:not([data-navigation-entry]) body[data-transition-profile] > main {
-    animation-duration: 380ms;
-  }
-
-  ::view-transition-old(page-main) {
-    animation-duration: 220ms;
-  }
-
-  ::view-transition-new(page-main),
-  html[data-transition-to="catalog"]::view-transition-new(page-main) {
-    animation-duration: 440ms;
-  }
-
-  html[data-transition-to="home"]::view-transition-new(page-main) {
     animation-duration: 500ms;
   }
 
-  html[data-transition-to="conversion"]::view-transition-new(page-main),
-  html[data-transition-to="minimal"]::view-transition-new(page-main) {
-    animation-duration: 380ms;
+  html[data-transition-to="home"] {
+    --maywood-page-enter-duration: 680ms !important;
+  }
+
+  html[data-transition-to="catalog"] {
+    --maywood-page-enter-duration: 620ms !important;
+  }
+
+  html[data-transition-to="conversion"],
+  html[data-transition-to="minimal"] {
+    --maywood-page-enter-duration: 560ms !important;
   }
 }
 
