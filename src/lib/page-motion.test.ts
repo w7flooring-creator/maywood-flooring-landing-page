@@ -3,10 +3,23 @@ import { describe, expect, it } from "vitest";
 import {
   canAnimatePageLayer,
   createMotionLifecycle,
+  isInitiallyInViewport,
   resolvePageMotionExperience,
   resolvePageScrollMode,
   resolveRevealMotion,
 } from "./motion";
+
+describe("initial viewport reveal boundary", () => {
+  it("keeps a product card visible when any part is already in the first viewport", () => {
+    expect(
+      isInitiallyInViewport({
+        top: 850,
+        bottom: 1095,
+        viewportHeight: 900,
+      })
+    ).toBe(true);
+  });
+});
 
 describe("page layer hydration safety", () => {
   it("never mutates a layer inside an unhydrated Astro island", () => {

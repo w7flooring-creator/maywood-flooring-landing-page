@@ -51,6 +51,21 @@ export interface PageLayerEligibility {
   insideUnhydratedIsland: boolean;
 }
 
+export interface InitialViewportBounds {
+  top: number;
+  bottom: number;
+  viewportHeight: number;
+}
+
+/** Initial pixels already on screen stay visible instead of replaying a reveal. */
+export function isInitiallyInViewport({
+  top,
+  bottom,
+  viewportHeight,
+}: InitialViewportBounds): boolean {
+  return bottom > 0 && top < viewportHeight;
+}
+
 /** Do not mutate server-rendered island markup before React has hydrated it. */
 export function canAnimatePageLayer({
   layer,

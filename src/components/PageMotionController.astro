@@ -8,6 +8,7 @@
     canAnimatePageLayer,
     createBrowserScrollRestoration,
     createMotionLifecycle,
+    isInitiallyInViewport,
     observeMediaChanges,
     observePageTransitions,
     resolvePageMotionExperience,
@@ -201,16 +202,40 @@
           (layer) => layer.dataset.motionLayer === "card"
         );
         const targets = cards.length > 0 ? cards : layers;
+        const isCatalogGrid = sceneName === "grid" && profile === "catalog";
         targets.forEach((layer, index) => {
           const policy = resolveRevealMotion(
             compact,
             layer.dataset.motionLayer,
             profile
           );
+          const rect = layer.getBoundingClientRect();
+
+          if (
+            isCatalogGrid &&
+            isInitiallyInViewport({
+              top: rect.top,
+              bottom: rect.bottom,
+              viewportHeight: window.innerHeight,
+            })
+          ) {
+            return;
+          }
+
+          if (isCatalogGrid && !compact) {
+            // Only stage real below-the-fold cards. Cards already passed or
+            // hidden by Load More remain untouched and readable.
+            if (rect.height === 0 || rect.bottom <= 0) return;
+            touched.add(layer);
+            if (policy.fade) layer.style.opacity = "0";
+            layer.style.transform = `translate3d(0, ${policy.distance}px, 0)`;
+          }
+
           register(
             inView(layer, () => revealLayer(layer, (index % 4) * 0.065), {
-              amount: policy.amount,
-              margin: policy.margin,
+              amount: isCatalogGrid && !compact ? 0.01 : policy.amount,
+              margin:
+                isCatalogGrid && !compact ? "0px 0px 0px 0px" : policy.margin,
             })
           );
         });
