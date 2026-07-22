@@ -65,6 +65,19 @@ describe("initial viewport reveal boundary", () => {
       })
     ).toBe(true);
   });
+
+  it("stages an editorial resource card until it reaches the viewport edge", () => {
+    expect(
+      shouldStagePageReveal({
+        scene: "grid",
+        profile: "editorial",
+        compact: false,
+        top: 1285,
+        bottom: 1813,
+        viewportHeight: 900,
+      })
+    ).toBe(true);
+  });
 });
 
 describe("page layer hydration safety", () => {

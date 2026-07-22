@@ -58,6 +58,9 @@ const path = seo.path ?? Astro.url.pathname;
   </head>
   <body
     data-transition-profile={pageTransitions ? transitionProfile : undefined}
+    style={pageTransitions
+      ? `--maywood-cold-enter-y: ${transitionProfile === "home" ? "0px" : "10px"}`
+      : undefined}
   >
     <SiteHeader transition:name={pageTransitions ? "site-header" : undefined} />
     {

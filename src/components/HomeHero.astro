@@ -169,18 +169,22 @@ const hasImage = imageUrl !== null;
     background: #2c2c2c;
   }
 
-  @media (min-width: 60rem) {
-    :global(.home-motion--active[data-motion-experience="cinematic"]) .hero {
+  @media (scripting: enabled) and (min-width: 60rem) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+    /* 首帧预留完整滚动场景，避免 controller 初始化时改变页面体积。 */
+    :global([data-home-motion]) .hero {
       height: 150svh;
+    }
+
+    :global([data-home-motion]) .hero__stage {
+      height: 100svh;
+      min-height: 45rem;
+      padding-inline: clamp(2rem, 6vw, 6rem);
     }
 
     :global(.home-motion--active[data-motion-experience="cinematic"])
       .hero__stage {
       position: sticky;
       top: 0;
-      height: 100svh;
-      min-height: 45rem;
-      padding-inline: clamp(2rem, 6vw, 6rem);
     }
   }
 </style>
