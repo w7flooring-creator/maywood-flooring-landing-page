@@ -8,6 +8,7 @@ import {
   resolvePageMotionExperience,
   resolvePageScrollMode,
   resolveRevealMotion,
+  shouldStagePageReveal,
 } from "./motion";
 
 describe("Astro navigation motion lifecycle", () => {
@@ -47,6 +48,19 @@ describe("initial viewport reveal boundary", () => {
       isInitiallyInViewport({
         top: 850,
         bottom: 1095,
+        viewportHeight: 900,
+      })
+    ).toBe(true);
+  });
+
+  it("stages a desktop gallery image while it is still below the viewport", () => {
+    expect(
+      shouldStagePageReveal({
+        scene: "gallery",
+        profile: "editorial",
+        compact: false,
+        top: 980,
+        bottom: 1240,
         viewportHeight: 900,
       })
     ).toBe(true);

@@ -21,7 +21,7 @@ import { sanityImageUrl, sanityImageSrcset } from "@/lib/sanity-image";
  *  - lightbox 自带 ←/→/Esc 键盘支持与 focus trap，slides 带 alt 与 caption。
  *  - 生产不热链 Wix：url 由页面 build 时从 Sanity 投影（asset->url）。
  *
- * 由 gallery.astro 以 client:visible 挂载（图库在首屏下方，按需 hydrate）。
+ * 由 gallery.astro 以 client:load 挂载，让滚动 reveal 能在图片入场前完成待机。
  */
 
 interface Props {

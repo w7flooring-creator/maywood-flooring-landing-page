@@ -14,6 +14,7 @@
     resolvePageMotionExperience,
     resolvePageScrollMode,
     resolveRevealMotion,
+    shouldStagePageReveal,
     type MotionProfile,
     type MotionLifecycle,
   } from "@/lib/motion";
@@ -95,11 +96,18 @@
     }
 
     elements(root, "astro-island[ssr]").forEach((island) => {
-      const handleHydrate = () => reconfigure();
+      let hydrationTimer = 0;
+      const handleHydrate = () => {
+        // React's concurrent hydration can keep comparing deeper SSR nodes
+        // after Astro emits astro:hydrate. Give it a short post-hydration
+        // window before applying inline motion styles to island descendants.
+        hydrationTimer = window.setTimeout(reconfigure, 160);
+      };
       island.addEventListener("astro:hydrate", handleHydrate, { once: true });
-      register(() =>
-        island.removeEventListener("astro:hydrate", handleHydrate)
-      );
+      register(() => {
+        window.clearTimeout(hydrationTimer);
+        island.removeEventListener("astro:hydrate", handleHydrate);
+      });
     });
 
     root.classList.add("page-motion--active");
@@ -222,20 +230,34 @@
             return;
           }
 
-          if (isCatalogGrid && !compact) {
-            // Only stage real below-the-fold cards. Cards already passed or
-            // hidden by Load More remain untouched and readable.
-            if (rect.height === 0 || rect.bottom <= 0) return;
+          if (
+            shouldStagePageReveal({
+              scene: sceneName,
+              profile,
+              compact,
+              top: rect.top,
+              bottom: rect.bottom,
+              viewportHeight: window.innerHeight,
+              height: rect.height,
+            })
+          ) {
+            // Stage only genuine below-the-fold layers. Gallery images hydrate
+            // early so this happens before they can enter the viewport.
             touched.add(layer);
             if (policy.fade) layer.style.opacity = "0";
-            layer.style.transform = `translate3d(0, ${policy.distance}px, 0)`;
+            if (isCatalogGrid) {
+              layer.style.transform = `translate3d(0, ${policy.distance}px, 0)`;
+            }
           }
 
+          const entersAtViewportEdge = isCatalogGrid || sceneName === "gallery";
           register(
             inView(layer, () => revealLayer(layer, (index % 4) * 0.065), {
-              amount: isCatalogGrid && !compact ? 0.01 : policy.amount,
+              amount: entersAtViewportEdge && !compact ? 0.01 : policy.amount,
               margin:
-                isCatalogGrid && !compact ? "0px 0px 0px 0px" : policy.margin,
+                entersAtViewportEdge && !compact
+                  ? "0px 0px 0px 0px"
+                  : policy.margin,
             })
           );
         });

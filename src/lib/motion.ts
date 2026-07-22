@@ -57,6 +57,13 @@ export interface InitialViewportBounds {
   viewportHeight: number;
 }
 
+interface PageRevealStagingContext extends InitialViewportBounds {
+  scene: string | undefined;
+  profile: MotionProfile;
+  compact: boolean;
+  height?: number;
+}
+
 /** Initial pixels already on screen stay visible instead of replaying a reveal. */
 export function isInitiallyInViewport({
   top,
@@ -64,6 +71,28 @@ export function isInitiallyInViewport({
   viewportHeight,
 }: InitialViewportBounds): boolean {
   return bottom > 0 && top < viewportHeight;
+}
+
+/** Stage only desktop layers that are genuinely below the initial viewport. */
+export function shouldStagePageReveal({
+  scene,
+  profile,
+  compact,
+  top,
+  bottom,
+  viewportHeight,
+  height = bottom - top,
+}: PageRevealStagingContext): boolean {
+  if (
+    compact ||
+    height <= 0 ||
+    bottom <= 0 ||
+    isInitiallyInViewport({ top, bottom, viewportHeight })
+  ) {
+    return false;
+  }
+
+  return scene === "gallery" || (scene === "grid" && profile === "catalog");
 }
 
 /** Do not mutate server-rendered island markup before React has hydrated it. */
