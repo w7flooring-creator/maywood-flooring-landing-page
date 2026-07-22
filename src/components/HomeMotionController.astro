@@ -12,8 +12,9 @@
   import {
     createBrowserScrollRestoration,
     createHomeMotionLifecycle,
+    isInitiallyInViewport,
     observeMediaChanges,
-    observePageTransitions,
+    observeMotionPageLifecycle,
     resolveActiveScrollMode,
     resolveRevealMotion,
     resolveRequestedScrollMode,
@@ -244,19 +245,28 @@
         '[data-motion-layer="panel"]'
       );
       const heroLayers = asElements(hero, "[data-motion-intro]");
-
-      const introFrame = requestAnimationFrame(() => {
-        if (disposed) return;
-        heroLayers.forEach((layer, index) =>
-          animateIn(layer, {
-            delay: 0.12 + index * 0.1,
-            distance: 26,
-            duration: 1.05,
-            fade: !compactExperience,
-          })
-        );
-      });
-      register(() => cancelAnimationFrame(introFrame));
+      const heroRect = hero.getBoundingClientRect();
+      if (
+        !isInitiallyInViewport({
+          top: heroRect.top,
+          bottom: heroRect.bottom,
+          viewportHeight: window.innerHeight,
+        }) &&
+        heroRect.bottom > 0
+      ) {
+        const introFrame = requestAnimationFrame(() => {
+          if (disposed) return;
+          heroLayers.forEach((layer, index) =>
+            animateIn(layer, {
+              delay: 0.12 + index * 0.1,
+              distance: 26,
+              duration: 1.05,
+              fade: !compactExperience,
+            })
+          );
+        });
+        register(() => cancelAnimationFrame(introFrame));
+      }
 
       if (!compactExperience) {
         register(
@@ -509,10 +519,9 @@
   window.__maywoodHomeMotion?.destroy();
   const lifecycle = createHomeMotionLifecycle(setupHomeMotion);
   window.__maywoodHomeMotion = lifecycle;
-  lifecycle.start();
-
-  window.__maywoodHomeMotionEventsCleanup = observePageTransitions(
+  window.__maywoodHomeMotionEventsCleanup = observeMotionPageLifecycle(
     lifecycle,
-    scrollRestoration
+    scrollRestoration,
+    () => Boolean(document.querySelector("[data-home-motion]"))
   );
 </script>

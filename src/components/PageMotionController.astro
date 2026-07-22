@@ -10,7 +10,7 @@
     createMotionLifecycle,
     isInitiallyInViewport,
     observeMediaChanges,
-    observePageTransitions,
+    observeMotionPageLifecycle,
     resolvePageMotionExperience,
     resolvePageScrollMode,
     resolveRevealMotion,
@@ -212,12 +212,12 @@
           const rect = layer.getBoundingClientRect();
 
           if (
-            isCatalogGrid &&
             isInitiallyInViewport({
               top: rect.top,
               bottom: rect.bottom,
               viewportHeight: window.innerHeight,
-            })
+            }) ||
+            rect.bottom <= 0
           ) {
             return;
           }
@@ -239,6 +239,18 @@
             })
           );
         });
+        return;
+      }
+
+      const sceneRect = scene.getBoundingClientRect();
+      if (
+        isInitiallyInViewport({
+          top: sceneRect.top,
+          bottom: sceneRect.bottom,
+          viewportHeight: window.innerHeight,
+        }) ||
+        sceneRect.bottom <= 0
+      ) {
         return;
       }
 
@@ -323,10 +335,9 @@
   window.__maywoodPageMotion?.destroy();
   const lifecycle = createMotionLifecycle(setupPageMotion);
   window.__maywoodPageMotion = lifecycle;
-  lifecycle.start();
-
-  window.__maywoodPageMotionEventsCleanup = observePageTransitions(
+  window.__maywoodPageMotionEventsCleanup = observeMotionPageLifecycle(
     lifecycle,
-    scrollRestoration
+    scrollRestoration,
+    () => Boolean(document.querySelector("[data-page-motion]"))
   );
 </script>

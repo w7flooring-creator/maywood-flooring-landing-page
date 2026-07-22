@@ -6,7 +6,9 @@ import "../styles/globals.css";
 import SeoHead from "@/components/SeoHead.astro";
 import SiteHeader from "@/components/SiteHeader.astro";
 import SiteFooter from "@/components/SiteFooter.astro";
+import SiteTransitionController from "@/components/SiteTransitionController.astro";
 import PageMotionController from "@/components/PageMotionController.astro";
+import { ClientRouter } from "astro:transitions";
 import type { SeoInput } from "@/lib/seo";
 import type { MotionProfile } from "@/lib/motion";
 
@@ -22,9 +24,19 @@ type Props = Partial<SeoInput> & {
   localBusiness?: boolean;
   /** 内页渐进式动效强度；首页使用独立控制器，内部页可传 none。 */
   motionProfile?: MotionProfile;
+  /** 页面间转场视觉强度；首页显式传 home，其他页面默认沿用 motionProfile。 */
+  transitionProfile?: "home" | MotionProfile;
+  /** 内部页面可关闭客户端页面转场。 */
+  pageTransitions?: boolean;
 };
 
-const { localBusiness = true, motionProfile = "none", ...seo } = Astro.props;
+const {
+  localBusiness = true,
+  motionProfile = "none",
+  transitionProfile = motionProfile === "none" ? "minimal" : motionProfile,
+  pageTransitions = true,
+  ...seo
+} = Astro.props;
 // path 缺省取当前请求路径，页面无需手动传。
 const path = seo.path ?? Astro.url.pathname;
 ---
@@ -41,17 +53,29 @@ const path = seo.path ?? Astro.url.pathname;
     <link rel="preconnect" href="https://cdn.sanity.io" crossorigin />
     <link rel="dns-prefetch" href="https://cdn.sanity.io" />
     <SeoHead {...seo} path={path} localBusiness={localBusiness} />
+    {pageTransitions && <ClientRouter fallback="animate" />}
     <slot name="head" />
   </head>
-  <body>
-    <SiteHeader />
+  <body
+    data-transition-profile={pageTransitions ? transitionProfile : undefined}
+  >
+    <SiteHeader transition:name={pageTransitions ? "site-header" : undefined} />
+    {
+      pageTransitions && (
+        <div class="site-navigation-indicator" aria-hidden="true">
+          <span />
+        </div>
+      )
+    }
     <main
       data-page-motion={motionProfile !== "none" ? "" : undefined}
       data-motion-profile={motionProfile !== "none" ? motionProfile : undefined}
+      transition:name={pageTransitions ? "page-main" : undefined}
     >
       <slot />
     </main>
     {motionProfile !== "none" && <PageMotionController />}
     <SiteFooter />
+    {pageTransitions && <SiteTransitionController />}
   </body>
 </html>

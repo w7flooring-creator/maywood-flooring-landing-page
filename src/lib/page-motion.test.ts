@@ -4,10 +4,42 @@ import {
   canAnimatePageLayer,
   createMotionLifecycle,
   isInitiallyInViewport,
+  observeAstroNavigation,
   resolvePageMotionExperience,
   resolvePageScrollMode,
   resolveRevealMotion,
 } from "./motion";
+
+describe("Astro navigation motion lifecycle", () => {
+  it("destroys outgoing motion before swap and mounts only matching incoming pages", () => {
+    const events = new EventTarget();
+    let matchesCurrentPage = true;
+    let starts = 0;
+    let destroys = 0;
+    const lifecycle = createMotionLifecycle(() => {
+      starts += 1;
+      return () => {
+        destroys += 1;
+      };
+    });
+    const cleanup = observeAstroNavigation(
+      lifecycle,
+      () => matchesCurrentPage,
+      events
+    );
+
+    events.dispatchEvent(new Event("astro:page-load"));
+    events.dispatchEvent(new Event("astro:before-swap"));
+    matchesCurrentPage = false;
+    events.dispatchEvent(new Event("astro:page-load"));
+
+    expect(starts).toBe(1);
+    expect(destroys).toBe(1);
+    expect(lifecycle.active).toBe(false);
+
+    cleanup();
+  });
+});
 
 describe("initial viewport reveal boundary", () => {
   it("keeps a product card visible when any part is already in the first viewport", () => {

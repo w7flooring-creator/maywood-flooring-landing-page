@@ -221,6 +221,49 @@ export function createMotionLifecycle(
   };
 }
 
+/** Keep a motion adapter aligned with Astro's client-side document swaps. */
+export function observeAstroNavigation(
+  lifecycle: MotionLifecycle,
+  matchesCurrentPage: () => boolean,
+  target: EventTarget = document
+): () => void {
+  const destroyBeforeSwap = () => lifecycle.destroy();
+  const mountAfterLoad = () => {
+    if (matchesCurrentPage()) lifecycle.start();
+    else lifecycle.destroy();
+  };
+
+  target.addEventListener("astro:before-swap", destroyBeforeSwap);
+  target.addEventListener("astro:page-load", mountAfterLoad);
+
+  return () => {
+    target.removeEventListener("astro:before-swap", destroyBeforeSwap);
+    target.removeEventListener("astro:page-load", mountAfterLoad);
+    lifecycle.destroy();
+  };
+}
+
+/** Compose Astro document swaps and BFCache restoration for one controller. */
+export function observeMotionPageLifecycle(
+  lifecycle: MotionLifecycle,
+  scrollRestoration: BrowserScrollRestoration,
+  matchesCurrentPage: () => boolean
+): () => void {
+  const stopAstroNavigation = observeAstroNavigation(
+    lifecycle,
+    matchesCurrentPage
+  );
+  const stopBrowserTransitions = observePageTransitions(
+    lifecycle,
+    scrollRestoration
+  );
+
+  return () => {
+    stopAstroNavigation();
+    stopBrowserTransitions();
+  };
+}
+
 export function resolveRequestedScrollMode(
   search: string
 ): RequestedScrollMode {
