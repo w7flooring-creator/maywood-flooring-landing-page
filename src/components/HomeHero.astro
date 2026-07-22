@@ -27,47 +27,61 @@ const {
 const hasImage = imageUrl !== null;
 ---
 
-<section class:list={["hero", { "hero--image": hasImage }]}>
-  {
-    hasImage && (
-      <img
-        class="hero__bg"
-        src={sanityImageUrl(imageUrl, { width: 1440 })}
-        srcset={
-          sanityImageSrcset(imageUrl, [480, 640, 768, 1080, 1440, 1920]) ||
-          undefined
-        }
-        sizes="100vw"
-        alt={imageAlt}
-        fetchpriority="high"
-        loading="eager"
-        decoding="async"
-      />
-    )
-  }
-  <div class="hero__panel">
-    <h1 class="hero__title">{HOME_HERO.heading}</h1>
-    <p class="hero__tagline">{HOME_HERO.tagline}</p>
-    <p class="hero__intro">{HOME_HERO.intro}</p>
-    <a
-      class="hero__cta"
-      href={HOME_HERO.cta.href}
-      aria-label={`${HOME_HERO.cta.label} about Maywood Flooring`}
-      >{HOME_HERO.cta.label}<span class="sr-only">
-        about Maywood Flooring</span
-      ></a
-    >
+<section
+  class:list={["hero", { "hero--image": hasImage }]}
+  data-motion-scene="hero"
+>
+  <div class="hero__stage">
+    {
+      hasImage && (
+        <img
+          class="hero__bg"
+          data-motion-layer="media"
+          src={sanityImageUrl(imageUrl, { width: 1440 })}
+          srcset={
+            sanityImageSrcset(imageUrl, [480, 640, 768, 1080, 1440, 1920]) ||
+            undefined
+          }
+          sizes="100vw"
+          alt={imageAlt}
+          fetchpriority="high"
+          loading="eager"
+          decoding="async"
+        />
+      )
+    }
+    <span class="hero__veil" data-motion-layer="veil" aria-hidden="true"></span>
+    <div class="hero__panel" data-motion-layer="panel">
+      <h1 class="hero__title" data-motion-intro>{HOME_HERO.heading}</h1>
+      <p class="hero__tagline" data-motion-intro>{HOME_HERO.tagline}</p>
+      <p class="hero__intro" data-motion-intro>{HOME_HERO.intro}</p>
+      <a
+        class="hero__cta"
+        data-motion-intro
+        href={HOME_HERO.cta.href}
+        aria-label={`${HOME_HERO.cta.label} about Maywood Flooring`}
+        >{HOME_HERO.cta.label}<span class="sr-only">
+          about Maywood Flooring</span
+        ></a
+      >
+    </div>
   </div>
 </section>
 
 <style>
   .hero {
     position: relative;
+    min-height: clamp(36rem, 100svh, 58rem);
+    background: var(--color-bg-muted);
+  }
+
+  .hero__stage {
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: flex-start;
-    min-height: clamp(28rem, 60vw, 42rem);
-    padding: var(--spacing-section) 1.25rem;
+    min-height: clamp(36rem, 100svh, 58rem);
+    padding: clamp(7rem, 14vw, 10rem) 1.25rem var(--spacing-section);
     background: var(--color-bg-muted);
     overflow: hidden;
   }
@@ -79,12 +93,22 @@ const hasImage = imageUrl !== null;
     height: 100%;
     object-fit: cover;
     z-index: 0;
+    transform-origin: center center;
+  }
+
+  .hero__veil {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: #050505;
+    opacity: 0.08;
+    pointer-events: none;
   }
 
   /* 白色内容面板：呼应线上 hero 的白底文字块，保证 serif 标题对比度。 */
   .hero__panel {
     position: relative;
-    z-index: 1;
+    z-index: 2;
     width: 100%;
     max-width: 38rem;
     margin-inline: auto;
@@ -146,7 +170,16 @@ const hasImage = imageUrl !== null;
   }
 
   @media (min-width: 60rem) {
-    .hero {
+    :global(.home-motion--active[data-motion-experience="cinematic"]) .hero {
+      height: 150svh;
+    }
+
+    :global(.home-motion--active[data-motion-experience="cinematic"])
+      .hero__stage {
+      position: sticky;
+      top: 0;
+      height: 100svh;
+      min-height: 45rem;
       padding-inline: clamp(2rem, 6vw, 6rem);
     }
   }

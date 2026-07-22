@@ -1,0 +1,17 @@
+---
+/** Global Astro navigation adapter. The bundled module installs only once. */
+---
+
+<script>
+  import { installNavigationTransitionRuntime } from "@/lib/navigation-transition";
+
+  declare global {
+    interface Window {
+      __maywoodNavigationTransitionCleanup?: () => void;
+    }
+  }
+
+  window.__maywoodNavigationTransitionCleanup?.();
+  window.__maywoodNavigationTransitionCleanup =
+    installNavigationTransitionRuntime();
+</script>

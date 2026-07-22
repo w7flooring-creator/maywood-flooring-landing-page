@@ -3,8 +3,9 @@
  * GalleryGrid —— Gallery 页（/gallery，issue #19）的网格容器。
  *
  * 两态：
- *  - 有图：挂 GalleryLightbox island（client:visible，按需 hydrate）。网格 + 点击开
- *    lightbox 的浏览器状态都在 island 里（见组件注释）。
+ *  - 有图：挂 GalleryLightbox island（client:load，提前 hydrate）。网格 + 点击开
+ *    lightbox 的浏览器状态都在 island 里（见组件注释）；提前 hydration 让 motion
+ *    controller 能在图片进入视窗前安全设置待机状态。
  *  - 无图（Phase 1 galleryImage 未灌入 → 常态）：渲染克制的优雅空态——一句
  *    “coming soon” 文案 + 浏览产品兜底链接（深色圆角小 CTA，品牌按钮语言）。
  *    绝不输出 lorem / 破图 / 空网格 / 热链 Wix。
@@ -23,28 +24,32 @@ const { items } = Astro.props;
 const hasImages = items.length > 0;
 ---
 
-{
-  hasImages ? (
-    <GalleryLightbox client:visible items={items} />
-  ) : (
-    <div class="gallery-empty">
-      <p class="gallery-empty__lead">Our project gallery is coming soon.</p>
-      <p class="gallery-empty__body">
-        We’re putting together a collection of finished timber, laminate and
-        hybrid flooring projects from across Melbourne and Victoria. In the
-        meantime, explore our range or get in touch about your project.
-      </p>
-      <div class="gallery-empty__actions">
-        <a class="gallery-empty__cta" href="/category/engineered-flooring">
-          Browse Products
-        </a>
-        <a class="gallery-empty__link" href="/contact">
-          Contact us
-        </a>
+<div data-motion-scene="gallery">
+  {
+    hasImages ? (
+      <div data-motion-layer="interactive">
+        <GalleryLightbox client:load items={items} />
       </div>
-    </div>
-  )
-}
+    ) : (
+      <div class="gallery-empty" data-motion-layer="copy">
+        <p class="gallery-empty__lead">Our project gallery is coming soon.</p>
+        <p class="gallery-empty__body">
+          We’re putting together a collection of finished timber, laminate and
+          hybrid flooring projects from across Melbourne and Victoria. In the
+          meantime, explore our range or get in touch about your project.
+        </p>
+        <div class="gallery-empty__actions">
+          <a class="gallery-empty__cta" href="/category/engineered-flooring">
+            Browse Products
+          </a>
+          <a class="gallery-empty__link" href="/contact">
+            Contact us
+          </a>
+        </div>
+      </div>
+    )
+  }
+</div>
 
 <style>
   .gallery-empty {

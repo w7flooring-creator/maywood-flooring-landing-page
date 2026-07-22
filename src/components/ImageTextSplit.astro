@@ -40,10 +40,11 @@ const altText = image?.alt ?? "";
     "split",
     { "split--reverse": reverse, "split--no-image": !hasImage },
   ]}
+  data-motion-scene="split"
 >
   {
     hasImage && (
-      <div class="split__media">
+      <div class="split__media" data-motion-layer="media">
         <img
           src={sanityImageUrl(image!.url, { width: 768 })}
           srcset={sanityImageSrcset(image!.url, [480, 768, 1080]) || undefined}
@@ -56,17 +57,31 @@ const altText = image?.alt ?? "";
     )
   }
   <div class="split__text">
-    {eyebrow && <p class="split__eyebrow">{eyebrow}</p>}
-    {heading && <h2 class="split__heading">{heading}</h2>}
+    {
+      eyebrow && (
+        <p class="split__eyebrow" data-motion-layer="copy">
+          {eyebrow}
+        </p>
+      )
+    }
+    {
+      heading && (
+        <h2 class="split__heading" data-motion-layer="heading">
+          {heading}
+        </h2>
+      )
+    }
     {
       hasParagraphs ? (
-        <div class="split__body">
+        <div class="split__body" data-motion-layer="copy">
           {paragraphs.map((p) => (
             <p>{p}</p>
           ))}
         </div>
       ) : (
-        <slot />
+        <div data-motion-layer="copy">
+          <slot />
+        </div>
       )
     }
   </div>

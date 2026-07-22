@@ -24,11 +24,13 @@ const cta = resolveServiceCta(service);
 const telHref = `tel:${NAP.phone.replace(/\s+/g, "")}`;
 ---
 
-<section class="service-cta" aria-label="Get in touch">
-  <p class="service-cta__heading">{heading}</p>
-  <a class="service-cta__btn" href={cta.href}>{cta.label}</a>
+<section class="service-cta" aria-label="Get in touch" data-motion-scene="cta">
+  <p class="service-cta__heading" data-motion-layer="heading">{heading}</p>
+  <a class="service-cta__btn" href={cta.href} data-motion-layer="interactive"
+    >{cta.label}</a
+  >
 
-  <p class="service-cta__channels">
+  <p class="service-cta__channels" data-motion-layer="copy">
     <span>Or speak to our team:</span>
     <a class="service-cta__link" href={telHref}>{NAP.phone}</a>
     <span aria-hidden="true" class="service-cta__sep">·</span>

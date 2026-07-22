@@ -41,7 +41,7 @@ const breadcrumbs = buildServiceBreadcrumbs(service);
 const seo = buildServiceSeo(service);
 ---
 
-<BaseLayout {...seo}>
+<BaseLayout {...seo} motionProfile="conversion">
   <article class="service-page">
     <div class="service-page__crumbs">
       <Breadcrumbs items={breadcrumbs} />

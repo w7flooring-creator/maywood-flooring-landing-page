@@ -65,7 +65,7 @@ const CATEGORY_TITLE_ICONS: Record<string, "layers"> = {
 const titleIcon = CATEGORY_TITLE_ICONS[view.slug] ?? null;
 ---
 
-<BaseLayout {...seo}>
+<BaseLayout {...seo} motionProfile="catalog">
   <div class="category">
     <div class="category__crumbs">
       {

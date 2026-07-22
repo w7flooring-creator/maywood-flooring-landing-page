@@ -17,7 +17,7 @@ interface Props {
 const { title, eyebrow = null, description = null } = Astro.props;
 ---
 
-<header class="product-title">
+<header class="product-title" data-motion-layer="heading">
   {eyebrow && <p class="product-title__eyebrow">{eyebrow}</p>}
   <h1 class="product-title__heading">{title}</h1>
   {description && <p class="product-title__desc">{description}</p>}

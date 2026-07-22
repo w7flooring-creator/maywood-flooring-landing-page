@@ -16,12 +16,14 @@ const { service } = Astro.props;
 const eyebrow = service.duration ? `Service · ${service.duration}` : "Service";
 ---
 
-<section class="service-detail">
-  <p class="service-detail__eyebrow">{eyebrow}</p>
-  <h1 class="service-detail__title">{service.title}</h1>
-  <p class="service-detail__intro">{service.intro}</p>
+<section class="service-detail" data-motion-scene="text">
+  <p class="service-detail__eyebrow" data-motion-layer="heading">{eyebrow}</p>
+  <h1 class="service-detail__title" data-motion-layer="heading">
+    {service.title}
+  </h1>
+  <p class="service-detail__intro" data-motion-layer="copy">{service.intro}</p>
 
-  <div class="service-detail__involved">
+  <div class="service-detail__involved" data-motion-layer="copy">
     <h2 class="service-detail__subtitle">What's involved</h2>
     <ul class="service-detail__list">
       {service.whatsInvolved.map((item) => <li>{item}</li>)}

@@ -90,6 +90,11 @@ describe("/projects/[slug]", () => {
     getCaseStudyBySlug.mockResolvedValue(richCaseStudy);
     const html = await renderProject("zero-carbon-world");
 
+    expect(html).toContain('data-motion-profile="editorial"');
+    expect(html).toContain('data-motion-scene="gallery"');
+    expect(
+      html.match(/data-motion-layer="card"/g)?.length
+    ).toBeGreaterThanOrEqual(2);
     // 唯一 H1 + 标题
     expect(html).toContain("<h1");
     expect(html).toContain("Zero Carbon World");

@@ -31,14 +31,24 @@ const items = (collections ?? []).filter(
 const hasItems = items.length > 0;
 ---
 
-<section class="sig" aria-labelledby="sig-heading">
+<section
+  class="sig"
+  aria-labelledby="sig-heading"
+  data-motion-scene="signature"
+>
   <div class="sig__inner">
-    <h2 id="sig-heading" class="sig__heading">{heading}</h2>
+    <h2 id="sig-heading" class="sig__heading" data-motion-layer="heading">
+      {heading}
+    </h2>
     {
       hasItems ? (
         <ul class="sig__list" role="list">
-          {items.map((collection) => (
-            <li class="sig__item">
+          {items.map((collection, index) => (
+            <li
+              class="sig__item"
+              data-motion-layer="card"
+              style={`--stack-index: ${index}`}
+            >
               <SignatureCollectionCard
                 title={collection.title}
                 slug={collection.slug}
@@ -127,5 +137,26 @@ const hasItems = items.length > 0;
   }
   .sig__empty-link:hover {
     background: #2c2c2c;
+  }
+
+  @media (min-width: 60rem) {
+    :global(.home-motion--active[data-motion-experience="cinematic"])
+      .sig__list {
+      gap: 0;
+    }
+
+    :global(.home-motion--active[data-motion-experience="cinematic"])
+      .sig__item {
+      position: sticky;
+      top: calc(6rem + var(--stack-index) * 1rem);
+      z-index: calc(10 + var(--stack-index));
+      padding-bottom: clamp(12rem, 38svh, 22rem);
+      transform-origin: top center;
+    }
+
+    :global(.home-motion--active[data-motion-experience="cinematic"])
+      .sig__item:last-child {
+      padding-bottom: 0;
+    }
   }
 </style>

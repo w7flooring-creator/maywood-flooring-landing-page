@@ -65,6 +65,7 @@ describe("ProductSpecItem.astro", () => {
     expect(html).toContain("Matt UV Lacquer");
     expect(html).toContain("<dt");
     expect(html).toContain("<dd");
+    expect(html).toContain('data-motion-layer="copy"');
   });
 });
 
@@ -84,6 +85,7 @@ describe("ProductSpecList.astro", () => {
     expect(html).toContain("Type");
     expect(html).toContain("Engineered Oak");
     expect(html).toContain("Dimension");
+    expect(html).toContain('data-motion-layer="heading"');
   });
 
   it("无规格时整块不渲染（不输出空表）", async () => {

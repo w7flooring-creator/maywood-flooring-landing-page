@@ -55,7 +55,7 @@ const seo = buildResourceSeo({
 const showBody = hasResourceBody(resource);
 ---
 
-<BaseLayout {...seo}>
+<BaseLayout {...seo} motionProfile="editorial">
   <article class="resource">
     <div class="resource__crumbs">
       <Breadcrumbs items={breadcrumbs} />
@@ -109,13 +109,18 @@ const showBody = hasResourceBody(resource);
         <section
           class="resource__related"
           aria-labelledby="resource-related-title"
+          data-motion-scene="grid"
         >
-          <h2 id="resource-related-title" class="resource__related-title">
+          <h2
+            id="resource-related-title"
+            class="resource__related-title"
+            data-motion-layer="heading"
+          >
             Related products
           </h2>
           <ul class="resource__related-list" role="list">
             {resource.relatedProducts.map((p) => (
-              <li>
+              <li data-motion-layer="card">
                 <a href={`/product-page/${p.slug}`}>{p.title}</a>
               </li>
             ))}

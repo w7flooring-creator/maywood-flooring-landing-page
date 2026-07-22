@@ -20,20 +20,27 @@ const links = [
 ---
 
 <BaseLayout
+  motionProfile="minimal"
   title="Page Not Found"
   description="The page you were looking for could not be found. Explore Maywood Flooring's premium timber, laminate and hybrid flooring, or get in touch with our Keysborough showroom."
   noindex={true}
 >
-  <section class="notfound">
+  <section class="notfound" data-motion-scene="text">
     <p class="notfound__eyebrow">Error 404</p>
-    <h1 class="notfound__title">This page has been retired.</h1>
-    <p class="notfound__lede">
+    <h1 class="notfound__title" data-motion-layer="heading">
+      This page has been retired.
+    </h1>
+    <p class="notfound__lede" data-motion-layer="copy">
       The page you were looking for may have moved or no longer exists. Let us
       help you find your footing — explore our flooring, or get in touch with
       our Keysborough showroom.
     </p>
 
-    <nav class="notfound__links" aria-label="Suggested pages">
+    <nav
+      class="notfound__links"
+      aria-label="Suggested pages"
+      data-motion-layer="interactive"
+    >
       {
         links.map((link, index) => (
           <a

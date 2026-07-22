@@ -33,14 +33,16 @@ const items: GalleryItem[] = [
 ];
 
 describe("GalleryGrid.astro —— 有图态", () => {
-  it("有图时挂 GalleryLightbox island（client:visible）", async () => {
+  it("有图时提前 hydrate GalleryLightbox，以便视窗外图片先进入待机", async () => {
     const container = await createContainer();
     const html = await container.renderToString(GalleryGrid, {
       props: { items },
     });
-    // island 以 astro-island 形式注入，且按需 hydrate（client:visible）。
+    // 提前 hydrate，motion controller 才能在图片入场前安全写入待机状态。
     expect(html).toContain("astro-island");
-    expect(html).toContain('client="visible"');
+    expect(html).toContain('client="load"');
+    expect(html).toContain('data-motion-scene="gallery"');
+    expect(html).toContain('data-motion-layer="interactive"');
     // 不渲染空态文案 / 占位。
     expect(html).not.toContain("coming soon");
   });

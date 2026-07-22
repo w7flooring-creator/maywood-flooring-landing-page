@@ -20,11 +20,16 @@ const { productTitle } = Astro.props;
 const telHref = `tel:${NAP.phone.replace(/\s+/g, "")}`;
 ---
 
-<section class="inquiry" aria-label="Enquire about this product">
+<section
+  class="inquiry"
+  aria-label="Enquire about this product"
+  data-motion-layer="copy"
+>
   <a
     class="inquiry__cta"
     href="/contact"
     aria-label={`Enquire about this product: ${productTitle}`}
+    data-motion-layer="interactive"
   >
     Enquire about this product
   </a>

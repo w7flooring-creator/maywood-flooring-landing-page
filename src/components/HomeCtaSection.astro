@@ -11,11 +11,29 @@ import { HOME_CTA } from "@/lib/home-narrative";
 const { heading, paragraphs, cta } = HOME_CTA;
 ---
 
-<section class="home-cta" aria-labelledby="home-cta-heading">
+<section
+  class="home-cta"
+  aria-labelledby="home-cta-heading"
+  data-motion-scene="cta"
+>
   <div class="home-cta__inner">
-    <h2 id="home-cta-heading" class="home-cta__heading">{heading}</h2>
-    {paragraphs.map((para) => <p class="home-cta__para">{para}</p>)}
-    <a class="home-cta__btn" href={cta.href}>{cta.label}</a>
+    <h2
+      id="home-cta-heading"
+      class="home-cta__heading"
+      data-motion-layer="heading"
+    >
+      {heading}
+    </h2>
+    {
+      paragraphs.map((para) => (
+        <p class="home-cta__para" data-motion-layer="copy">
+          {para}
+        </p>
+      ))
+    }
+    <a class="home-cta__btn" data-motion-layer="cta" href={cta.href}
+      >{cta.label}</a
+    >
   </div>
 </section>
 

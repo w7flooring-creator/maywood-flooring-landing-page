@@ -56,6 +56,7 @@ describe("/faqs", () => {
     getFaqs.mockResolvedValue([]);
     const html = await renderFaqs();
 
+    expect(html).toContain('data-motion-profile="minimal"');
     expect(html).toContain("<title>FAQs | Maywood Flooring</title>");
     expect(html).toContain('aria-label="Breadcrumb"');
     expect(html).toContain('"@type":"BreadcrumbList"');
@@ -86,6 +87,8 @@ describe("/faqs", () => {
     expect(html).toContain("<title>FAQs | Maywood Flooring</title>");
     // 问题文本出现（island server-render 输出 trigger）
     expect(html).toContain("How do I order samples?");
+    expect(html).toContain('data-motion-scene="faq"');
+    expect(html).toContain('data-motion-layer="interactive"');
     expect(html).toContain("Do you deliver across Melbourne?");
     // FAQPage 结构化数据，answer 以 HTML 形式（<p>…）注入并经 StructuredData 转义 `<`
     expect(html).toContain('"@type":"FAQPage"');

@@ -1,0 +1,365 @@
+---
+/** Progressive enhancement for non-home public pages. Inner pages stay native. */
+---
+
+<script>
+  import { animate, inView, scroll } from "motion";
+  import {
+    canAnimatePageLayer,
+    createBrowserScrollRestoration,
+    createMotionLifecycle,
+    isInitiallyInViewport,
+    observeMediaChanges,
+    observeMotionPageLifecycle,
+    resolvePageMotionExperience,
+    resolvePageScrollMode,
+    resolveRevealMotion,
+    shouldStagePageReveal,
+    type MotionProfile,
+    type MotionLifecycle,
+  } from "@/lib/motion";
+
+  type Cleanup = () => void;
+  type AnimationControls = ReturnType<typeof animate>;
+
+  declare global {
+    interface Window {
+      __maywoodPageMotion?: MotionLifecycle;
+      __maywoodPageMotionEventsCleanup?: Cleanup;
+    }
+  }
+
+  const scrollRestoration = createBrowserScrollRestoration();
+
+  const elements = (root: ParentNode, selector: string) =>
+    Array.from(root.querySelectorAll<HTMLElement>(selector));
+
+  function setupPageMotion(): Cleanup {
+    const root = document.querySelector<HTMLElement>("[data-page-motion]");
+    if (!root) return () => {};
+
+    const reducedQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const coarseQuery = window.matchMedia("(pointer: coarse)");
+    const compactQuery = window.matchMedia("(max-width: 59.99rem)");
+    const experience = resolvePageMotionExperience({
+      reducedMotion: reducedQuery.matches,
+      coarsePointer: coarseQuery.matches,
+      compactViewport: compactQuery.matches,
+    });
+    const compact = experience !== "cinematic";
+    const profile = (root.dataset.motionProfile ?? "minimal") as MotionProfile;
+
+    document.documentElement.dataset.scrollMode = resolvePageScrollMode(
+      window.location.search
+    );
+    root.dataset.motionExperience = experience;
+
+    const cleanups: Cleanup[] = [];
+    const touched = new Set<HTMLElement>();
+    const running = new Set<AnimationControls>();
+    const cleanupFrames = new Set<number>();
+    let disposed = false;
+    let reconfigureQueued = false;
+
+    const register = (cleanup: Cleanup | undefined) => {
+      if (cleanup) cleanups.push(cleanup);
+    };
+    const reconfigure = () => {
+      if (reconfigureQueued) return;
+      reconfigureQueued = true;
+      queueMicrotask(() => {
+        reconfigureQueued = false;
+        if (disposed) return;
+        const snapshot = scrollRestoration.read();
+        window.__maywoodPageMotion?.destroy();
+        window.__maywoodPageMotion?.start();
+        scrollRestoration.restore(snapshot);
+      });
+    };
+    register(
+      observeMediaChanges(
+        [reducedQuery, coarseQuery, compactQuery],
+        reconfigure
+      )
+    );
+
+    if (experience === "reduced") {
+      return () => {
+        disposed = true;
+        cleanups
+          .splice(0)
+          .reverse()
+          .forEach((cleanup) => cleanup());
+        delete root.dataset.motionExperience;
+        delete document.documentElement.dataset.scrollMode;
+      };
+    }
+
+    elements(root, "astro-island[ssr]").forEach((island) => {
+      let hydrationTimer = 0;
+      const handleHydrate = () => {
+        // React's concurrent hydration can keep comparing deeper SSR nodes
+        // after Astro emits astro:hydrate. Give it a short post-hydration
+        // window before applying inline motion styles to island descendants.
+        hydrationTimer = window.setTimeout(reconfigure, 160);
+      };
+      island.addEventListener("astro:hydrate", handleHydrate, { once: true });
+      register(() => {
+        window.clearTimeout(hydrationTimer);
+        island.removeEventListener("astro:hydrate", handleHydrate);
+      });
+    });
+
+    root.classList.add("page-motion--active");
+
+    const animateIn = (
+      element: HTMLElement,
+      delay: number,
+      options: { clip?: boolean; move?: boolean } = {}
+    ) => {
+      if (element.dataset.motionLayer === "interactive") return;
+      const { clip = false, move = true } = options;
+      const policy = resolveRevealMotion(
+        compact,
+        element.dataset.motionLayer,
+        profile
+      );
+      const shouldClip =
+        clip &&
+        !compact &&
+        !element.matches("a, button, input, textarea, select") &&
+        !element.querySelector("a, button, input, textarea, select");
+      if (!policy.fade && !move && !shouldClip) return;
+      touched.add(element);
+      element.style.willChange = [
+        ...(move ? ["transform"] : []),
+        ...(policy.fade ? ["opacity"] : []),
+        ...(shouldClip ? ["clip-path"] : []),
+      ].join(", ");
+      const controls = animate(
+        element,
+        {
+          ...(policy.fade ? { opacity: [0, 1] } : {}),
+          ...(move
+            ? {
+                transform: [
+                  `translate3d(0, ${policy.distance}px, 0)`,
+                  "translate3d(0, 0, 0)",
+                ],
+              }
+            : {}),
+          ...(shouldClip
+            ? { clipPath: ["inset(0 0 100% 0)", "inset(0 0 0% 0)"] }
+            : {}),
+        },
+        {
+          delay,
+          duration: policy.duration,
+          ease: [0.22, 1, 0.36, 1],
+        }
+      );
+      running.add(controls);
+      void controls.then(() => {
+        running.delete(controls);
+        element.style.removeProperty("will-change");
+        const frame = requestAnimationFrame(() => {
+          cleanupFrames.delete(frame);
+          if (disposed) return;
+          element.style.removeProperty("opacity");
+          element.style.removeProperty("clip-path");
+          if (move) element.style.removeProperty("transform");
+        });
+        cleanupFrames.add(frame);
+      });
+    };
+
+    const ownedLayers = (scene: HTMLElement) =>
+      [
+        ...(scene.dataset.motionLayer ? [scene] : []),
+        ...elements(scene, "[data-motion-layer]"),
+      ].filter(
+        (layer) =>
+          canAnimatePageLayer({
+            layer: layer.dataset.motionLayer,
+            ownsInteractiveDescendant: Boolean(
+              layer.querySelector('[data-motion-layer="interactive"]')
+            ),
+            insideUnhydratedIsland: Boolean(layer.closest("astro-island[ssr]")),
+          }) && layer.closest<HTMLElement>("[data-motion-scene]") === scene
+      );
+
+    const revealScene = (scene: HTMLElement) => {
+      const sceneName = scene.dataset.motionScene;
+      const layers = [...ownedLayers(scene)];
+      if (layers.length === 0) return;
+
+      const revealLayer = (layer: HTMLElement, delay: number) => {
+        const scrollDrivenMedia =
+          !compact &&
+          layer.dataset.motionLayer === "media" &&
+          (["hero", "split", "gallery"].includes(sceneName ?? "") ||
+            (profile === "editorial" && sceneName === "grid"));
+        animateIn(layer, delay, {
+          clip: profile === "editorial" || profile === "catalog",
+          move: !scrollDrivenMedia,
+        });
+      };
+
+      if (sceneName === "grid" || sceneName === "gallery") {
+        const cards = layers.filter(
+          (layer) => layer.dataset.motionLayer === "card"
+        );
+        const targets = cards.length > 0 ? cards : layers;
+        const isCatalogGrid = sceneName === "grid" && profile === "catalog";
+        targets.forEach((layer, index) => {
+          const policy = resolveRevealMotion(
+            compact,
+            layer.dataset.motionLayer,
+            profile
+          );
+          const rect = layer.getBoundingClientRect();
+
+          if (
+            isInitiallyInViewport({
+              top: rect.top,
+              bottom: rect.bottom,
+              viewportHeight: window.innerHeight,
+            }) ||
+            rect.bottom <= 0
+          ) {
+            return;
+          }
+
+          if (
+            shouldStagePageReveal({
+              scene: sceneName,
+              profile,
+              compact,
+              top: rect.top,
+              bottom: rect.bottom,
+              viewportHeight: window.innerHeight,
+              height: rect.height,
+            })
+          ) {
+            // Stage only genuine below-the-fold layers. Gallery images hydrate
+            // early so this happens before they can enter the viewport.
+            touched.add(layer);
+            if (policy.fade) layer.style.opacity = "0";
+            if (isCatalogGrid) {
+              layer.style.transform = `translate3d(0, ${policy.distance}px, 0)`;
+            }
+          }
+
+          const entersAtViewportEdge = isCatalogGrid || sceneName === "gallery";
+          register(
+            inView(layer, () => revealLayer(layer, (index % 4) * 0.065), {
+              amount: entersAtViewportEdge && !compact ? 0.01 : policy.amount,
+              margin:
+                entersAtViewportEdge && !compact
+                  ? "0px 0px 0px 0px"
+                  : policy.margin,
+            })
+          );
+        });
+        return;
+      }
+
+      const sceneRect = scene.getBoundingClientRect();
+      if (
+        isInitiallyInViewport({
+          top: sceneRect.top,
+          bottom: sceneRect.bottom,
+          viewportHeight: window.innerHeight,
+        }) ||
+        sceneRect.bottom <= 0
+      ) {
+        return;
+      }
+
+      const policy = resolveRevealMotion(compact, null, profile);
+      register(
+        inView(
+          scene,
+          () =>
+            layers.forEach((layer, index) =>
+              revealLayer(layer, Math.min(index, 4) * 0.075)
+            ),
+          { amount: policy.amount, margin: policy.margin }
+        )
+      );
+    };
+
+    elements(root, "[data-motion-scene]").forEach((scene) => {
+      revealScene(scene);
+
+      if (compact) return;
+      const sceneName = scene.dataset.motionScene;
+      const mediaLayers = ownedLayers(scene).filter(
+        (layer) => layer.dataset.motionLayer === "media"
+      );
+      if (
+        sceneName === "gallery" ||
+        (profile === "editorial" && sceneName === "grid")
+      ) {
+        mediaLayers.forEach((media) => {
+          const target =
+            media.closest<HTMLElement>('[data-motion-layer="card"]') ?? media;
+          const travel = sceneName === "gallery" ? 18 : 12;
+          register(
+            scroll(
+              (progress: number) => {
+                touched.add(media);
+                media.style.transform = `translate3d(0, ${(0.5 - progress) * travel}px, 0) scale(${1.01 + progress * 0.02})`;
+              },
+              { target, offset: ["start end", "end start"] }
+            )
+          );
+        });
+        return;
+      }
+      const media = mediaLayers[0];
+      if (media && ["hero", "split"].includes(sceneName ?? "")) {
+        register(
+          scroll(
+            (progress: number) => {
+              touched.add(media);
+              media.style.transform = `translate3d(0, ${(0.5 - progress) * 14}px, 0) scale(${1.015 + progress * 0.025})`;
+            },
+            { target: scene, offset: ["start end", "end start"] }
+          )
+        );
+      }
+    });
+
+    return () => {
+      disposed = true;
+      cleanups
+        .splice(0)
+        .reverse()
+        .forEach((cleanup) => cleanup());
+      running.forEach((animation) => animation.stop());
+      running.clear();
+      cleanupFrames.forEach((frame) => cancelAnimationFrame(frame));
+      cleanupFrames.clear();
+      touched.forEach((element) => {
+        element.style.removeProperty("opacity");
+        element.style.removeProperty("transform");
+        element.style.removeProperty("clip-path");
+        element.style.removeProperty("will-change");
+      });
+      root.classList.remove("page-motion--active");
+      delete root.dataset.motionExperience;
+      delete document.documentElement.dataset.scrollMode;
+    };
+  }
+
+  window.__maywoodPageMotionEventsCleanup?.();
+  window.__maywoodPageMotion?.destroy();
+  const lifecycle = createMotionLifecycle(setupPageMotion);
+  window.__maywoodPageMotion = lifecycle;
+  window.__maywoodPageMotionEventsCleanup = observeMotionPageLifecycle(
+    lifecycle,
+    scrollRestoration,
+    () => Boolean(document.querySelector("[data-page-motion]"))
+  );
+</script>

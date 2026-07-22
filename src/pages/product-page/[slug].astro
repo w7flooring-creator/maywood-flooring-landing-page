@@ -52,7 +52,7 @@ const productJsonLd = buildProductJsonLd(product);
 const eyebrow = product.collection?.title ?? product.category?.title ?? null;
 ---
 
-<BaseLayout {...seo}>
+<BaseLayout {...seo} motionProfile="catalog">
   {
     /* 产品页专属结构化数据：Product（站点级 LocalBusiness 由 SeoHead 注入）。 */
   }
@@ -63,17 +63,23 @@ const eyebrow = product.collection?.title ?? product.category?.title ?? null;
       <Breadcrumbs items={breadcrumbs} />
     </div>
 
-    <div class="product__layout">
+    <div class="product__layout" data-motion-scene="product-detail">
       <div class="product__media">
         {
           product.images.length > 0 ? (
-            <ProductImageGallery
-              client:visible
-              images={product.images}
-              productTitle={product.title}
-            />
+            <div data-motion-layer="interactive">
+              <ProductImageGallery
+                client:visible
+                images={product.images}
+                productTitle={product.title}
+              />
+            </div>
           ) : (
-            <div class="product__media-empty" aria-hidden="true" />
+            <div
+              class="product__media-empty"
+              aria-hidden="true"
+              data-motion-layer="media"
+            />
           )
         }
       </div>

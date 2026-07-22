@@ -26,11 +26,16 @@ const hasImage = image?.url != null && image.url.length > 0;
 const altText = image?.alt ?? "";
 ---
 
-<section class:list={["hero", { "hero--image": hasImage }]} aria-label={title}>
+<section
+  class:list={["hero", { "hero--image": hasImage }]}
+  aria-label={title}
+  data-motion-scene="hero"
+>
   {
     hasImage && (
       <img
         class="hero__bg"
+        data-motion-layer="media"
         src={sanityImageUrl(image!.url, { width: 1440 })}
         srcset={
           sanityImageSrcset(image!.url, [480, 640, 768, 1080, 1440, 1920]) ||
@@ -46,7 +51,7 @@ const altText = image?.alt ?? "";
   }
   {
     eyebrow && (
-      <div class="hero__panel">
+      <div class="hero__panel" data-motion-layer="copy">
         <p class="hero__eyebrow">{eyebrow}</p>
       </div>
     )

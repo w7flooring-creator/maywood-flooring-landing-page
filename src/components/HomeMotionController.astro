@@ -1,0 +1,527 @@
+---
+/**
+ * 首页滚动叙事控制器。
+ *
+ * DOM 与内容仍由 Astro 静态输出；这里只增强 data-motion-* 标记的节点。
+ * 任意脚本失败、移动端或 reduced-motion 环境都保留完整可读的原始页面。
+ */
+---
+
+<script>
+  import { animate, inView, scroll } from "motion";
+  import {
+    createBrowserScrollRestoration,
+    createHomeMotionLifecycle,
+    isInitiallyInViewport,
+    observeMediaChanges,
+    observeMotionPageLifecycle,
+    resolveActiveScrollMode,
+    resolveRevealMotion,
+    resolveRequestedScrollMode,
+    type HomeMotionLifecycle,
+  } from "@/lib/home-motion";
+
+  declare global {
+    interface Window {
+      __maywoodHomeMotion?: HomeMotionLifecycle;
+      __maywoodHomeMotionEventsCleanup?: Cleanup;
+    }
+  }
+
+  type Cleanup = () => void;
+
+  const scrollRestoration = createBrowserScrollRestoration();
+
+  const clamp = (value: number) => Math.min(1, Math.max(0, value));
+  const phase = (progress: number, start: number, end: number) =>
+    clamp((progress - start) / (end - start));
+
+  function asElements(root: ParentNode, selector: string): HTMLElement[] {
+    return Array.from(root.querySelectorAll<HTMLElement>(selector));
+  }
+
+  function clearAnimatedStyles(elements: Iterable<HTMLElement>) {
+    for (const element of elements) {
+      element.style.removeProperty("opacity");
+      element.style.removeProperty("transform");
+      element.style.removeProperty("clip-path");
+      element.style.removeProperty("will-change");
+    }
+  }
+
+  function setupHomeMotion(): Cleanup {
+    const root = document.querySelector<HTMLElement>("[data-home-motion]");
+    if (!root) return () => {};
+
+    const reducedMotionQuery = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    );
+    const coarsePointerQuery = window.matchMedia("(pointer: coarse)");
+    const compactViewportQuery = window.matchMedia("(max-width: 59.99rem)");
+    const reducedMotion = reducedMotionQuery.matches;
+    const compactExperience =
+      coarsePointerQuery.matches || compactViewportQuery.matches;
+    const requestedMode = resolveRequestedScrollMode(window.location.search);
+    const activeMode = resolveActiveScrollMode({
+      requestedMode,
+      reducedMotion,
+      coarsePointer: coarsePointerQuery.matches,
+      compactViewport: compactViewportQuery.matches,
+    });
+
+    document.documentElement.dataset.scrollMode = activeMode;
+    root.dataset.motionExperience = reducedMotion
+      ? "reduced"
+      : compactExperience
+        ? "compact"
+        : "cinematic";
+
+    const cleanups: Cleanup[] = [];
+    const touched = new Set<HTMLElement>();
+    const runningAnimations = new Set<ReturnType<typeof animate>>();
+    let disposed = false;
+    let reconfigureQueued = false;
+    let lenisInstance: { destroy(): void } | null = null;
+
+    const register = (cleanup: Cleanup | undefined) => {
+      if (cleanup) cleanups.push(cleanup);
+    };
+
+    const reconfigure = () => {
+      if (reconfigureQueued) return;
+      reconfigureQueued = true;
+      queueMicrotask(() => {
+        reconfigureQueued = false;
+        if (disposed) return;
+        const snapshot = scrollRestoration.read();
+        window.__maywoodHomeMotion?.destroy();
+        window.__maywoodHomeMotion?.start();
+        scrollRestoration.restore(snapshot);
+      });
+    };
+
+    register(
+      observeMediaChanges(
+        [reducedMotionQuery, coarsePointerQuery, compactViewportQuery],
+        reconfigure
+      )
+    );
+
+    const animateIn = (
+      element: HTMLElement,
+      options: {
+        delay?: number;
+        distance?: number;
+        duration?: number;
+        clip?: boolean;
+        fade?: boolean;
+      } = {}
+    ) => {
+      const {
+        delay = 0,
+        distance = 32,
+        duration = 0.9,
+        clip = false,
+        fade = true,
+      } = options;
+      touched.add(element);
+      element.style.willChange = [
+        "transform",
+        ...(fade ? ["opacity"] : []),
+        ...(clip ? ["clip-path"] : []),
+      ].join(", ");
+      const controls = animate(
+        element,
+        {
+          ...(fade ? { opacity: [0, 1] } : {}),
+          transform: [
+            `translate3d(0, ${distance}px, 0)`,
+            "translate3d(0, 0, 0)",
+          ],
+          ...(clip
+            ? {
+                clipPath: ["inset(0 0 100% 0)", "inset(0 0 0% 0)"],
+              }
+            : {}),
+        },
+        {
+          delay,
+          duration,
+          ease: [0.22, 1, 0.36, 1],
+        }
+      );
+      runningAnimations.add(controls);
+      void controls.then(() => {
+        runningAnimations.delete(controls);
+        element.style.removeProperty("will-change");
+      });
+    };
+
+    const revealWhenVisible = (
+      target: HTMLElement,
+      elements: HTMLElement[],
+      options: { clip?: boolean; stagger?: number } = {}
+    ) => {
+      register(
+        inView(
+          target,
+          () => {
+            elements.forEach((element, index) => {
+              const policy = resolveRevealMotion(
+                compactExperience,
+                element.dataset.motionLayer
+              );
+              animateIn(element, {
+                delay: index * (options.stagger ?? 0.08),
+                clip: options.clip && !compactExperience,
+                fade: policy.fade,
+                distance: policy.distance,
+                duration: policy.duration,
+              });
+            });
+          },
+          {
+            amount: resolveRevealMotion(compactExperience, null).amount,
+            margin: resolveRevealMotion(compactExperience, null).margin,
+          }
+        )
+      );
+    };
+
+    if (activeMode === "lenis") {
+      void import("lenis").then(({ default: Lenis }) => {
+        if (disposed) return;
+        lenisInstance = new Lenis({
+          autoRaf: true,
+          anchors: true,
+          lerp: 0.085,
+          smoothWheel: true,
+          stopInertiaOnNavigate: true,
+          wheelMultiplier: 0.9,
+          prevent: (node) =>
+            Boolean(
+              node.closest(
+                "[data-lenis-prevent], [role='dialog'], form, input, textarea, select"
+              )
+            ),
+        });
+      });
+    }
+
+    const header = document.querySelector<HTMLElement>("[data-motion-header]");
+    header?.classList.add("is-motion-ready");
+
+    if (reducedMotion) {
+      const toggleHeader = () =>
+        header?.classList.toggle("is-scrolled", window.scrollY > 24);
+      toggleHeader();
+      window.addEventListener("scroll", toggleHeader, { passive: true });
+      register(() => window.removeEventListener("scroll", toggleHeader));
+
+      return () => {
+        disposed = true;
+        lenisInstance?.destroy();
+        cleanups
+          .splice(0)
+          .reverse()
+          .forEach((cleanup) => cleanup());
+        header?.classList.remove("is-scrolled", "is-motion-ready");
+        delete document.documentElement.dataset.scrollMode;
+        delete root.dataset.motionExperience;
+      };
+    }
+
+    root.classList.add("home-motion--active");
+
+    const hero = root.querySelector<HTMLElement>('[data-motion-scene="hero"]');
+    if (hero) {
+      const heroImage = hero.querySelector<HTMLElement>(
+        '[data-motion-layer="media"]'
+      );
+      const heroVeil = hero.querySelector<HTMLElement>(
+        '[data-motion-layer="veil"]'
+      );
+      const heroPanel = hero.querySelector<HTMLElement>(
+        '[data-motion-layer="panel"]'
+      );
+      const heroLayers = asElements(hero, "[data-motion-intro]");
+      const heroRect = hero.getBoundingClientRect();
+      if (
+        !isInitiallyInViewport({
+          top: heroRect.top,
+          bottom: heroRect.bottom,
+          viewportHeight: window.innerHeight,
+        }) &&
+        heroRect.bottom > 0
+      ) {
+        const introFrame = requestAnimationFrame(() => {
+          if (disposed) return;
+          heroLayers.forEach((layer, index) =>
+            animateIn(layer, {
+              delay: 0.12 + index * 0.1,
+              distance: 26,
+              duration: 1.05,
+              fade: !compactExperience,
+            })
+          );
+        });
+        register(() => cancelAnimationFrame(introFrame));
+      }
+
+      if (!compactExperience) {
+        register(
+          scroll(
+            (progress: number) => {
+              if (heroImage) {
+                touched.add(heroImage);
+                heroImage.style.transform = `scale(${1 + progress * 0.075})`;
+              }
+              if (heroVeil) {
+                touched.add(heroVeil);
+                heroVeil.style.opacity = String(0.08 + progress * 0.54);
+              }
+              if (heroPanel) {
+                touched.add(heroPanel);
+                heroPanel.style.opacity = String(
+                  1 - phase(progress, 0.18, 0.82)
+                );
+                heroPanel.style.transform = `translate3d(0, ${-progress * 76}px, 0)`;
+              }
+              header?.classList.toggle("is-scrolled", progress > 0.12);
+            },
+            { target: hero, offset: ["start start", "end start"] }
+          )
+        );
+      } else if (header) {
+        const toggleHeader = () =>
+          header.classList.toggle("is-scrolled", window.scrollY > 24);
+        toggleHeader();
+        window.addEventListener("scroll", toggleHeader, { passive: true });
+        register(() => window.removeEventListener("scroll", toggleHeader));
+      }
+    }
+
+    const products = root.querySelector<HTMLElement>(
+      '[data-motion-scene="products"]'
+    );
+    if (products) {
+      revealWhenVisible(
+        products,
+        [
+          ...asElements(products, '[data-motion-layer="heading"]'),
+          ...asElements(products, '[data-motion-layer="card"]'),
+        ],
+        { clip: true, stagger: 0.09 }
+      );
+    }
+
+    const setupNarrativeScene = (sceneName: "partner" | "sustainability") => {
+      const scene = root.querySelector<HTMLElement>(
+        `[data-motion-scene="${sceneName}"]`
+      );
+      if (!scene) return;
+      const media = scene.querySelector<HTMLElement>(
+        '[data-motion-layer="media"]'
+      );
+      const copy = asElements(scene, '[data-motion-layer="copy"]');
+
+      if (compactExperience) {
+        revealWhenVisible(scene, [...(media ? [media] : []), ...copy], {
+          stagger: 0.08,
+        });
+        return;
+      }
+
+      register(
+        scroll(
+          (progress: number) => {
+            if (media) {
+              touched.add(media);
+              media.style.transform = `scale(${1.035 + progress * 0.065}) translate3d(0, ${(0.5 - progress) * 18}px, 0)`;
+            }
+            copy.forEach((element, index) => {
+              touched.add(element);
+              const local = phase(
+                progress,
+                0.13 + index * 0.075,
+                0.36 + index * 0.075
+              );
+              element.style.opacity = String(local);
+              element.style.transform = `translate3d(0, ${(1 - local) * 34}px, 0)`;
+            });
+          },
+          { target: scene, offset: ["start end", "end start"] }
+        )
+      );
+    };
+
+    setupNarrativeScene("partner");
+    setupNarrativeScene("sustainability");
+
+    const silent = root.querySelector<HTMLElement>(
+      '[data-motion-scene="silent"]'
+    );
+    if (silent) {
+      const media = silent.querySelector<HTMLElement>(
+        '[data-motion-layer="media"]'
+      );
+      const heading = silent.querySelector<HTMLElement>(
+        '[data-motion-layer="heading"]'
+      );
+      const copy = asElements(silent, '[data-motion-layer="copy"]');
+      const layers = [heading, ...copy].filter(
+        (element): element is HTMLElement => Boolean(element)
+      );
+
+      if (compactExperience) {
+        revealWhenVisible(silent, [...(media ? [media] : []), ...layers]);
+      } else {
+        register(
+          scroll(
+            (progress: number) => {
+              if (media) {
+                touched.add(media);
+                media.style.opacity = String(
+                  1 - phase(progress, 0.45, 0.9) * 0.55
+                );
+                media.style.transform = `scale(${1 + progress * 0.055}) translate3d(0, ${-progress * 22}px, 0)`;
+              }
+              layers.forEach((element, index) => {
+                touched.add(element);
+                const local = phase(
+                  progress,
+                  0.2 + index * 0.08,
+                  0.47 + index * 0.08
+                );
+                element.style.opacity = String(local);
+                element.style.transform = `translate3d(0, ${(1 - local) * 34}px, 0)`;
+              });
+            },
+            { target: silent, offset: ["start end", "end start"] }
+          )
+        );
+      }
+    }
+
+    const signature = root.querySelector<HTMLElement>(
+      '[data-motion-scene="signature"]'
+    );
+    if (signature) {
+      const heading = signature.querySelector<HTMLElement>(
+        '[data-motion-layer="heading"]'
+      );
+      if (heading) revealWhenVisible(signature, [heading], { clip: true });
+
+      asElements(signature, '[data-motion-layer="card"]').forEach((card) => {
+        if (compactExperience) {
+          revealWhenVisible(card, [card], { clip: true });
+          return;
+        }
+        register(
+          scroll(
+            (progress: number) => {
+              touched.add(card);
+              card.style.transform = `scale(${1 - progress * 0.035}) translate3d(0, ${-progress * 18}px, 0)`;
+              card.style.opacity = String(1 - progress * 0.24);
+            },
+            { target: card, offset: ["start 22%", "end 10%"] }
+          )
+        );
+      });
+    }
+
+    const brand = root.querySelector<HTMLElement>(
+      '[data-motion-scene="brand"]'
+    );
+    if (brand) {
+      const layers = asElements(brand, "[data-motion-layer]");
+      revealWhenVisible(brand, layers, { stagger: 0.11 });
+      if (!compactExperience) {
+        register(
+          scroll(
+            (progress: number) => {
+              brand.style.setProperty(
+                "--brand-wash",
+                String(phase(progress, 0.05, 0.42))
+              );
+            },
+            { target: brand, offset: ["start end", "end start"] }
+          )
+        );
+      }
+    }
+
+    const gallery = root.querySelector<HTMLElement>(
+      '[data-motion-scene="gallery"]'
+    );
+    if (gallery) {
+      const intro = asElements(gallery, '[data-motion-layer="copy"]');
+      const track = gallery.querySelector<HTMLElement>(
+        '[data-motion-layer="track"]'
+      );
+      const cta = gallery.querySelector<HTMLElement>(
+        '[data-motion-layer="cta"]'
+      );
+      revealWhenVisible(gallery, [...intro, ...(cta ? [cta] : [])]);
+
+      if (track && !compactExperience) {
+        let distance = 0;
+        const measure = () => {
+          const viewport =
+            track.parentElement?.clientWidth ?? window.innerWidth;
+          distance = Math.max(0, track.scrollWidth - viewport);
+        };
+        measure();
+        const resizeObserver = new ResizeObserver(measure);
+        resizeObserver.observe(track);
+        if (track.parentElement) resizeObserver.observe(track.parentElement);
+        register(() => resizeObserver.disconnect());
+        register(
+          scroll(
+            (progress: number) => {
+              touched.add(track);
+              track.style.transform = `translate3d(${-distance * progress}px, 0, 0)`;
+            },
+            { target: gallery, offset: ["start start", "end end"] }
+          )
+        );
+      }
+    }
+
+    const ctaScene = root.querySelector<HTMLElement>(
+      '[data-motion-scene="cta"]'
+    );
+    if (ctaScene) {
+      revealWhenVisible(ctaScene, asElements(ctaScene, "[data-motion-layer]"), {
+        stagger: 0.1,
+      });
+    }
+
+    return () => {
+      disposed = true;
+      lenisInstance?.destroy();
+      cleanups
+        .splice(0)
+        .reverse()
+        .forEach((cleanup) => cleanup());
+      runningAnimations.forEach((animation) => animation.stop());
+      runningAnimations.clear();
+      clearAnimatedStyles(touched);
+      header?.classList.remove("is-scrolled", "is-motion-ready");
+      root.classList.remove("home-motion--active");
+      delete document.documentElement.dataset.scrollMode;
+      delete root.dataset.motionExperience;
+      brand?.style.removeProperty("--brand-wash");
+    };
+  }
+
+  window.__maywoodHomeMotionEventsCleanup?.();
+  window.__maywoodHomeMotion?.destroy();
+  const lifecycle = createHomeMotionLifecycle(setupHomeMotion);
+  window.__maywoodHomeMotion = lifecycle;
+  window.__maywoodHomeMotionEventsCleanup = observeMotionPageLifecycle(
+    lifecycle,
+    scrollRestoration,
+    () => Boolean(document.querySelector("[data-home-motion]"))
+  );
+</script>
