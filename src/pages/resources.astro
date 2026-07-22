@@ -24,6 +24,10 @@ const PATH = "/resources";
 const TITLE = "Resources";
 const DESCRIPTION =
   "Technical resources for your project — Maywood Flooring brochures, technical data sheets, installation and care guides, warranty terms and compliance reports for timber, laminate and hybrid flooring.";
+const RESOURCES_HERO_IMAGE = {
+  url: "https://cdn.sanity.io/images/1soy4f28/production/4a36d89d46f888df63e1e066f264bebce06dc7f4-1250x832.jpg",
+  alt: "Maywood showroom display wall of herringbone timber flooring samples in Melbourne.",
+};
 
 const resources = await getResources();
 const hasResources = resources.length > 0;
@@ -47,6 +51,7 @@ const seo = buildContentSeo({
       title={TITLE}
       eyebrow="Resources"
       intro="Comprehensive technical resources to support your project from specification to installation — product data, compliance reports and maintenance guides."
+      image={RESOURCES_HERO_IMAGE}
     />
 
     <div class="resources__body">
