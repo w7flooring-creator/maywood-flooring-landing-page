@@ -92,7 +92,10 @@ export function shouldStagePageReveal({
     return false;
   }
 
-  return scene === "gallery" || (scene === "grid" && profile === "catalog");
+  return (
+    scene === "gallery" ||
+    (scene === "grid" && ["catalog", "editorial"].includes(profile))
+  );
 }
 
 /** Do not mutate server-rendered island markup before React has hydrated it. */

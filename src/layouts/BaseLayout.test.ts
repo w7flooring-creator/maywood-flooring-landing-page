@@ -39,6 +39,15 @@ describe("BaseLayout motion profile", () => {
     expect(html).toContain('data-transition-profile="catalog"');
   });
 
+  it("keeps the homepage background stationary during its cold entry", async () => {
+    const html = await renderLayout(undefined, {
+      transitionProfile: "home",
+    });
+
+    expect(html).toContain('data-transition-profile="home"');
+    expect(html).toContain("--maywood-cold-enter-y: 0px");
+  });
+
   it("allows an internal page to opt out of client-side transitions", async () => {
     const html = await renderLayout("none", { pageTransitions: false });
 

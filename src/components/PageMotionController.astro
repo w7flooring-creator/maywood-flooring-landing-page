@@ -250,7 +250,10 @@
             }
           }
 
-          const entersAtViewportEdge = isCatalogGrid || sceneName === "gallery";
+          const entersAtViewportEdge =
+            sceneName === "gallery" ||
+            (sceneName === "grid" &&
+              ["catalog", "editorial"].includes(profile));
           register(
             inView(layer, () => revealLayer(layer, (index % 4) * 0.065), {
               amount: entersAtViewportEdge && !compact ? 0.01 : policy.amount,

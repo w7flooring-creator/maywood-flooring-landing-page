@@ -120,7 +120,7 @@ body {
 @keyframes maywood-cold-enter {
   from {
     opacity: 0.82;
-    transform: translate3d(0, 10px, 0);
+    transform: translate3d(0, var(--maywood-cold-enter-y, 10px), 0);
   }
   to {
     opacity: 1;
@@ -301,20 +301,26 @@ html.is-navigation-loading .site-navigation-indicator > span {
   overflow-x: clip;
 }
 
-@media (min-width: 60rem) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
-  /* 品牌/系列页：短 Hero 舞台。外层提供滚动距离，内层只在 cinematic 激活后固定。 */
-  [data-page-motion].page-motion--active[data-motion-profile="editorial"][data-motion-experience="cinematic"]
+@media (scripting: enabled) and (min-width: 60rem) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  /* 品牌/系列页：首帧就预留短 Hero 舞台尺寸，避免 controller 初始化后把首屏撑大。 */
+  [data-page-motion][data-motion-profile="editorial"]
     [data-motion-scene="hero"]:has(> [data-motion-stage]) {
     min-height: 115svh;
   }
 
+  [data-page-motion][data-motion-profile="editorial"]
+    [data-motion-scene="hero"]
+    > [data-motion-stage] {
+    min-height: 100svh;
+    height: 100svh;
+  }
+
+  /* sticky 仍是渐进增强；只有 controller 确认 cinematic 能力后才固定。 */
   [data-page-motion].page-motion--active[data-motion-profile="editorial"][data-motion-experience="cinematic"]
     [data-motion-scene="hero"]
     > [data-motion-stage] {
     position: sticky;
     top: 0;
-    min-height: 100svh;
-    height: 100svh;
   }
 
   /* 只让有图的 editorial split 形成短 sticky 叙事；纯文字区保持普通文流。 */
