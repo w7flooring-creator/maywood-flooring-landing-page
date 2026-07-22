@@ -86,10 +86,7 @@ export function installNavigationTransitionRuntime({
       incoming.documentElement.dataset.transitionTo
     );
     const style = incoming.documentElement.style;
-    style.setProperty(
-      "--maywood-page-exit-duration",
-      `${timing.pageExitMs}ms`
-    );
+    style.setProperty("--maywood-page-exit-duration", `${timing.pageExitMs}ms`);
     style.setProperty(
       "--maywood-page-enter-delay",
       `${timing.pageEnterDelayMs}ms`
