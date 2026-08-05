@@ -8,6 +8,7 @@ import {
   resolvePageMotionExperience,
   resolvePageScrollMode,
   resolveRevealMotion,
+  shouldStageCompactReveal,
   shouldStagePageReveal,
 } from "./motion";
 
@@ -77,6 +78,25 @@ describe("initial viewport reveal boundary", () => {
         viewportHeight: 900,
       })
     ).toBe(true);
+  });
+
+  it("prepares compact content only while it is fully below the first viewport", () => {
+    expect(
+      shouldStageCompactReveal({
+        compact: true,
+        top: 980,
+        bottom: 1240,
+        viewportHeight: 900,
+      })
+    ).toBe(true);
+    expect(
+      shouldStageCompactReveal({
+        compact: true,
+        top: 850,
+        bottom: 1095,
+        viewportHeight: 900,
+      })
+    ).toBe(false);
   });
 });
 
@@ -165,9 +185,14 @@ describe("shared lifecycle", () => {
 
 describe("compact reveal policy", () => {
   it.each(["media", "card"] as const)(
-    "never fades compact %s layers from opacity zero",
+    "progressively reveals compact %s layers without hiding them completely",
     (layer) => {
-      expect(resolveRevealMotion(true, layer).fade).toBe(false);
+      const policy = resolveRevealMotion(true, layer);
+
+      expect(policy.fade).toBe(true);
+      expect(policy.initialOpacity).toBeGreaterThan(0);
+      expect(policy.initialOpacity).toBeLessThan(1);
+      expect(policy.margin).toBe("0px 0px -5% 0px");
     }
   );
 });
