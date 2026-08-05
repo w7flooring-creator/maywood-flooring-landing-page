@@ -124,13 +124,17 @@ describe("observeMediaChanges", () => {
 
 describe("resolveRevealMotion", () => {
   it.each(["media", "card"] as const)(
-    "keeps compact %s layers opaque while they enter",
+    "reveals compact %s layers just inside the viewport without opacity-zero flashes",
     (layer) => {
       expect(resolveRevealMotion(true, layer)).toMatchObject({
-        fade: false,
+        fade: true,
+        initialOpacity: expect.any(Number),
         amount: 0.01,
-        margin: "0px 0px 160px 0px",
+        margin: "0px 0px -5% 0px",
       });
+      expect(resolveRevealMotion(true, layer).initialOpacity).toBeGreaterThan(
+        0
+      );
     }
   );
 

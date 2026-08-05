@@ -39,10 +39,11 @@ export interface BrowserScrollRestoration {
 
 export interface RevealMotionPolicy {
   fade: boolean;
+  initialOpacity: number;
   distance: number;
   duration: number;
   amount: number;
-  margin: "0px 0px -8% 0px" | "0px 0px 160px 0px";
+  margin: "0px 0px -8% 0px" | "0px 0px -5% 0px";
 }
 
 export interface PageLayerEligibility {
@@ -60,6 +61,11 @@ export interface InitialViewportBounds {
 interface PageRevealStagingContext extends InitialViewportBounds {
   scene: string | undefined;
   profile: MotionProfile;
+  compact: boolean;
+  height?: number;
+}
+
+interface CompactRevealStagingContext extends InitialViewportBounds {
   compact: boolean;
   height?: number;
 }
@@ -98,6 +104,22 @@ export function shouldStagePageReveal({
   );
 }
 
+/** Prepare only off-screen compact content, never elements already visible. */
+export function shouldStageCompactReveal({
+  compact,
+  top,
+  bottom,
+  viewportHeight,
+  height = bottom - top,
+}: CompactRevealStagingContext): boolean {
+  return (
+    compact &&
+    height > 0 &&
+    bottom > 0 &&
+    !isInitiallyInViewport({ top, bottom, viewportHeight })
+  );
+}
+
 /** Do not mutate server-rendered island markup before React has hydrated it. */
 export function canAnimatePageLayer({
   layer,
@@ -126,6 +148,7 @@ export function resolveRevealMotion(
     }[profile];
     return {
       fade: profile !== "none",
+      initialOpacity: 0,
       ...profileMotion,
       amount: 0.16,
       margin: "0px 0px -8% 0px",
@@ -133,11 +156,12 @@ export function resolveRevealMotion(
   }
 
   return {
-    fade: layer !== "media" && layer !== "card",
-    distance: profile === "minimal" ? 10 : 18,
-    duration: profile === "minimal" ? 0.5 : 0.72,
+    fade: profile !== "none",
+    initialOpacity: layer === "media" || layer === "card" ? 0.24 : 0,
+    distance: profile === "minimal" ? 12 : 22,
+    duration: profile === "minimal" ? 0.58 : 0.82,
     amount: 0.01,
-    margin: "0px 0px 160px 0px",
+    margin: "0px 0px -5% 0px",
   };
 }
 

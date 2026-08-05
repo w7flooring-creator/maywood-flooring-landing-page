@@ -18,6 +18,7 @@
     resolveActiveScrollMode,
     resolveRevealMotion,
     resolveRequestedScrollMode,
+    shouldStageCompactReveal,
     type HomeMotionLifecycle,
   } from "@/lib/home-motion";
 
@@ -115,6 +116,7 @@
         duration?: number;
         clip?: boolean;
         fade?: boolean;
+        initialOpacity?: number;
       } = {}
     ) => {
       const {
@@ -123,6 +125,7 @@
         duration = 0.9,
         clip = false,
         fade = true,
+        initialOpacity = 0,
       } = options;
       touched.add(element);
       element.style.willChange = [
@@ -133,7 +136,7 @@
       const controls = animate(
         element,
         {
-          ...(fade ? { opacity: [0, 1] } : {}),
+          ...(fade ? { opacity: [initialOpacity, 1] } : {}),
           transform: [
             `translate3d(0, ${distance}px, 0)`,
             "translate3d(0, 0, 0)",
@@ -162,6 +165,60 @@
       elements: HTMLElement[],
       options: { clip?: boolean; stagger?: number } = {}
     ) => {
+      if (compactExperience) {
+        elements.forEach((element, index) => {
+          const rect = element.getBoundingClientRect();
+          if (
+            isInitiallyInViewport({
+              top: rect.top,
+              bottom: rect.bottom,
+              viewportHeight: window.innerHeight,
+            }) ||
+            rect.bottom <= 0
+          ) {
+            return;
+          }
+
+          const policy = resolveRevealMotion(
+            compactExperience,
+            element.dataset.motionLayer
+          );
+          if (
+            shouldStageCompactReveal({
+              compact: compactExperience,
+              top: rect.top,
+              bottom: rect.bottom,
+              viewportHeight: window.innerHeight,
+              height: rect.height,
+            })
+          ) {
+            touched.add(element);
+            if (policy.fade) {
+              element.style.opacity = String(policy.initialOpacity);
+            }
+            element.style.transform = `translate3d(0, ${policy.distance}px, 0)`;
+          }
+
+          register(
+            inView(
+              element,
+              () =>
+                animateIn(element, {
+                  delay:
+                    Math.min(index, 2) *
+                    Math.min(options.stagger ?? 0.08, 0.05),
+                  fade: policy.fade,
+                  initialOpacity: policy.initialOpacity,
+                  distance: policy.distance,
+                  duration: policy.duration,
+                }),
+              { amount: policy.amount, margin: policy.margin }
+            )
+          );
+        });
+        return;
+      }
+
       register(
         inView(
           target,
@@ -175,6 +232,7 @@
                 delay: index * (options.stagger ?? 0.08),
                 clip: options.clip && !compactExperience,
                 fade: policy.fade,
+                initialOpacity: policy.initialOpacity,
                 distance: policy.distance,
                 duration: policy.duration,
               });

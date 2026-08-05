@@ -14,6 +14,7 @@
     resolvePageMotionExperience,
     resolvePageScrollMode,
     resolveRevealMotion,
+    shouldStageCompactReveal,
     shouldStagePageReveal,
     type MotionProfile,
     type MotionLifecycle,
@@ -139,7 +140,7 @@
       const controls = animate(
         element,
         {
-          ...(policy.fade ? { opacity: [0, 1] } : {}),
+          ...(policy.fade ? { opacity: [policy.initialOpacity, 1] } : {}),
           ...(move
             ? {
                 transform: [
@@ -244,10 +245,30 @@
             // Stage only genuine below-the-fold layers. Gallery images hydrate
             // early so this happens before they can enter the viewport.
             touched.add(layer);
-            if (policy.fade) layer.style.opacity = "0";
+            if (policy.fade) {
+              layer.style.opacity = String(policy.initialOpacity);
+            }
             if (isCatalogGrid) {
               layer.style.transform = `translate3d(0, ${policy.distance}px, 0)`;
             }
+          }
+
+          if (
+            shouldStageCompactReveal({
+              compact,
+              top: rect.top,
+              bottom: rect.bottom,
+              viewportHeight: window.innerHeight,
+              height: rect.height,
+            })
+          ) {
+            // Compact reveals are prepared only while fully below the fold, so
+            // the first visible frame is already the intended animation state.
+            touched.add(layer);
+            if (policy.fade) {
+              layer.style.opacity = String(policy.initialOpacity);
+            }
+            layer.style.transform = `translate3d(0, ${policy.distance}px, 0)`;
           }
 
           const entersAtViewportEdge =
@@ -261,6 +282,51 @@
                 entersAtViewportEdge && !compact
                   ? "0px 0px 0px 0px"
                   : policy.margin,
+            })
+          );
+        });
+        return;
+      }
+
+      if (compact) {
+        layers.forEach((layer) => {
+          const rect = layer.getBoundingClientRect();
+          if (
+            isInitiallyInViewport({
+              top: rect.top,
+              bottom: rect.bottom,
+              viewportHeight: window.innerHeight,
+            }) ||
+            rect.bottom <= 0
+          ) {
+            return;
+          }
+
+          const policy = resolveRevealMotion(
+            compact,
+            layer.dataset.motionLayer,
+            profile
+          );
+          if (
+            shouldStageCompactReveal({
+              compact,
+              top: rect.top,
+              bottom: rect.bottom,
+              viewportHeight: window.innerHeight,
+              height: rect.height,
+            })
+          ) {
+            touched.add(layer);
+            if (policy.fade) {
+              layer.style.opacity = String(policy.initialOpacity);
+            }
+            layer.style.transform = `translate3d(0, ${policy.distance}px, 0)`;
+          }
+
+          register(
+            inView(layer, () => revealLayer(layer, 0), {
+              amount: policy.amount,
+              margin: policy.margin,
             })
           );
         });
