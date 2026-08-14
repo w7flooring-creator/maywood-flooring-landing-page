@@ -2,6 +2,8 @@
 
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import SignatureCollectionsGallery from "@/components/SignatureCollectionsGallery";
@@ -57,5 +59,33 @@ describe("SignatureCollectionsGallery", () => {
     expect(bushland).toHaveFocus();
     expect(bushland).toHaveAttribute("data-active", "true");
     expect(puregrain).toHaveAttribute("data-active", "false");
+  });
+
+  it("把展开比例与 3D 方位状态放在实际参与 flex 布局的面板上", () => {
+    render(<SignatureCollectionsGallery items={items} />);
+
+    const puregrain = screen.getByRole("link", { name: "Explore PureGrain" });
+    const bushland = screen.getByRole("link", { name: "Explore Bushland" });
+
+    expect(puregrain.parentElement).toHaveAttribute("data-position", "active");
+    expect(puregrain.parentElement).toHaveStyle({
+      "--signature-panel-grow": "1.0833333333333335",
+      "--signature-panel-tilt": "0deg",
+    });
+    expect(bushland.parentElement).toHaveAttribute("data-position", "after");
+    expect(bushland.parentElement).toHaveStyle({
+      "--signature-panel-grow": "1",
+      "--signature-panel-tilt": "-8deg",
+    });
+  });
+
+  it("在 617px 的内置预览宽度仍保留横向 accordion，只在手机宽度降级", () => {
+    const css = readFileSync(
+      resolve("src/components/SignatureCollectionsGallery.css"),
+      "utf8"
+    );
+
+    expect(css).toContain("@media (max-width: 32.5rem)");
+    expect(css).not.toContain("@media (max-width: 59.99rem)");
   });
 });
