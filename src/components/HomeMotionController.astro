@@ -470,22 +470,8 @@
       );
       if (heading) revealWhenVisible(signature, [heading], { clip: true });
 
-      asElements(signature, '[data-motion-layer="card"]').forEach((card) => {
-        if (compactExperience) {
-          revealWhenVisible(card, [card], { clip: true });
-          return;
-        }
-        register(
-          scroll(
-            (progress: number) => {
-              touched.add(card);
-              card.style.transform = `scale(${1 - progress * 0.035}) translate3d(0, ${-progress * 18}px, 0)`;
-              card.style.opacity = String(1 - progress * 0.24);
-            },
-            { target: card, offset: ["start 22%", "end 10%"] }
-          )
-        );
-      });
+      // SignatureCollectionsGallery 自己处理 hover / focus 的展开状态；这里仅保留
+      // 区块标题 reveal，避免旧的滚动缩放与新图廊的 flex transition 互相覆盖。
     }
 
     const brand = root.querySelector<HTMLElement>(

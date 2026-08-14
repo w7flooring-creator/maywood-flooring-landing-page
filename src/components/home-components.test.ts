@@ -1,5 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { experimental_AstroContainer as AstroContainer } from "astro/container";
+import { loadRenderers } from "astro:container";
+import { getContainerRenderer } from "@astrojs/react/container-renderer";
 import HomeHero from "@/components/HomeHero.astro";
 import ProductSelectionGrid from "@/components/ProductSelectionGrid.astro";
 import ProductSelectionCard from "@/components/ProductSelectionCard.astro";
@@ -18,6 +20,8 @@ import {
   HOME_CTA,
 } from "@/lib/home-narrative";
 import type { Collection } from "@/lib/taxonomy";
+
+const renderers = await loadRenderers([getContainerRenderer()]);
 
 /** 招牌系列 mock（getSignatureCollections() 的形状），仅含本测试关心的字段。 */
 const mockCollections: Collection[] = [
@@ -214,20 +218,22 @@ describe("SignatureCollectionCard.astro", () => {
 });
 
 describe("SignatureCollectionsSection.astro", () => {
-  it("有招牌系列时渲染居中堆叠卡，每卡链向 /<slug>", async () => {
-    const container = await AstroContainer.create();
+  it("有招牌系列时渲染可按需 hydration 的折叠图廊，每卡链向 /<slug>", async () => {
+    const container = await AstroContainer.create({ renderers });
     const html = await container.renderToString(SignatureCollectionsSection, {
       props: { collections: mockCollections },
     });
     expect(html).toContain("Maywood Signature Collections");
     expect(html).toContain('href="/puregrain"');
     expect(html).toContain('href="/bushland"');
+    expect(html).toContain("signature-gallery");
+    expect(html).toContain('client="visible"');
     expect(html).toContain("<h2");
     expect(html).not.toContain("<h1");
   });
 
   it("空数组时优雅降级：仍渲染标题 + 兜底导览链接，不输出空网格", async () => {
-    const container = await AstroContainer.create();
+    const container = await AstroContainer.create({ renderers });
     const html = await container.renderToString(SignatureCollectionsSection, {
       props: { collections: [] },
     });
@@ -235,11 +241,11 @@ describe("SignatureCollectionsSection.astro", () => {
     // 兜底链接到产品分类，避免出现空白区块
     expect(html).toContain('href="/category/engineered-flooring"');
     // 不渲染任何招牌卡
-    expect(html).not.toContain("sig-card");
+    expect(html).not.toContain("signature-gallery");
   });
 
   it("过滤掉无 slug 的系列（无法生成落地页链接）", async () => {
-    const container = await AstroContainer.create();
+    const container = await AstroContainer.create({ renderers });
     const html = await container.renderToString(SignatureCollectionsSection, {
       props: {
         collections: [

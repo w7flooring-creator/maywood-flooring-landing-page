@@ -1,6 +1,6 @@
 ---
 /**
- * SignatureCollectionsSection —— 首页灰底「招牌系列」区（居中堆叠卡）。
+ * SignatureCollectionsSection —— 首页灰底「招牌系列」区（React Bits 风格折叠图廊）。
  *
  * 卡片由 getSignatureCollections()（Sanity）驱动 —— 可重复内容建模到 CMS，
  * 不在首页硬编码系列清单（见 AGENTS.md 工作流 #4）。每卡链向营销落地页
@@ -8,13 +8,15 @@
  *
  * 本地 / 匿名读无 token → 列表可能为空（见 ADR-0003）。空态优雅降级：
  * 仍渲染区块标题与一句导览 + “Browse our products” 兜底链接，绝不输出空网格 /
- * 占位卡片。区块标题用 h2（首页唯一 h1 归 hero）。纯静态（零 client JS）。
+ * 占位卡片。非空态挂一个 client:visible island：桌面为横向展开图廊，触屏降级为
+ * 完整纵向图文卡；区块标题用 h2（首页唯一 h1 归 hero）。
  *
  * 数据获取放在调用页（index.astro）的 build 阶段，组件只接 collections 数组，
  * 便于用 Container API + mock 数据测试空/非空两态。
  */
-import SignatureCollectionCard from "@/components/SignatureCollectionCard.astro";
+import SignatureCollectionsGallery from "@/components/SignatureCollectionsGallery.tsx";
 import { SIGNATURE_COLLECTIONS_HEADING } from "@/lib/home-narrative";
+import { sanityImageSrcset, sanityImageUrl } from "@/lib/sanity-image";
 import type { Collection } from "@/lib/taxonomy";
 
 interface Props {
@@ -29,6 +31,22 @@ const items = (collections ?? []).filter(
   (c) => typeof c.slug === "string" && c.slug.length > 0
 );
 const hasItems = items.length > 0;
+const galleryItems = items.map((collection) => {
+  const imageUrl = collection.heroImage?.url ?? null;
+
+  return {
+    title: collection.title,
+    href: `/${collection.slug}`,
+    description: collection.tagline,
+    image: imageUrl
+      ? {
+          src: sanityImageUrl(imageUrl, { width: 1200 }),
+          srcSet: sanityImageSrcset(imageUrl, [480, 768, 1080, 1440]),
+          alt: collection.heroImage?.alt ?? collection.title,
+        }
+      : null,
+  };
+});
 ---
 
 <section
@@ -42,23 +60,9 @@ const hasItems = items.length > 0;
     </h2>
     {
       hasItems ? (
-        <ul class="sig__list" role="list">
-          {items.map((collection, index) => (
-            <li
-              class="sig__item"
-              data-motion-layer="card"
-              style={`--stack-index: ${index}`}
-            >
-              <SignatureCollectionCard
-                title={collection.title}
-                slug={collection.slug}
-                description={collection.tagline}
-                imageUrl={collection.heroImage?.url ?? null}
-                imageAlt={collection.heroImage?.alt ?? null}
-              />
-            </li>
-          ))}
-        </ul>
+        <div class="sig__gallery" data-motion-layer="interactive">
+          <SignatureCollectionsGallery items={galleryItems} client:visible />
+        </div>
       ) : (
         <div class="sig__empty">
           <p class="sig__empty-text">
@@ -95,14 +99,8 @@ const hasItems = items.length > 0;
     color: var(--color-ink);
   }
 
-  /* 居中堆叠卡（纵向逐张，呼应线上 signature collections 堆叠版式）。 */
-  .sig__list {
-    display: flex;
-    flex-direction: column;
-    gap: clamp(2rem, 4vw, 3rem);
-    margin: 0;
-    padding: 0;
-    list-style: none;
+  .sig__gallery {
+    min-width: 0;
   }
 
   .sig__empty {
@@ -137,26 +135,5 @@ const hasItems = items.length > 0;
   }
   .sig__empty-link:hover {
     background: #2c2c2c;
-  }
-
-  @media (min-width: 60rem) {
-    :global(.home-motion--active[data-motion-experience="cinematic"])
-      .sig__list {
-      gap: 0;
-    }
-
-    :global(.home-motion--active[data-motion-experience="cinematic"])
-      .sig__item {
-      position: sticky;
-      top: calc(6rem + var(--stack-index) * 1rem);
-      z-index: calc(10 + var(--stack-index));
-      padding-bottom: clamp(12rem, 38svh, 22rem);
-      transform-origin: top center;
-    }
-
-    :global(.home-motion--active[data-motion-experience="cinematic"])
-      .sig__item:last-child {
-      padding-bottom: 0;
-    }
   }
 </style>
