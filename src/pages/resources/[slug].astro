@@ -24,6 +24,7 @@ import {
   getResourceBySlug,
   getResourceSlugs,
   hasResourceBody,
+  buildResourceDownloadUrl,
   buildResourceBreadcrumbs,
   buildResourceSeo,
   type ResourceDetail,
@@ -71,15 +72,12 @@ const showBody = hasResourceBody(resource);
       image={resource.heroImage}
     />
 
-    {
-      showBody ? (
-        <EditorialTextBlock>
+    <EditorialTextBlock>
+      {
+        showBody ? (
           <RichTextRenderer value={resource.body} />
-        </EditorialTextBlock>
-      ) : (
-        <EditorialTextBlock>
-          {/* 空 body 优雅回落：有 excerpt 则先展示，再给回 Contact / Resources 的 CTA。
-              绝不留空白页、不 lorem。 */}
+        ) : (
+          /* 空 body 优雅回落：有 excerpt 则展示，否则用克制说明；绝不 lorem。 */
           <div class="resource__fallback">
             {resource.excerpt ? (
               <p class="resource__lead">{resource.excerpt}</p>
@@ -90,18 +88,65 @@ const showBody = hasResourceBody(resource);
                 touch and our team will help.
               </p>
             )}
-            <div class="resource__actions">
-              <a class="resource__cta" href="/contact">
-                Contact our team
-              </a>
-              <a class="resource__back" href="/resources">
-                Back to all resources
-              </a>
-            </div>
           </div>
-        </EditorialTextBlock>
-      )
-    }
+        )
+      }
+
+      {
+        resource.downloads.length > 0 && (
+          <section
+            class="resource__downloads"
+            aria-labelledby="resource-downloads-title"
+          >
+            <h2 id="resource-downloads-title" class="resource__downloads-title">
+              Downloads
+            </h2>
+            <ul class="resource__downloads-list" role="list">
+              {resource.downloads.map((download) => (
+                <li>
+                  <a
+                    class="resource__download"
+                    href={buildResourceDownloadUrl(download)}
+                    aria-label={`Download ${download.title} PDF`}
+                  >
+                    <span class="resource__download-icon" aria-hidden="true">
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.6"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z" />
+                        <path d="M14 2v6h6" />
+                      </svg>
+                      <span class="resource__download-format">PDF</span>
+                    </span>
+                    <span class="resource__download-title">
+                      {download.title}
+                    </span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )
+      }
+
+      {
+        !showBody && (
+          <div class="resource__actions">
+            <a class="resource__cta" href="/contact">
+              Contact our team
+            </a>
+            <a class="resource__back" href="/resources">
+              Back to all resources
+            </a>
+          </div>
+        )
+      }
+    </EditorialTextBlock>
 
     {
       /* 相关产品（解引用 relatedProducts）—— Phase 1 product 未灌入时为空，区块隐藏。 */
@@ -145,7 +190,7 @@ const showBody = hasResourceBody(resource);
     text-align: center;
   }
   .resource__lead {
-    margin: 0 0 1.75rem;
+    margin: 0;
     font-size: 1.0625rem;
     line-height: 1.7;
     color: var(--color-ink);
@@ -156,6 +201,7 @@ const showBody = hasResourceBody(resource);
     gap: 1rem;
     justify-content: center;
     align-items: center;
+    margin-top: 1.75rem;
   }
   .resource__cta {
     display: inline-block;
@@ -174,6 +220,78 @@ const showBody = hasResourceBody(resource);
     text-decoration: underline;
     text-underline-offset: 0.18em;
     font-size: 0.95rem;
+  }
+
+  .resource__downloads {
+    max-width: 44rem;
+    margin: 2.5rem auto 0;
+    text-align: left;
+  }
+  .resource__downloads-title {
+    margin: 0 0 1rem;
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-size: clamp(1.4rem, 2.6vw, 1.85rem);
+    line-height: 1.15;
+    color: var(--color-ink);
+  }
+  .resource__downloads-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .resource__download {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    min-height: 4.5rem;
+    padding: 0.875rem 1rem;
+    border: 1px solid var(--color-border-hairline);
+    border-radius: var(--radius-cta);
+    color: var(--color-ink);
+    text-decoration: none;
+    transition:
+      border-color 160ms ease,
+      background-color 160ms ease;
+  }
+  .resource__download:hover {
+    border-color: color-mix(in srgb, var(--color-ink) 45%, transparent);
+    background: var(--color-bg-muted);
+  }
+  .resource__download:focus-visible {
+    outline: 2px solid var(--color-ink);
+    outline-offset: 3px;
+  }
+  .resource__download-icon {
+    position: relative;
+    display: grid;
+    flex: 0 0 2.75rem;
+    width: 2.75rem;
+    height: 2.75rem;
+    place-items: center;
+    background: var(--color-bg-muted);
+    border-radius: var(--radius-cta);
+  }
+  .resource__download-icon svg {
+    width: 1.75rem;
+    height: 1.75rem;
+  }
+  .resource__download-format {
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0.35rem;
+    font-size: 0.46rem;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0.04em;
+    text-align: center;
+  }
+  .resource__download-title {
+    font-size: 1rem;
+    line-height: 1.35;
   }
 
   /* 相关产品交叉链接区。 */

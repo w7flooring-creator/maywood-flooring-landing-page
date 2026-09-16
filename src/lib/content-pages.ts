@@ -28,6 +28,14 @@ export interface ResourceRelatedProduct {
   slug: string;
 }
 
+/** Resource 详情页中的一项可下载 PDF（顺序与 Sanity 数组一致）。 */
+export interface ResourceDownload {
+  title: string;
+  url: string;
+  originalFilename: string | null;
+  mimeType: "application/pdf";
+}
+
 /**
  * `page` 文档（通用内容页：About Us / Sustainability）的投影形状。
  * body 是 Portable Text 数组（含 block 与 image），交给 RichTextRenderer 渲染。
@@ -87,6 +95,8 @@ export interface ResourceDetail {
   publishedAt: string | null;
   /** Portable Text 正文（编辑未填时为空数组 —— 详情页回落到 excerpt + CTA）。 */
   body: PortableTextBlock[];
+  /** 编辑上传并排序的 PDF；无有效文件时为空数组，页面隐藏下载区。 */
+  downloads: ResourceDownload[];
   /** 解引用的相关产品（title + slug），无引用时为空数组。 */
   relatedProducts: ResourceRelatedProduct[];
   /** 解引用的 FAQ（仅取问题文本，用于轻量交叉展示），无引用时为空数组。 */
@@ -143,6 +153,12 @@ const RESOURCE_DETAIL_PROJECTION = `{
   category,
   publishedAt,
   ${BODY_PROJECTION},
+  "downloads": downloads[]{
+    title,
+    "url": asset->url,
+    "originalFilename": asset->originalFilename,
+    "mimeType": asset->mimeType
+  },
   "relatedProducts": relatedProducts[]->{ title, "slug": slug.current },
   "faqs": faqs[]->question,
   "seoTitle": seo.metaTitle,
@@ -253,6 +269,44 @@ export function normaliseResourceFaqs(raw: unknown): string[] {
     .filter((q): q is string => q !== null);
 }
 
+/**
+ * PDF 下载归一化：保留编辑排序，缺名称/URL 或 MIME 非 PDF 的条目 fail closed。
+ * originalFilename 仅用于 Content-Disposition 下载文件名，缺失时由显示名称回落。
+ */
+export function normaliseResourceDownloads(raw: unknown): ResourceDownload[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .map((item) => {
+      if (!item || typeof item !== "object") return null;
+      const { title, url, originalFilename, mimeType } = item as {
+        title?: unknown;
+        url?: unknown;
+        originalFilename?: unknown;
+        mimeType?: unknown;
+      };
+      const t = emptyToNull(title);
+      const u = emptyToNull(url);
+      if (!t || !u || mimeType !== "application/pdf") return null;
+      return {
+        title: t,
+        url: u,
+        originalFilename: emptyToNull(originalFilename),
+        mimeType,
+      };
+    })
+    .filter((download): download is ResourceDownload => download !== null);
+}
+
+/** Sanity File CDN 用 `?dl=<filename>` 设置 attachment 与下载文件名。 */
+export function buildResourceDownloadUrl(download: ResourceDownload): string {
+  const sourceName = download.originalFilename ?? download.title;
+  const filename = sourceName.toLowerCase().endsWith(".pdf")
+    ? sourceName
+    : `${sourceName}.pdf`;
+  const separator = download.url.includes("?") ? "&" : "?";
+  return `${download.url}${separator}dl=${encodeURIComponent(filename)}`;
+}
+
 /** 归一化一条资料详情：缺字段统一收敛为 null / 空数组，页面只需判空降级。 */
 export function normaliseResourceDetail(
   raw: Record<string, unknown>
@@ -266,6 +320,7 @@ export function normaliseResourceDetail(
     category: emptyToNull(raw.category),
     publishedAt: emptyToNull(raw.publishedAt),
     body: normaliseBody(raw.body),
+    downloads: normaliseResourceDownloads(raw.downloads),
     relatedProducts: normaliseResourceRelatedProducts(raw.relatedProducts),
     faqs: normaliseResourceFaqs(raw.faqs),
     seoTitle: emptyToNull(raw.seoTitle),

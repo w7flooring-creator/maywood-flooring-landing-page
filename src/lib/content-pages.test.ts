@@ -10,8 +10,10 @@ import {
   normaliseContentPage,
   normaliseResourceSummary,
   normaliseResourceDetail,
+  normaliseResourceDownloads,
   normaliseResourceRelatedProducts,
   normaliseResourceFaqs,
+  buildResourceDownloadUrl,
   hasBody,
   hasResourceBody,
   buildContentBreadcrumbs,
@@ -86,6 +88,12 @@ describe("GROQ 构造", () => {
     expect(RESOURCE_BY_SLUG_QUERY).toContain(
       '"relatedProducts": relatedProducts[]->{ title, "slug": slug.current }'
     );
+    expect(RESOURCE_BY_SLUG_QUERY).toContain('"downloads": downloads[]{');
+    expect(RESOURCE_BY_SLUG_QUERY).toContain('"url": asset->url');
+    expect(RESOURCE_BY_SLUG_QUERY).toContain(
+      '"originalFilename": asset->originalFilename'
+    );
+    expect(RESOURCE_BY_SLUG_QUERY).toContain('"mimeType": asset->mimeType');
     expect(RESOURCE_BY_SLUG_QUERY).toContain('"faqs": faqs[]->question');
     expect(RESOURCE_BY_SLUG_QUERY).toContain('"seoTitle": seo.metaTitle');
     // 不把任何具体 slug 值插进字符串（防注入）
@@ -299,6 +307,14 @@ const fullResource: ResourceDetail = {
       markDefs: [],
     },
   ],
+  downloads: [
+    {
+      title: "Installation Guide",
+      url: "https://cdn.sanity.io/files/project/production/install.pdf",
+      originalFilename: "Maywood Installation Guide.pdf",
+      mimeType: "application/pdf",
+    },
+  ],
   relatedProducts: [{ title: "Bushland Oak", slug: "bushland-oak" }],
   faqs: ["How do I install?"],
   seoTitle: "Install | SEO",
@@ -337,6 +353,75 @@ describe("normaliseResourceFaqs —— 丢弃空/非字符串项", () => {
   });
 });
 
+describe("normaliseResourceDownloads —— 保序、仅保留完整 PDF", () => {
+  it("非数组 → []", () => {
+    expect(normaliseResourceDownloads(undefined)).toEqual([]);
+    expect(normaliseResourceDownloads(null)).toEqual([]);
+  });
+
+  it("保留排序，丢弃缺名称/URL 与非 PDF，并归一化文件名", () => {
+    expect(
+      normaliseResourceDownloads([
+        {
+          title: "Brochure One",
+          url: "https://cdn/one.pdf",
+          originalFilename: "one.pdf",
+          mimeType: "application/pdf",
+        },
+        {
+          title: "Not a PDF",
+          url: "https://cdn/two.docx",
+          originalFilename: "two.docx",
+          mimeType:
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        },
+        {
+          title: "   ",
+          url: "https://cdn/no-title.pdf",
+          mimeType: "application/pdf",
+        },
+        {
+          title: "Brochure Two",
+          url: "https://cdn/two.pdf",
+          mimeType: "application/pdf",
+        },
+      ])
+    ).toEqual([
+      {
+        title: "Brochure One",
+        url: "https://cdn/one.pdf",
+        originalFilename: "one.pdf",
+        mimeType: "application/pdf",
+      },
+      {
+        title: "Brochure Two",
+        url: "https://cdn/two.pdf",
+        originalFilename: null,
+        mimeType: "application/pdf",
+      },
+    ]);
+  });
+});
+
+describe("buildResourceDownloadUrl", () => {
+  it("优先用原始文件名并编码为 Sanity ?dl 下载参数", () => {
+    expect(buildResourceDownloadUrl(fullResource.downloads[0])).toBe(
+      "https://cdn.sanity.io/files/project/production/install.pdf?dl=Maywood%20Installation%20Guide.pdf"
+    );
+  });
+
+  it("缺原始文件名时由显示名称补 .pdf；已有 query 时使用 &", () => {
+    expect(
+      buildResourceDownloadUrl({
+        title: "Care & Maintenance",
+        url: "https://cdn/file.pdf?foo=bar",
+        originalFilename: null,
+        mimeType: "application/pdf",
+      })
+    ).toBe("https://cdn/file.pdf?foo=bar&dl=Care%20%26%20Maintenance.pdf");
+  });
+});
+
 describe("normaliseResourceDetail —— 缺字段收敛，绝不编造", () => {
   it("仅 _id/title/slug 时其余收敛为 null / 空数组", () => {
     const result = normaliseResourceDetail({
@@ -349,6 +434,7 @@ describe("normaliseResourceDetail —— 缺字段收敛，绝不编造", () => 
     expect(result.category).toBeNull();
     expect(result.publishedAt).toBeNull();
     expect(result.body).toEqual([]);
+    expect(result.downloads).toEqual([]);
     expect(result.relatedProducts).toEqual([]);
     expect(result.faqs).toEqual([]);
     expect(result.seoTitle).toBeNull();
@@ -365,12 +451,14 @@ describe("normaliseResourceDetail —— 缺字段收敛，绝不编造", () => 
       category: "Installation",
       publishedAt: "2026-01-02T00:00:00Z",
       body: fullResource.body,
+      downloads: fullResource.downloads,
       relatedProducts: [{ title: "Bushland Oak", slug: "bushland-oak" }],
       faqs: ["How do I install?"],
       seoTitle: "Install | SEO",
       seoDescription: "SEO description.",
     });
     expect(result.body).toHaveLength(1);
+    expect(result.downloads).toEqual(fullResource.downloads);
     expect(result.relatedProducts).toEqual([
       { title: "Bushland Oak", slug: "bushland-oak" },
     ]);
