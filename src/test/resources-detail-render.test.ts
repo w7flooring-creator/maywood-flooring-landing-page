@@ -38,6 +38,7 @@ const baseResource: ResourceDetail = {
   category: "Installation",
   publishedAt: "2026-01-02T00:00:00Z",
   body: [],
+  downloads: [],
   relatedProducts: [],
   faqs: [],
   seoTitle: null,
@@ -122,6 +123,7 @@ describe("/resources/[slug]", () => {
     expect(html).toContain("Contact our team");
     expect(html).toContain("Back to all resources");
     expect(html).not.toContain('class="rich-text"');
+    expect(html).not.toContain("resource__downloads");
     expect(html).not.toMatch(/lorem/i);
   });
 
@@ -149,6 +151,82 @@ describe("/resources/[slug]", () => {
     expect(html).toContain("Related products");
     expect(html).toContain('href="/product-page/bushland-oak"');
     expect(html).toContain("Bushland Oak");
+  });
+
+  it("有多份 PDF → 按顺序渲染图标、名称与强制下载链接，且位于操作按钮之前", async () => {
+    getResourceBySlug.mockResolvedValue({
+      ...baseResource,
+      downloads: [
+        {
+          title: "Maywood Range Brochure",
+          url: "https://cdn.sanity.io/files/project/production/range.pdf",
+          originalFilename: "Maywood Range 2026.pdf",
+          mimeType: "application/pdf",
+        },
+        {
+          title: "Technical Overview",
+          url: "https://cdn.sanity.io/files/project/production/technical.pdf",
+          originalFilename: null,
+          mimeType: "application/pdf",
+        },
+      ],
+    } satisfies ResourceDetail);
+
+    const html = await renderDetail("installation");
+
+    expect(html).toContain('id="resource-downloads-title"');
+    expect(html).toContain("Downloads");
+    expect(html).toContain('aria-hidden="true"');
+    expect(html).toContain('aria-label="Download Maywood Range Brochure PDF"');
+    expect(html).toContain("range.pdf?dl=Maywood%20Range%202026.pdf");
+    expect(html).toContain("technical.pdf?dl=Technical%20Overview.pdf");
+    expect(html.indexOf("Maywood Range Brochure")).toBeLessThan(
+      html.indexOf("Technical Overview")
+    );
+    expect(html.indexOf("resource__downloads")).toBeLessThan(
+      html.indexOf("Contact our team")
+    );
+  });
+
+  it("有正文与 PDF → 下载区渲染在正文之后，相关产品之前", async () => {
+    getResourceBySlug.mockResolvedValue({
+      ...baseResource,
+      body: [
+        {
+          _type: "block",
+          _key: "p1",
+          style: "normal",
+          markDefs: [],
+          children: [
+            {
+              _type: "span",
+              _key: "s1",
+              text: "Resource body copy.",
+              marks: [],
+            },
+          ],
+        },
+      ],
+      downloads: [
+        {
+          title: "Resource PDF",
+          url: "https://cdn.sanity.io/files/project/production/resource.pdf",
+          originalFilename: "resource.pdf",
+          mimeType: "application/pdf",
+        },
+      ],
+      relatedProducts: [{ title: "Bushland Oak", slug: "bushland-oak" }],
+    } satisfies ResourceDetail);
+
+    const html = await renderDetail("installation");
+
+    expect(html.indexOf("Resource body copy.")).toBeLessThan(
+      html.indexOf("resource__downloads")
+    );
+    expect(html.indexOf("resource__downloads")).toBeLessThan(
+      html.indexOf("Related products")
+    );
+    expect(html).not.toContain("Contact our team");
   });
 
   it("无文档（getStaticPaths 后内容被删）→ 重定向 /404，不渲染半成品页", async () => {

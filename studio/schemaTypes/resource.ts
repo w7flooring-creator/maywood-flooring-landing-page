@@ -5,7 +5,7 @@ import { defineType, defineField } from "sanity";
  * 保养手册、规格说明等。输出 Article 结构化数据（见 AGENTS.md「SEO」）。
  *
  * 字段对应 AGENTS.md「`blogPost` / `resource`」全清单（与 blogPost 同构）：
- *   title slug excerpt heroImage body category relatedProducts faqs publishedAt seo
+ *   title slug excerpt heroImage body category downloads relatedProducts faqs publishedAt seo
  * 与 blogPost 区分点是文档类型本身（资料 vs. 博客），便于按类型路由与列表。
  *
  * 面向非技术编辑：title/slug 必填；relatedProducts / faqs 通过引用复用既有文档。
@@ -86,6 +86,30 @@ export const resource = defineType({
       type: "string",
       description:
         "资料归类标签（如 Installation / Care & Maintenance / Warranty），便于组织与筛选。",
+    }),
+    defineField({
+      name: "downloads",
+      title: "PDF 下载资料 (Downloads)",
+      type: "array",
+      description:
+        "此资料详情页提供的 PDF 下载。可上传多份并拖动排序；未添加时页面不会显示下载区。",
+      of: [
+        {
+          type: "file",
+          options: { accept: "application/pdf" },
+          validation: (rule) => rule.required().error("请选择 PDF 文件。"),
+          fields: [
+            defineField({
+              name: "title",
+              title: "显示名称",
+              type: "string",
+              description: "网页下载项显示的名称，例如「Bushland Brochure」。",
+              validation: (rule) =>
+                rule.required().error("PDF 下载项必须有显示名称。"),
+            }),
+          ],
+        },
+      ],
     }),
     defineField({
       name: "relatedProducts",
